@@ -1,42 +1,33 @@
-# TechOn (پلتفرم جامع مدیریت و رزرواسیون فضای کار اشتراکی و سالن رویدادها)
+# Project Context Memory: `TechOn`
 
-## 📌 معرفی پروژه
-پروژه **TechOn (تکان)** یک سامانه جامع و یکپارچه برای مدیریت رزرواسیون صندلی‌های اختصاصی/اشتراکی، اتاق‌های جلسه، سالن همایش ۶۰-۷۰ نفره با خدمات پذیرایی پویا، پنل‌های عملیاتی چندسطحی (RBAC) و ویترین اطلاع‌رسانی استارتاپ‌ها و رویدادها است.
-
----
-
-## 🎯 ماژول‌ها و نیازمندی‌های اصلی
-
-### ۱. پورتال عمومی و کاربران (Client Portal)
-- **رزرو سالن همایش (۶۰-۷۰ نفره):** رزرواسیون ساعتی و روزانه، انتخاب تجهیزات جانبی (سیستم صوتی، پروژکتور، سن)، پذیرش قوانین و تأیید حوزه همایش.
-- **سفارش کافه و پذیرایی پویا:** انتخاب پکیج یا آیتم‌های منو حین رزرو سالن، تفکیک قیمت در پیش‌فاکتور و فاکتور نهایی.
-- **سیستم کدهای تخفیف:** اعمال کد تخفیف درصدی/عددی قبل از درگاه پرداخت روی صندلی، اتاق، سالن یا منوی کافه.
-- **ویترین استارتاپ‌ها و تیم‌ها:** شبکه کارتی/اسلایدر معرفی تیم‌های مستقر در تکان با قابلیت مدیریت و بروزرسانی.
-- **اخبار و رویدادها:** بلاگ و بخش رویدادهای فضای کار اشتراکی.
-- **درگاه پرداخت و صدور فاکتور:** اتصال به درگاه بانکی، ایجاد فاکتور الکترونیکی رسمی و پیامک اطلاع‌رسانی.
-
-### ۲. پنل اپراتور فضای کار (Coworking Operator)
-- تقویم زنده وضعیت صندلی‌ها و اتاق‌ها (خالی/پر).
-- ثبت سریع رزروهای تلفنی و حضوری برای همگام‌سازی لحظه‌ای.
-- مدیریت کاربران، سوابق و تاریخ پایان رزروها.
-- مدیریت لغو و جابجایی بر اساس قوانین کنسلی.
-
-### ۳. پنل اپراتور سالن همایش و کافه (Event & Cafe Operator)
-- تقویم اختصاصی سالن همایش، بررسی موضوع و تطابق با حوزه‌های مجاز جهت تأیید/رد رزرو.
-- مشاهده لیست تجهیزات جانبی درخواستی و آیتم‌های پذیرایی کافه.
-- مدیریت منوی کافه و بسته‌های پذیرایی (تعریف آیتم جدید، ویرایش قیمت‌ها، فعال/غیرفعال‌سازی).
-
-### ۴. داشبورد مدیریت ارشد و تحلیل داده (Super Admin & Analytics)
-- **گزارش‌های جامع مالی:** تفکیک درآمد از صندلی‌ها، اتاق‌ها، سالن همایش و کافه.
-- **تحلیل عملکرد:** گزارش مصرف تخفیف‌ها، ساعات پیک، نرخ بازگشت و کاربران فعال.
-- **مدیریت کدهای تخفیف:** تعریف کد، درصد/مبلغ، سقف استفاده و تاریخ انقضا.
-- **مدیریت نقش‌ها و دسترسی‌ها (RBAC):** Super Admin, Coworking Operator, Cafe/Hall Operator.
-- **لاگ‌های سیستم و پرداخت:** رهگیری تراکنش‌های ناموفق و رخدادها.
-- **مدیریت محتوا (CMS):** اخبار، رویدادها، استارتاپ‌ها.
+## 1. Project Profile
+- **Project Name**: TechOn
+- **Project Path**: `/home/rezolotion/Documents/agentic-projects/TechOn`
+- **Owner**: Reza Niamanesh (`Rezolotion`)
+- **Domain**: Comprehensive Online Commerce & Multi-Platform System with Intelligent Agent Integration
 
 ---
 
-## 🏗 ساختار فنی و فازبندی
-- **معماری دسترسی:** یکپارچه (Single Dashboard) با سیستم نقش‌محور (Role-Based Access Control).
-- **فاز ۱ (Core MVP):** رزرواسیون سالن و صندلی‌ها، سیستم سفارش کافه، کدهای تخفیف، صدور فاکتور و درگاه، پنل‌های اپراتور و ادمین.
-- **فاز ۲ (Advanced Features):** گزارش‌گیری پیشرفته تحلیلی، خودکارسازی‌های مارکتینگ و ماژول‌های تکمیلی.
+## 2. Business Framework & Responsibilities
+- **Revenue Share Agreement**:
+  - In absence of initial development fee payment and assuming technical risks by contractor, the revenue share is **10% - 15% of online sales**.
+- **Scope Split**:
+  - **Contractor**: Architecture, Web/Mobile development, CMS tool delivery, and infrastructure stability.
+  - **Client**: Content creation & entry, ongoing marketing, advertising campaigns, and direct customer acquisition.
+
+---
+
+## 3. Integrated Tech Stack & Agent Ecosystem
+1. **Frontend / UI**: [PersianLabs UI](https://github.com/persianlabs/ui) (shadcn/ui RTL, Persian financial & calendar components)
+2. **Mobile Agent Access**: [Hermes Pocket](https://github.com/traveler3022/Hermes-Pocket) (Android Kotlin Jetpack Compose client)
+3. **Auto-Documentation**: [OpenWiki](https://github.com/langchain-ai/openwiki) (Autonomous codebase docs & knowledge memory)
+4. **Persian Text Polishing**: [Salsi](http://github.com/pooooooriya/salsi) (Pasban 20k dictionary skill)
+5. **AI Knowledge Base & Chats**: [Ophel Atlas](https://github.com/urzeye/ophel) (Structured chat indexing & prompt library)
+6. **Agent Focus & State Retention**: [Focus Friendly](https://github.com/yappologistic/focus-friendly) (Session interruption resilience)
+7. **Design & UX Analysis**: [Design Oracle](https://github.com/jomvick/design-oracle) (Playwright-based UI/UX extraction)
+
+---
+
+## 4. Documentation Index
+- Business & Scope Agreement: [`docs/business-contract.md`](docs/business-contract.md)
+- Ecosystem Tools & Skills: [`docs/ecosystem-tools.md`](docs/ecosystem-tools.md)
