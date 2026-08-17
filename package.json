@@ -1,0 +1,25 @@
+{
+  "name": "techon-platform",
+  "version": "1.0.0",
+  "description": "TechOn - Coworking, Hall & Dynamic Catering Platform with AI-Enhanced Agent Architecture",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node tests/run-all-tests.js",
+    "test:hourly": "node src/scripts/cron-hourly-test.js",
+    "arch:check": "node src/scripts/cron-architecture-check.js",
+    "cron:setup": "bash src/scripts/setup-crons.sh"
+  },
+  "keywords": [
+    "techon",
+    "coworking",
+    "reservation",
+    "catering",
+    "shadcn",
+    "persianlabs-ui",
+    "rbac"
+  ],
+  "author": "Reza Niamanesh",
+  "license": "ISC"
+}

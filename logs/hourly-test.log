@@ -1,0 +1,70 @@
+[2026-08-17T14:24:50.184Z] ====================================================
+[2026-08-17T14:24:50.187Z] 🚀 STARTING TECHON 1-HOUR COMPREHENSIVE AUTOMATED TEST
+[2026-08-17T14:24:50.187Z] ====================================================
+[2026-08-17T14:24:50.187Z] 
+--- [1/6] Testing RBAC Security Guard ---
+[2026-08-17T14:24:50.187Z]   ✅ PASS: Admin can manage promos
+[2026-08-17T14:24:50.187Z]   ✅ PASS: Customer cannot review hall events
+[2026-08-17T14:24:50.187Z]   ✅ PASS: Cafe operator can manage catering
+[2026-08-17T14:24:50.187Z] 
+--- [2/6] Testing Sanitizer & Phone Validator ---
+[2026-08-17T14:24:50.187Z]   ✅ PASS: XSS tags properly stripped
+[2026-08-17T14:24:50.187Z]   ✅ PASS: Valid Iranian phone passed
+[2026-08-17T14:24:50.188Z]   ✅ PASS: Invalid phone rejected
+[2026-08-17T14:24:50.188Z] 
+--- [3/6] Testing Dynamic Catering Service ---
+[2026-08-17T14:24:50.188Z]   ✅ PASS: Menu contains initial items
+[2026-08-17T14:24:50.188Z]   ✅ PASS: Catering calculation exact (Got: 270000, Expected: 270000)
+[2026-08-17T14:24:50.188Z] 
+--- [4/6] Testing Promo Code & Discount Engine ---
+[2026-08-17T14:24:50.188Z]   ✅ PASS: Percentage promo calculated correctly
+[2026-08-17T14:24:50.189Z]   ✅ PASS: Promo maximum discount cap enforced
+[2026-08-17T14:24:50.189Z] 
+--- [5/6] Testing Reservation & Invoicing Pipeline ---
+[2026-08-17T14:24:50.189Z]   ✅ PASS: Reservation ID generated
+[2026-08-17T14:24:50.189Z]   ✅ PASS: Conference hall correctly set to PENDING_REVIEW
+[2026-08-17T14:24:50.189Z]   ❌ FAIL: Invoice contains Space, Equipment, and Catering line items
+[2026-08-17T14:24:50.190Z] 
+--- [6/6] Testing Conflict & Double Booking Protection ---
+[2026-08-17T14:24:50.190Z]   ✅ PASS: Double-booking conflict caught and prevented successfully
+[2026-08-17T14:24:50.190Z]   ✅ PASS: Analytics correctly aggregated financial stats
+[2026-08-17T14:24:50.190Z] 
+====================================================
+[2026-08-17T14:24:50.190Z] 🏁 TEST RUN SUMMARY: Passed: 14, Failed: 1
+[2026-08-17T14:24:50.190Z] ====================================================
+
+[2026-08-17T14:25:15.187Z] ====================================================
+[2026-08-17T14:25:15.190Z] 🚀 STARTING TECHON 1-HOUR COMPREHENSIVE AUTOMATED TEST
+[2026-08-17T14:25:15.190Z] ====================================================
+[2026-08-17T14:25:15.190Z] 
+--- [1/6] Testing RBAC Security Guard ---
+[2026-08-17T14:25:15.190Z]   ✅ PASS: Admin can manage promos
+[2026-08-17T14:25:15.190Z]   ✅ PASS: Customer cannot review hall events
+[2026-08-17T14:25:15.190Z]   ✅ PASS: Cafe operator can manage catering
+[2026-08-17T14:25:15.190Z] 
+--- [2/6] Testing Sanitizer & Phone Validator ---
+[2026-08-17T14:25:15.190Z]   ✅ PASS: XSS tags properly stripped
+[2026-08-17T14:25:15.191Z]   ✅ PASS: Valid Iranian phone passed
+[2026-08-17T14:25:15.191Z]   ✅ PASS: Invalid phone rejected
+[2026-08-17T14:25:15.191Z] 
+--- [3/6] Testing Dynamic Catering Service ---
+[2026-08-17T14:25:15.191Z]   ✅ PASS: Menu contains initial items
+[2026-08-17T14:25:15.191Z]   ✅ PASS: Catering calculation exact (Got: 270000, Expected: 270000)
+[2026-08-17T14:25:15.191Z] 
+--- [4/6] Testing Promo Code & Discount Engine ---
+[2026-08-17T14:25:15.192Z]   ✅ PASS: Percentage promo calculated correctly
+[2026-08-17T14:25:15.192Z]   ✅ PASS: Promo maximum discount cap enforced
+[2026-08-17T14:25:15.192Z] 
+--- [5/6] Testing Reservation & Invoicing Pipeline ---
+[2026-08-17T14:25:15.193Z]   ✅ PASS: Reservation ID generated
+[2026-08-17T14:25:15.193Z]   ✅ PASS: Conference hall correctly set to PENDING_REVIEW
+[2026-08-17T14:25:15.193Z]   ✅ PASS: Invoice contains Space, 2 Equipment items, and Catering line items
+[2026-08-17T14:25:15.193Z] 
+--- [6/6] Testing Conflict & Double Booking Protection ---
+[2026-08-17T14:25:15.194Z]   ✅ PASS: Double-booking conflict caught and prevented successfully
+[2026-08-17T14:25:15.194Z]   ✅ PASS: Analytics correctly aggregated financial stats
+[2026-08-17T14:25:15.194Z] 
+====================================================
+[2026-08-17T14:25:15.194Z] 🏁 TEST RUN SUMMARY: Passed: 15, Failed: 0
+[2026-08-17T14:25:15.194Z] ====================================================
+
