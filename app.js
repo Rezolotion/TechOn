@@ -2,6 +2,7 @@
  * TechOn Platform - Core Client Application
  * Features: Dark/Light Mode, Strict RBAC Scoping, Dynamic Catering Filters,
  * Stepped Wizard Flow, Real-time Invoicing & Analytics.
+ * Works seamlessly with backend API or standalone on GitHub Pages.
  */
 
 // Demo Users Configuration
@@ -73,35 +74,6 @@ const CATEGORY_META = {
   MEAL: { label: 'میان‌وعده و وعده غذایی', icon: '🥪' }
 };
 
-// Application State
-const state = {
-  theme: 'light',
-  currentUser: DEMO_ACCOUNTS[0], // Start as Customer
-  spaces: [],
-  cateringMenu: [],
-  selectedCategoryFilter: 'ALL',
-  selectedSpaceKey: 'CONFERENCE_HALL',
-  cateringOrders: {}, // itemId -> count
-  appliedPromo: null,
-  reservations: []
-};
-
-// Currency Formatter
-function formatCurrency(amount) {
-  if (!amount && amount !== 0) return '۰ تومان';
-  return Number(amount).toLocaleString('fa-IR') + ' تومان';
-}
-
-// Toast Notifier
-function showToast(message, type = 'success') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.innerText = message;
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.remove();
-  }, 4000);
 // Default Fallback Data for Static/Offline Deployments
 const FALLBACK_SPACES = [
   {
@@ -165,6 +137,38 @@ function setLocalStore(key, value) {
   try {
     localStorage.setItem(`techon_${key}`, JSON.stringify(value));
   } catch (e) {}
+}
+
+// Application State
+const state = {
+  theme: 'light',
+  currentUser: DEMO_ACCOUNTS[0], // Start as Customer
+  spaces: [],
+  cateringMenu: [],
+  selectedCategoryFilter: 'ALL',
+  selectedSpaceKey: 'CONFERENCE_HALL',
+  cateringOrders: {}, // itemId -> count
+  appliedPromo: null,
+  reservations: []
+};
+
+// Currency Formatter
+function formatCurrency(amount) {
+  if (!amount && amount !== 0) return '۰ تومان';
+  return Number(amount).toLocaleString('fa-IR') + ' تومان';
+}
+
+// Toast Notifier
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerText = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, 4000);
 }
 
 // API Request Wrapper with Graceful Static/Offline Fallback
@@ -406,10 +410,10 @@ function setupAuthSystem() {
 
   const authModal = document.getElementById('auth-modal');
   document.getElementById('btn-open-auth-modal')?.addEventListener('click', () => {
-    authModal.classList.remove('hidden');
+    authModal?.classList.remove('hidden');
   });
   document.getElementById('btn-close-auth')?.addEventListener('click', () => {
-    authModal.classList.add('hidden');
+    authModal?.classList.add('hidden');
   });
 
   document.getElementById('form-manual-login')?.addEventListener('submit', async (e) => {
@@ -422,7 +426,7 @@ function setupAuthSystem() {
       const matched = DEMO_ACCOUNTS.find(u => u.username === res.user.username);
       if (matched) {
         state.currentUser = matched;
-        authModal.classList.add('hidden');
+        authModal?.classList.add('hidden');
         applyRoleVisibility();
         showToast(`خوش آمدید ${matched.name}!`);
       }
@@ -448,11 +452,15 @@ function applyRoleVisibility() {
   const user = state.currentUser;
 
   // Header Badge
-  document.getElementById('current-user-avatar').innerText = user.avatar;
-  document.getElementById('current-user-name').innerText = user.name;
+  const avatarEl = document.getElementById('current-user-avatar');
+  const nameEl = document.getElementById('current-user-name');
   const roleBadge = document.getElementById('current-user-role-badge');
-  roleBadge.innerText = user.title;
-  roleBadge.className = `badge ${user.color}`;
+  if (avatarEl) avatarEl.innerText = user.avatar;
+  if (nameEl) nameEl.innerText = user.name;
+  if (roleBadge) {
+    roleBadge.innerText = user.title;
+    roleBadge.className = `badge ${user.color}`;
+  }
 
   // Active chip sync
   document.querySelectorAll('.user-chip').forEach(chip => {
@@ -461,17 +469,19 @@ function applyRoleVisibility() {
 
   // Perspective Banner
   const banner = document.getElementById('role-perspective-banner');
-  let bannerText = '';
-  if (user.role === 'CUSTOMER') {
-    bannerText = `👁️ <strong>دیدگاه مشتری (${user.name}):</strong> شما فقط به بخش‌های رزرواسیون فضا، منوی کافه و پیگیری رزروهای خود دسترسی دارید. پنل‌های مدیریتی و مالی برای شما مخفی است.`;
-  } else if (user.role === 'COWORKING_OPERATOR') {
-    bannerText = `👁️ <strong>دیدگاه اپراتور کار اشتراکی (${user.name}):</strong> شما به مدیریت رزروهای صندلی‌ها و اتاق‌ها و ثبت دستی مراجعین دسترسی دارید. گزارشات مالی کلان و سالن همایش مخفی است.`;
-  } else if (user.role === 'CAFE_OPERATOR') {
-    bannerText = `👁️ <strong>دیدگاه اپراتور سالن و کافه (${user.name}):</strong> شما به بررسی و تأیید رویدادهای سالن همایش و ویرایش منوی کافه دسترسی دارید. گزارشات مالی کلان مخفی است.`;
-  } else if (user.role === 'SUPER_ADMIN') {
-    bannerText = `👁️ <strong>دیدگاه سوپرادمین (${user.name}):</strong> شما به تمامی ۵ بخش سامانه، تاییدات، ساخت کد تخفیف و گزارشات مالی سهم درآمد (۱۰٪ الی ۱۵٪) دسترسی نامحدود دارید.`;
+  if (banner) {
+    let bannerText = '';
+    if (user.role === 'CUSTOMER') {
+      bannerText = `👁️ <strong>دیدگاه مشتری (${user.name}):</strong> شما فقط به بخش‌های رزرواسیون فضا، منوی کافه و پیگیری رزروهای خود دسترسی دارید. پنل‌های مدیریتی و مالی برای شما مخفی است.`;
+    } else if (user.role === 'COWORKING_OPERATOR') {
+      bannerText = `👁️ <strong>دیدگاه اپراتور کار اشتراکی (${user.name}):</strong> شما به مدیریت رزروهای صندلی‌ها و اتاق‌ها و ثبت دستی مراجعین دسترسی دارید. گزارشات مالی کلان و سالن همایش مخفی است.`;
+    } else if (user.role === 'CAFE_OPERATOR') {
+      bannerText = `👁️ <strong>دیدگاه اپراتور سالن و کافه (${user.name}):</strong> شما به بررسی و تأیید رویدادهای سالن همایش و ویرایش منوی کافه دسترسی دارید. گزارشات مالی کلان مخفی است.`;
+    } else if (user.role === 'SUPER_ADMIN') {
+      bannerText = `👁️ <strong>دیدگاه سوپرادمین (${user.name}):</strong> شما به تمامی ۵ بخش سامانه، تاییدات، ساخت کد تخفیف و گزارشات مالی سهم درآمد (۱۰٪ الی ۱۵٪) دسترسی نامحدود دارید.`;
+    }
+    banner.innerHTML = bannerText;
   }
-  banner.innerHTML = bannerText;
 
   // Tab permissions
   const tabBooking = document.getElementById('tab-btn-booking');
@@ -481,53 +491,56 @@ function applyRoleVisibility() {
   const tabAnalytics = document.getElementById('tab-btn-analytics');
 
   if (user.role === 'CUSTOMER') {
-    tabBooking.classList.remove('hidden');
-    tabCatering.classList.remove('hidden');
-    tabMyBookings.classList.remove('hidden');
-    tabAdmin.classList.add('hidden');
-    tabAnalytics.classList.add('hidden');
+    tabBooking?.classList.remove('hidden');
+    tabCatering?.classList.remove('hidden');
+    tabMyBookings?.classList.remove('hidden');
+    tabAdmin?.classList.add('hidden');
+    tabAnalytics?.classList.add('hidden');
 
     const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
-    if (activeTab === 'admin' || activeTab === 'analytics') tabBooking.click();
+    if (activeTab === 'admin' || activeTab === 'analytics') tabBooking?.click();
   }
 
   if (user.role === 'COWORKING_OPERATOR') {
-    tabBooking.classList.remove('hidden');
-    tabCatering.classList.remove('hidden');
-    tabMyBookings.classList.add('hidden');
-    tabAdmin.classList.remove('hidden');
-    tabAnalytics.classList.add('hidden');
-    document.getElementById('tab-admin-title').innerText = 'پنل فضای اشتراکی';
+    tabBooking?.classList.remove('hidden');
+    tabCatering?.classList.remove('hidden');
+    tabMyBookings?.classList.add('hidden');
+    tabAdmin?.classList.remove('hidden');
+    tabAnalytics?.classList.add('hidden');
+    const adminTitle = document.getElementById('tab-admin-title');
+    if (adminTitle) adminTitle.innerText = 'پنل فضای اشتراکی';
 
     document.getElementById('admin-catering-box')?.classList.add('hidden');
     document.getElementById('admin-promo-box')?.classList.add('hidden');
 
     const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
-    if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin.click();
+    if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin?.click();
   }
 
   if (user.role === 'CAFE_OPERATOR') {
-    tabBooking.classList.remove('hidden');
-    tabCatering.classList.remove('hidden');
-    tabMyBookings.classList.add('hidden');
-    tabAdmin.classList.remove('hidden');
-    tabAnalytics.classList.add('hidden');
-    document.getElementById('tab-admin-title').innerText = 'پنل سالن و کافه';
+    tabBooking?.classList.remove('hidden');
+    tabCatering?.classList.remove('hidden');
+    tabMyBookings?.classList.add('hidden');
+    tabAdmin?.classList.remove('hidden');
+    tabAnalytics?.classList.add('hidden');
+    const adminTitle = document.getElementById('tab-admin-title');
+    if (adminTitle) adminTitle.innerText = 'پنل سالن و کافه';
 
     document.getElementById('admin-catering-box')?.classList.remove('hidden');
     document.getElementById('admin-promo-box')?.classList.add('hidden');
 
     const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
-    if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin.click();
+    if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin?.click();
   }
 
   if (user.role === 'SUPER_ADMIN') {
-    tabBooking.classList.remove('hidden');
-    tabCatering.classList.remove('hidden');
-    tabMyBookings.classList.remove('hidden');
-    tabAdmin.classList.remove('hidden');
-    tabAnalytics.classList.remove('hidden');
-    document.getElementById('tab-admin-title').innerText = 'پنل مدیریت کل';
+    tabBooking?.classList.remove('hidden');
+    tabCatering?.classList.remove('hidden');
+    tabMyBookings?.classList.remove('hidden');
+    tabAdmin?.classList.remove('hidden');
+    tabAnalytics?.classList.remove('hidden');
+    const adminTitle = document.getElementById('tab-admin-title');
+    if (adminTitle) adminTitle.innerText = 'پنل مدیریت کل';
 
     document.getElementById('admin-catering-box')?.classList.remove('hidden');
     document.getElementById('admin-promo-box')?.classList.remove('hidden');
@@ -570,10 +583,11 @@ function setupNavigation() {
 async function loadSpaces() {
   try {
     const data = await apiRequest('/api/spaces');
-    state.spaces = data.spaces || [];
+    state.spaces = data.spaces || FALLBACK_SPACES;
     renderSpacesCatalog();
   } catch (err) {
-    showToast('خطا در دریافت لیست فضاها', 'error');
+    state.spaces = FALLBACK_SPACES;
+    renderSpacesCatalog();
   }
 }
 
@@ -631,12 +645,15 @@ function updateWizardStep(step) {
 async function loadCateringMenu() {
   try {
     const data = await apiRequest('/api/catering/menu');
-    state.cateringMenu = data.menu || [];
+    state.cateringMenu = data.menu || FALLBACK_CATERING;
     renderCateringBookingSelector();
     renderCateringCatalogGrid();
     setupCateringFilters();
   } catch (err) {
-    showToast('خطا در دریافت منوی پذیرایی', 'error');
+    state.cateringMenu = FALLBACK_CATERING;
+    renderCateringBookingSelector();
+    renderCateringCatalogGrid();
+    setupCateringFilters();
   }
 }
 
@@ -715,15 +732,15 @@ function renderCateringCatalogGrid() {
 
 window.selectAndBookCatering = function(itemId) {
   window.changeCateringQty(itemId, 1);
-  document.getElementById('tab-btn-booking').click();
+  document.getElementById('tab-btn-booking')?.click();
   showToast('آیتم به سفارش جاری اضافه شد.');
 };
 
 // 7. Live Pricing Calculation Engine
 function updatePriceBreakdown() {
   const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
-  const bookingType = document.getElementById('booking-type').value;
-  const duration = Number(document.getElementById('duration').value) || 1;
+  const bookingType = document.getElementById('booking-type')?.value || 'HOURLY';
+  const duration = Number(document.getElementById('duration')?.value) || 1;
 
   // Suffix label
   const suffixEl = document.getElementById('duration-suffix');
@@ -765,19 +782,27 @@ function updatePriceBreakdown() {
 
   const finalTotal = Math.max(0, subtotal - discountAmount);
 
-  document.getElementById('summary-space-fee').innerText = formatCurrency(spaceSubtotal);
-  document.getElementById('summary-equip-fee').innerText = formatCurrency(equipFee);
-  document.getElementById('summary-catering-fee').innerText = formatCurrency(cateringSubtotal);
-  
+  const spaceFeeEl = document.getElementById('summary-space-fee');
+  const equipFeeEl = document.getElementById('summary-equip-fee');
+  const cateringFeeEl = document.getElementById('summary-catering-fee');
   const discRow = document.getElementById('summary-discount-row');
-  if (discountAmount > 0) {
-    discRow.classList.remove('hidden');
-    document.getElementById('summary-discount-amount').innerText = `- ${formatCurrency(discountAmount)}`;
-  } else {
-    discRow.classList.add('hidden');
+  const discAmountEl = document.getElementById('summary-discount-amount');
+  const finalTotalEl = document.getElementById('summary-final-total');
+
+  if (spaceFeeEl) spaceFeeEl.innerText = formatCurrency(spaceSubtotal);
+  if (equipFeeEl) equipFeeEl.innerText = formatCurrency(equipFee);
+  if (cateringFeeEl) cateringFeeEl.innerText = formatCurrency(cateringSubtotal);
+  
+  if (discRow && discAmountEl) {
+    if (discountAmount > 0) {
+      discRow.classList.remove('hidden');
+      discAmountEl.innerText = `- ${formatCurrency(discountAmount)}`;
+    } else {
+      discRow.classList.add('hidden');
+    }
   }
 
-  document.getElementById('summary-final-total').innerText = formatCurrency(finalTotal);
+  if (finalTotalEl) finalTotalEl.innerText = formatCurrency(finalTotal);
 }
 
 // 8. Promo Engine
@@ -787,17 +812,19 @@ function setupPromoEngine() {
   const feedback = document.getElementById('promo-feedback');
 
   btnApply?.addEventListener('click', async () => {
-    const code = promoInput.value.trim();
+    const code = promoInput?.value.trim();
     if (!code) {
-      feedback.innerText = 'لطفاً کد تخفیف را وارد کنید.';
-      feedback.className = 'promo-feedback text-danger';
+      if (feedback) {
+        feedback.innerText = 'لطفاً کد تخفیف را وارد کنید.';
+        feedback.className = 'promo-feedback text-danger';
+      }
       return;
     }
 
     try {
       const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
-      const bookingType = document.getElementById('booking-type').value;
-      const duration = Number(document.getElementById('duration').value) || 1;
+      const bookingType = document.getElementById('booking-type')?.value || 'HOURLY';
+      const duration = Number(document.getElementById('duration')?.value) || 1;
       const baseRate = bookingType === 'DAILY' ? (space?.dailyRate || 0) : (space?.hourlyRate || 0);
       let subtotal = baseRate * duration;
       for (const [itemId, count] of Object.entries(state.cateringOrders)) {
@@ -813,19 +840,25 @@ function setupPromoEngine() {
 
       if (result.valid) {
         state.appliedPromo = result;
-        feedback.innerText = `✅ کد تخفیف "${code}" با مبلغ ${formatCurrency(result.discountAmount)} اعمال شد.`;
-        feedback.className = 'promo-feedback text-success';
+        if (feedback) {
+          feedback.innerText = `✅ کد تخفیف "${code}" با مبلغ ${formatCurrency(result.discountAmount)} اعمال شد.`;
+          feedback.className = 'promo-feedback text-success';
+        }
         updatePriceBreakdown();
       } else {
         state.appliedPromo = null;
-        feedback.innerText = `❌ ${result.reason || 'کد تخفیف نامعتبر است'}`;
-        feedback.className = 'promo-feedback text-danger';
+        if (feedback) {
+          feedback.innerText = `❌ ${result.reason || 'کد تخفیف نامعتبر است'}`;
+          feedback.className = 'promo-feedback text-danger';
+        }
         updatePriceBreakdown();
       }
     } catch (err) {
       state.appliedPromo = null;
-      feedback.innerText = `❌ ${err.message}`;
-      feedback.className = 'promo-feedback text-danger';
+      if (feedback) {
+        feedback.innerText = `❌ ${err.message}`;
+        feedback.className = 'promo-feedback text-danger';
+      }
       updatePriceBreakdown();
     }
   });
@@ -835,16 +868,16 @@ function setupPromoEngine() {
 function setupBookingSubmission() {
   const submitBtn = document.getElementById('btn-submit-booking');
   submitBtn?.addEventListener('click', async () => {
-    const custName = document.getElementById('cust-name').value.trim();
-    const custPhone = document.getElementById('cust-phone').value.trim();
-    const custEmail = document.getElementById('cust-email').value.trim();
-    const bookingType = document.getElementById('booking-type').value;
-    const duration = Number(document.getElementById('duration').value) || 1;
-    const startTime = document.getElementById('start-datetime').value;
-    const endTime = document.getElementById('end-datetime').value;
+    const custName = document.getElementById('cust-name')?.value.trim();
+    const custPhone = document.getElementById('cust-phone')?.value.trim();
+    const custEmail = document.getElementById('cust-email')?.value.trim();
+    const bookingType = document.getElementById('booking-type')?.value || 'HOURLY';
+    const duration = Number(document.getElementById('duration')?.value) || 1;
+    const startTime = document.getElementById('start-datetime')?.value;
+    const endTime = document.getElementById('end-datetime')?.value;
 
     if (!custName || !custPhone || !startTime || !endTime) {
-      showToast('لطفاً تمامی فیلدهای الزامی را تکمیل کنید.', 'error');
+      showToast('لطفاً تمامی فیلدهای الزامی (نام، تلفن، تاریخ شروع و پایان) را تکمیل کنید.', 'error');
       return;
     }
 
@@ -897,6 +930,7 @@ function setupBookingSubmission() {
 function displayInvoiceModal(invoice, reservation) {
   const modal = document.getElementById('invoice-modal');
   const content = document.getElementById('invoice-content');
+  if (!modal || !content) return;
 
   content.innerHTML = `
     <div class="invoice-receipt">
@@ -952,8 +986,10 @@ function displayInvoiceModal(invoice, reservation) {
   `;
 
   modal.classList.remove('hidden');
-  document.getElementById('btn-close-invoice').onclick = () => modal.classList.add('hidden');
-  document.getElementById('btn-done-invoice').onclick = () => modal.classList.add('hidden');
+  const btnClose = document.getElementById('btn-close-invoice');
+  const btnDone = document.getElementById('btn-done-invoice');
+  if (btnClose) btnClose.onclick = () => modal.classList.add('hidden');
+  if (btnDone) btnDone.onclick = () => modal.classList.add('hidden');
 }
 
 // 10. Customer: My Bookings
@@ -1133,10 +1169,15 @@ async function loadAnalyticsData() {
     const f = data.financials || {};
     const rev = data.revenueShare || {};
 
-    document.getElementById('metric-total-rev').innerText = formatCurrency(f.totalRevenue);
-    document.getElementById('metric-contractor-share').innerText = `${formatCurrency(rev.contractorShare10)} الی ${formatCurrency(rev.contractorShare15)}`;
-    document.getElementById('metric-catering-rev').innerText = formatCurrency(f.cateringRevenue);
-    document.getElementById('metric-discounts').innerText = formatCurrency(f.totalDiscountsGiven);
+    const totalRevEl = document.getElementById('metric-total-rev');
+    const contractorShareEl = document.getElementById('metric-contractor-share');
+    const cateringRevEl = document.getElementById('metric-catering-rev');
+    const discountsEl = document.getElementById('metric-discounts');
+
+    if (totalRevEl) totalRevEl.innerText = formatCurrency(f.totalRevenue);
+    if (contractorShareEl) contractorShareEl.innerText = `${formatCurrency(rev.contractorShare10)} الی ${formatCurrency(rev.contractorShare15)}`;
+    if (cateringRevEl) cateringRevEl.innerText = formatCurrency(f.cateringRevenue);
+    if (discountsEl) discountsEl.innerText = formatCurrency(f.totalDiscountsGiven);
 
     const breakdownEl = document.getElementById('space-revenue-breakdown');
     if (breakdownEl && f.breakdownBySpace) {
