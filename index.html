@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>TechOn | سامانه هوشمند فضاهای کاری، همایش و کافه</title>
-  <meta name="description" content="رزرواسیون هوشمند فضای کار اشتراکی، سالن همایش، خدمات تشریفات کافه و مدیریت مالی TechOn">
+  <title>TechOn | سامانه رزرواسیون فضاهای کاری، سالن همایش و کافه</title>
+  <meta name="description" content="سامانه هوشمند رزرواسیون ۶۰ صندلی اشتراکی، ۴ اتاق کار، ۱ اتاق جلسه و ۱ سالن همایش با خدمات تشریفات کافه TechOn">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -12,14 +12,13 @@
 </head>
 <body>
 
-  <!-- Ambient Lighting Effects -->
+  <!-- Background Ambient Glow -->
   <div class="ambient-glow glow-1"></div>
   <div class="ambient-glow glow-2"></div>
 
-  <!-- App Header (Mobile-First & Desktop Adaptive) -->
+  <!-- Header Navigation -->
   <header class="app-header">
     <div class="header-container">
-      <!-- Brand Identity -->
       <div class="brand-box">
         <div class="brand-icon-wrap">🚀</div>
         <div class="brand-text-wrap">
@@ -28,7 +27,7 @@
         </div>
       </div>
 
-      <!-- Desktop Nav Tabs (Hidden on mobile, uses bottom bar) -->
+      <!-- Desktop Nav Tabs -->
       <nav class="desktop-nav-tabs">
         <button class="nav-tab-btn active" data-tab="booking" id="d-tab-booking">
           <span>🏢</span>
@@ -52,14 +51,12 @@
         </button>
       </nav>
 
-      <!-- Right Header Actions: Theme & User Switcher -->
+      <!-- Right Header Actions -->
       <div class="header-actions">
-        <!-- Theme Toggle -->
-        <button class="icon-action-btn" id="theme-toggle" title="تغییر حالت شب/روز">
+        <button class="icon-action-btn" id="theme-toggle" title="تغییر تم">
           <span id="theme-icon">🌙</span>
         </button>
 
-        <!-- User Role Switcher Trigger -->
         <button class="user-profile-btn" id="btn-open-user-menu">
           <span class="user-avatar" id="current-user-avatar">👩‍💼</span>
           <div class="user-details">
@@ -72,14 +69,14 @@
     </div>
   </header>
 
-  <!-- User Role Switcher Modal / Bottom Sheet -->
+  <!-- User Role Switcher Bottom Sheet -->
   <div class="modal-overlay hidden" id="user-role-modal">
     <div class="bottom-sheet-card">
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <div>
-          <h3>تغییر نقش کاربری (جهت تست و بررسی)</h3>
-          <small>دیدگاه هر نقش را با یک کلیک مشاهده کنید</small>
+          <h3>تغییر نقش کاربری جهت تست</h3>
+          <small>دیدگاه هر نقش را با یک کلیک مشاهده فرمایید</small>
         </div>
         <button class="btn-sheet-close" id="btn-close-role-modal">✕</button>
       </div>
@@ -89,29 +86,28 @@
     </div>
   </div>
 
-  <!-- Role Context Banner (Clean & Non-Intrusive) -->
+  <!-- Role Context Alert -->
   <div class="role-alert-banner" id="role-perspective-banner">
     <div class="alert-icon">🛡️</div>
     <div class="alert-text" id="role-context-text">
-      در حال بارگذاری نقش کاربری...
+      در حال بارگذاری نقش...
     </div>
   </div>
 
-  <!-- Main Content Wrapper -->
+  <!-- Main Content Body -->
   <main class="app-main">
 
     <!-- =========================================================================
-         TAB 1: BOOKING STUDIO (Mobile-First)
+         TAB 1: BOOKING STUDIO
          ========================================================================= -->
     <section id="tab-booking" class="view-panel active">
-      <!-- Spaces Carousel / Cards Grid -->
+      <!-- 4 Spaces Showcase -->
       <div class="spaces-section">
         <div class="section-header-flex">
           <div>
-            <h2 class="section-heading">انتخاب فضای اختصاصی</h2>
-            <p class="section-subheading">فضای مناسب برای کار، جلسه یا همایش را انتخاب کنید</p>
+            <h2 class="section-heading">انتخاب فضای مورد نظر</h2>
+            <p class="section-subheading">موجودی تکان: ۶۰ صندلی کار اشتراکی، ۴ اتاق اختصاصی، ۱ اتاق جلسه و ۱ سالن همایش</p>
           </div>
-          <!-- Hourly / Daily Toggle -->
           <div class="rate-toggle-container">
             <button type="button" class="rate-btn active" id="rate-view-hourly">ساعتی</button>
             <button type="button" class="rate-btn" id="rate-view-daily">روزانه</button>
@@ -119,22 +115,22 @@
         </div>
 
         <div class="spaces-scroll-wrapper" id="spaces-cards-grid">
-          <!-- Dynamically populated space cards -->
+          <!-- Dynamically populated 4 spaces -->
         </div>
       </div>
 
-      <!-- Booking Form & Studio Grid -->
+      <!-- Two-Column Studio Layout -->
       <div class="studio-two-column-grid">
-        <!-- Configuration Column -->
+        <!-- Main Configuration Column -->
         <div class="studio-main-column">
 
-          <!-- Card 1: PersianLabs UI Jalali Calendar & Scheduling -->
+          <!-- Step 1: Jalali Calendar & Exact Time Range Picker -->
           <div class="config-card">
             <div class="config-card-header">
               <span class="step-num">۱</span>
               <div>
-                <h3>تقویم شمسی و زمان‌بندی (PersianLabs UI)</h3>
-                <small>روز و ساعت مورد نظر خود را مشخص نمایید</small>
+                <h3>انتخاب روز و ساعت دقیق حضور (شروع و پایان)</h3>
+                <small>روز را از تقویم انتخاب کرده و ساعت ورود و خروج دلخواه خود را مشخص کنید</small>
               </div>
             </div>
 
@@ -158,7 +154,7 @@
                 </div>
 
                 <div class="calendar-days-matrix" id="cal-days-matrix">
-                  <!-- Generated days cells -->
+                  <!-- Generated day cells -->
                 </div>
 
                 <div class="selected-date-callout">
@@ -167,60 +163,79 @@
                 </div>
               </div>
 
-              <!-- Time Slots & Duration Selection -->
-              <div class="time-selection-section">
-                <label class="field-label">انتخاب بازه زمانی / ساعت حضور:</label>
-                <div class="quick-time-slots" id="quick-time-slots">
-                  <button type="button" class="time-slot-pill active" data-start="09:00" data-end="11:00">۰۹:۰۰ الی ۱۱:۰۰</button>
-                  <button type="button" class="time-slot-pill" data-start="11:00" data-end="13:00">۱۱:۰۰ الی ۱۳:۰۰</button>
-                  <button type="button" class="time-slot-pill" data-start="14:00" data-end="16:00">۱۴:۰۰ الی ۱۶:۰۰</button>
-                  <button type="button" class="time-slot-pill" data-start="16:00" data-end="18:00">۱۶:۰۰ الی ۱۸:۰۰</button>
-                  <button type="button" class="time-slot-pill" data-start="18:00" data-end="21:00">۱۸:۰۰ الی ۲۱:۰۰</button>
-                </div>
-
+              <!-- Time Range Controls -->
+              <div class="time-range-picker-box">
                 <div class="form-row-2">
                   <div class="input-group">
-                    <label for="booking-type">نوع رزرو:</label>
-                    <select id="booking-type" class="form-control">
-                      <option value="HOURLY">رزرو ساعتی</option>
-                      <option value="DAILY">رزرو روزانه</option>
+                    <label for="time-start-select">⏰ ساعت ورود (شروع):</label>
+                    <select id="time-start-select" class="form-control">
+                      <!-- Generated 08:00 to 22:00 -->
                     </select>
                   </div>
+
                   <div class="input-group">
-                    <label for="duration">مدت زمان:</label>
-                    <div class="suffix-input-box">
-                      <input type="number" id="duration" class="form-control" min="1" max="30" value="2">
-                      <span class="suffix-label" id="duration-suffix">ساعت</span>
-                    </div>
+                    <label for="time-end-select">🏁 ساعت خروج (پایان):</label>
+                    <select id="time-end-select" class="form-control">
+                      <!-- Generated 09:00 to 23:00 -->
+                    </select>
                   </div>
                 </div>
 
-                <div class="form-row-2" style="display:none;">
-                  <input type="datetime-local" id="start-datetime">
-                  <input type="datetime-local" id="end-datetime">
+                <!-- Calculated Duration Banner -->
+                <div class="calculated-duration-banner">
+                  <div class="dur-info">
+                    <span>مدت زمان محاسبه‌شده:</span>
+                    <strong id="calculated-duration-display">۲ ساعت</strong>
+                  </div>
+                  <div class="dur-type-select">
+                    <label for="booking-type">نوع محاسبه:</label>
+                    <select id="booking-type" class="form-control form-control-sm">
+                      <option value="HOURLY">تعرفه ساعتی</option>
+                      <option value="DAILY">تعرفه روزانه کامل</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Desk Quantity (Only if Shared Desk is selected) -->
+                <div id="desk-quantity-box" class="desk-quantity-row hidden">
+                  <div>
+                    <label>تعداد صندلی مورد نیاز (از ۶۰ صندلی موجود):</label>
+                    <small>در صورت رزرو تیمی صندلی‌های کنار هم</small>
+                  </div>
+                  <div class="cat-stepper">
+                    <button type="button" class="btn-step" id="btn-desk-minus">−</button>
+                    <span class="step-value" id="desk-count-display">۱</span>
+                    <button type="button" class="btn-step" id="btn-desk-plus">+</button>
+                  </div>
+                </div>
+
+                <!-- Daily Days Count (If Daily Mode is Active) -->
+                <div id="daily-duration-box" class="input-group hidden" style="margin-top:0.75rem;">
+                  <label for="daily-days-input">تعداد روزهای رزرو (۱ الی ۳۰ روز):</label>
+                  <input type="number" id="daily-days-input" class="form-control" min="1" max="30" value="1">
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Card 2: Conference Hall Studio Options (Conditional) -->
+          <!-- Step 2: Conference Hall Options (Conditional) -->
           <div id="hall-extra-fields" class="config-card hidden">
             <div class="config-card-header">
               <span class="step-num">۲</span>
               <div>
-                <h3>تجهیزات و خدمات سالن همایش</h3>
-                <small>امکانات ضبط استودیویی، استیج و سیستم صوتی</small>
+                <h3>تجهیزات و خدمات سالن همایش تکان</h3>
+                <small>ضبط استودیویی، استیج و مدیریت پخش</small>
               </div>
             </div>
 
             <div class="config-card-body">
               <div class="input-group">
                 <label for="event-topic">عنوان و محور رویداد:</label>
-                <input type="text" id="event-topic" class="form-control" placeholder="مثال: همایش تخصصی هوش مصنوعی و تجارت دیجیتال">
+                <input type="text" id="event-topic" class="form-control" placeholder="مثال: رویداد تخصصی هوش مصنوعی و تجارت دیجیتال">
               </div>
 
               <div class="input-group">
-                <label for="audience-count">تعداد تقریبی حضار (حداکثر ۷۰ نفر):</label>
+                <label for="audience-count">تعداد تقریبی شرکت‌کنندگان (حداکثر ۷۰ نفر):</label>
                 <input type="number" id="audience-count" class="form-control" min="1" max="70" value="45">
               </div>
 
@@ -232,7 +247,7 @@
                       <strong>🎥 ضبط استودیویی چند دوربینه مراسم</strong>
                       <span class="addon-price">+ ۳۰۰,۰۰۰ تومان</span>
                     </div>
-                    <small>فیلم‌برداری فول‌اچ‌دی همراه با تدوین راش جهت انتشار در فضای مجازی</small>
+                    <small>فیلم‌برداری با تدوین راش جهت انتشار در شبکه‌های اجتماعی</small>
                   </div>
                 </label>
 
@@ -243,14 +258,14 @@
                       <strong>🔊 سیستم صوتی پیشرفته و میکروفون بیسیم</strong>
                       <span class="addon-price">+ ۲۰۰,۰۰۰ تومان</span>
                     </div>
-                    <small>میکروفون‌های بیسیم یقه‌ای و دستی به همراه مانیتورینگ استیج</small>
+                    <small>میکروفون‌های بیسیم یقه‌ای و دستی به همراه مدیریت صوتی استیج</small>
                   </div>
                 </label>
               </div>
             </div>
           </div>
 
-          <!-- Card 3: Catering & Coffee Selection -->
+          <!-- Step 3: Catering & Coffee Selection -->
           <div class="config-card">
             <div class="config-card-header">
               <span class="step-num">۳</span>
@@ -267,13 +282,13 @@
             </div>
           </div>
 
-          <!-- Card 4: Customer Details -->
+          <!-- Step 4: Customer Contact Info -->
           <div class="config-card">
             <div class="config-card-header">
               <span class="step-num">۴</span>
               <div>
                 <h3>مشخصات متقاضی رزرو</h3>
-                <small>پیامک تأییدیه و لینک فاکتور الکترونیک ارسال می‌شود</small>
+                <small>پیامک تاییدیه و لینک فاکتور ارسال می‌گردد</small>
               </div>
             </div>
 
@@ -289,7 +304,7 @@
                 </div>
               </div>
               <div class="input-group">
-                <label for="cust-email">ایمیل (اختیاری):</label>
+                <label for="cust-email">پست الکترونیک (اختیاری):</label>
                 <input type="email" id="cust-email" class="form-control" placeholder="info@example.com">
               </div>
             </div>
@@ -297,7 +312,7 @@
 
         </div>
 
-        <!-- Sticky Floating Invoice Column (Desktop Sidebar / Mobile Modal) -->
+        <!-- Sticky Floating Invoice Card (Desktop) -->
         <div class="studio-sidebar-column">
           <div class="glass-invoice-card">
             <div class="invoice-card-top">
@@ -305,7 +320,7 @@
                 <span class="receipt-icon">🧾</span>
                 <div>
                   <h3>پیش‌فاکتور شفاف</h3>
-                  <small>محاسبه آنی بر اساس تعرفه مصوب</small>
+                  <small>محاسبه آنی بر اساس ساعت دقیق</small>
                 </div>
               </div>
               <span class="live-pill">🟢 آنلاین</span>
@@ -318,7 +333,7 @@
               </div>
 
               <div class="invoice-row">
-                <span class="row-label">تجهیزات و خدمات سالن:</span>
+                <span class="row-label">تجهیزات و خدمات جانبی:</span>
                 <strong class="row-value" id="summary-equip-fee">۰ تومان</strong>
               </div>
 
@@ -327,7 +342,7 @@
                 <strong class="row-value" id="summary-catering-fee">۰ تومان</strong>
               </div>
 
-              <!-- Promo Code Box -->
+              <!-- Promo Code -->
               <div class="promo-box-container">
                 <label for="promo-input">🎟️ کد تخفیف سازمانی یا تبلیغاتی:</label>
                 <div class="promo-input-row">
@@ -346,14 +361,14 @@
 
               <div class="invoice-total-row">
                 <div>
-                  <span class="total-label">مبلغ نهایی فاکتور:</span>
-                  <small class="total-note">شامل کلیه خدمات و پذیرایی</small>
+                  <span class="total-label">مبلغ کل پرداختی:</span>
+                  <small class="total-note">شامل تمام ساعات و پذیرایی</small>
                 </div>
                 <strong class="final-total-amount" id="summary-final-total">۰ تومان</strong>
               </div>
             </div>
 
-            <!-- Submit Button -->
+            <!-- Submit Action -->
             <button type="button" id="btn-submit-booking" class="btn-checkout-primary">
               <span>💳</span>
               <span>ثبت نهایی و صدور فاکتور رسمی</span>
@@ -373,8 +388,8 @@
          ========================================================================= -->
     <section id="tab-catering" class="view-panel">
       <div class="section-banner">
-        <h2 class="section-heading">☕ منوی اختصاصی کافه و بار تشریفات</h2>
-        <p class="section-subheading">نوشیدنی‌های گرم تخصصی، نوشیدنی‌های دم‌سرد و پکیج‌های پذیرایی استاندارد همایش</p>
+        <h2 class="section-heading">☕ منوی اختصاصی کافه و بار تشریفات تکان</h2>
+        <p class="section-subheading">نوشیدنی‌های ۱۰۰٪ عربیکا، نوشیدنی‌های سرد دم‌آوری تخصصی و پکیج‌های جلسات</p>
       </div>
 
       <div class="category-pills-bar" id="catering-filter-tabs">
@@ -406,7 +421,7 @@
               <tr>
                 <th>شناسه رزرو</th>
                 <th>عنوان فضا</th>
-                <th>تاریخ استفاده</th>
+                <th>تاریخ و ساعت استفاده</th>
                 <th>مبلغ کل</th>
                 <th>وضعیت</th>
                 <th>رسید</th>
@@ -426,11 +441,11 @@
     <section id="tab-admin" class="view-panel">
       <div class="section-banner">
         <h2 class="section-heading" id="admin-panel-title">🛠️ پنل مدیریت و بررسی رویدادها</h2>
-        <p class="section-subheading" id="admin-panel-desc">تایید رزروهای سالن همایش و مدیریت کاتالوگ کافه</p>
+        <p class="section-subheading" id="admin-panel-desc">مدیریت ۶۰ صندلی، ۴ اتاق اختصاصی، ۱ اتاق جلسه و ۱ سالن همایش</p>
       </div>
 
       <div class="admin-grid-layout">
-        <!-- Left: Reservations List -->
+        <!-- Left: Reservations Table -->
         <div class="data-table-card">
           <div class="card-title-bar">
             <h3>📋 فهرست رزروها</h3>
@@ -443,7 +458,7 @@
                   <th>شناسه</th>
                   <th>فضا</th>
                   <th>متقاضی</th>
-                  <th>عنوان رویداد</th>
+                  <th>ساعت حضور</th>
                   <th>مبلغ</th>
                   <th>وضعیت</th>
                   <th>عملیات</th>
@@ -578,7 +593,7 @@
   </main>
 
   <!-- =========================================================================
-       MOBILE STICKY BOTTOM CHECKOUT BAR (Visible on Mobile)
+       MOBILE STICKY BOTTOM CHECKOUT BAR
        ========================================================================= -->
   <div class="mobile-sticky-checkout-bar" id="mobile-checkout-bar">
     <div class="mobile-checkout-price-info">
@@ -592,7 +607,7 @@
   </div>
 
   <!-- =========================================================================
-       MOBILE BOTTOM NAVIGATION TAB BAR (App-Style)
+       MOBILE BOTTOM NAVIGATION TAB BAR
        ========================================================================= -->
   <nav class="mobile-app-bottom-nav">
     <button class="mobile-nav-item active" data-tab="booking" id="m-tab-booking">

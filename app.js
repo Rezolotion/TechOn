@@ -1,7 +1,7 @@
 /**
  * TechOn Platform - Mobile-First Client Application
- * Features: PersianLabs UI Jalali Calendar, App-style Bottom Navigation,
- * Touch-optimized Steppers, Real-time Pricing & Invoicing.
+ * Features: 4 Exact Space Inventories (60 Desks, 4 Offices, 1 Meeting Room, 1 Hall),
+ * Custom Time Range Picker (Start Hour -> End Hour), PersianLabs UI Jalali Calendar.
  */
 
 // Demo Users Configuration
@@ -48,15 +48,59 @@ const DEMO_ACCOUNTS = [
     role: 'SUPER_ADMIN',
     title: 'سوپرادمین (مدیریت کل)',
     avatar: '👑',
-    desc: 'دسترسی نامحدود به تمامی بخش‌ها و گزارشات مالی سهم ۱۰-۱۵٪'
+    desc: 'دسترسی نامحدود به تمامی ماژول‌ها و گزارشات مالی سهم ۱۰-۱۵٪'
+  }
+];
+
+// 4 Exact Spaces of TechOn
+const FALLBACK_SPACES = [
+  {
+    key: 'CONFERENCE_HALL',
+    id: 'hall-main',
+    name: 'سالن همایش و رویداد تکان (۱ سالن)',
+    count: 1,
+    capacity: 70,
+    hourlyRate: 1500000,
+    dailyRate: 10000000,
+    features: ['پروژکتور 4K', 'سیستم صوتی استودیویی', 'استیج و تریبون', 'نورپردازی تخصصی', 'اینترنت فیبر نوری']
+  },
+  {
+    key: 'MEETING_ROOM',
+    id: 'meeting-room-1',
+    name: 'اتاق جلسه و ویدیوکنفرانس (۱ اتاق)',
+    count: 1,
+    capacity: 12,
+    hourlyRate: 250000,
+    dailyRate: 1600000,
+    features: ['نمایشگر ۶۵ اینچ 4K', 'تخته وایت‌برد شیشه‌ای', 'تجهیزات وب‌کم کنفرانس', 'پذیرایی جلسه']
+  },
+  {
+    key: 'PRIVATE_OFFICE',
+    id: 'office-private',
+    name: 'اتاق کار اختصاصی تیم (۴ اتاق)',
+    count: 4,
+    capacity: 6,
+    hourlyRate: 350000,
+    dailyRate: 2400000,
+    features: ['۴ اتاق مجزا', 'تخته وایت‌برد', 'میز کنفرانس کوچک', 'کمد کلیددار اختصاصی']
+  },
+  {
+    key: 'SHARED_DESK',
+    id: 'desk-shared',
+    name: 'صندلی کار اشتراکی (۶۰ صندلی)',
+    count: 60,
+    capacity: 1,
+    hourlyRate: 40000,
+    dailyRate: 250000,
+    features: ['۶۰ صندلی استاندارد', 'صندلی ارگونومیک', 'پریز اختصاصی', 'اینترنت پرسرعت', 'چای و قهوه رایگان']
   }
 ];
 
 const SPACE_VISUALS = {
-  CONFERENCE_HALL: { icon: '🏛️', tag: 'سالن همایش و رویداد', desc: 'ظرفیت ۷۰ نفر با استیج و سیستم صوتی' },
-  PRIVATE_OFFICE: { icon: '💼', tag: 'اتاق اختصاصی تیم', desc: 'تیم‌های ۴ الی ۶ نفره با میز کنفرانس' },
-  DEDICATED_DESK: { icon: '🪑', tag: 'صندلی اختصاصی', desc: 'رزرو ماهانه و روزانه با کمد کلیددار' },
-  SHARED_DESK: { icon: '💻', tag: 'صندلی اشتراکی', desc: 'فضای عمومی پر انرژی با اینترنت پرسرعت' }
+  CONFERENCE_HALL: { icon: '🏛️', tag: '۱ سالن همایش ۷۰ نفره' },
+  MEETING_ROOM: { icon: '👥', tag: '۱ اتاق جلسه ۱۲ نفره' },
+  PRIVATE_OFFICE: { icon: '💼', tag: '۴ اتاق کار اختصاصی' },
+  SHARED_DESK: { icon: '💻', tag: '۶۰ صندلی کار اشتراکی' }
 };
 
 const CATEGORY_META = {
@@ -76,45 +120,6 @@ const PERSIAN_WEEKDAY_NAMES = [
   'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'
 ];
 
-const FALLBACK_SPACES = [
-  {
-    key: 'CONFERENCE_HALL',
-    id: 'hall-main',
-    name: 'سالن همایش و رویداد تکان',
-    capacity: 70,
-    hourlyRate: 1500000,
-    dailyRate: 10000000,
-    features: ['پروژکتور 4K', 'سیستم صوتی استودیویی', 'استیج و تریبون', 'نورپردازی تخصصی', 'اینترنت فیبر نوری']
-  },
-  {
-    key: 'PRIVATE_OFFICE',
-    id: 'office-private',
-    name: 'اتاق کار اختصاصی تیم ۴-۶ نفره',
-    capacity: 6,
-    hourlyRate: 350000,
-    dailyRate: 2400000,
-    features: ['تخته وایت‌برد', 'میز کنفرانس کوچک', 'کمد اختصاصی']
-  },
-  {
-    key: 'DEDICATED_DESK',
-    id: 'desk-dedicated',
-    name: 'صندلی اختصاصی (ماهانه/روزانه)',
-    capacity: 1,
-    hourlyRate: 60000,
-    dailyRate: 400000,
-    features: ['پریز اختصاصی', 'صندلی ارگونومیک', 'کمد کلیددار']
-  },
-  {
-    key: 'SHARED_DESK',
-    id: 'desk-shared',
-    name: 'صندلی اشتراکی (فلکسیبل)',
-    capacity: 1,
-    hourlyRate: 40000,
-    dailyRate: 250000,
-    features: ['فضای عمومی خلاق', 'اینترنت پرسرعت', 'چای و قهوه رایگان']
-  }
-];
-
 const FALLBACK_CATERING = [
   { id: 'cat-pkg-standard', name: 'پکیج استاندارد همایش (چای، نسکافه، آبمیوه، کیک تازه)', category: 'PACKAGE', price: 45000 },
   { id: 'cat-pkg-vip', name: 'پکیج تشریفات VIP (قهوه دمی تخصصی، فینگرفود، آبمیوه طبیعی)', category: 'PACKAGE', price: 95000 },
@@ -124,7 +129,7 @@ const FALLBACK_CATERING = [
   { id: 'cat-snack-croissant', name: 'کروسان فرانسوی با شکلات فندقی', category: 'SNACK', price: 42000 }
 ];
 
-// Jalali Calendar Algorithm (Accurate conversion)
+// Jalali Algorithms
 function gregorianToJalali(gy, gm, gd) {
   const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
   let gy2 = (gm > 2) ? (gy + 1) : gy;
@@ -186,29 +191,34 @@ function setLocalStore(key, value) {
   } catch (e) {}
 }
 
-// Application State
 const nowG = new Date();
 const initialJalali = gregorianToJalali(nowG.getFullYear(), nowG.getMonth() + 1, nowG.getDate());
 
+// Application State
 const state = {
   theme: 'dark',
   currentUser: DEMO_ACCOUNTS[0],
   spaces: [],
   cateringMenu: [],
-  rateMode: 'HOURLY',
+  rateMode: 'HOURLY', // 'HOURLY' or 'DAILY'
   selectedSpaceKey: 'CONFERENCE_HALL',
   selectedCateringFilter: 'ALL',
   cateringOrders: {}, // itemId -> quantity
   appliedPromo: null,
   reservations: [],
+  deskCount: 1,
+  dailyDays: 1,
+  timeRange: {
+    start: '09:00',
+    end: '11:00',
+    calculatedHours: 2
+  },
   calendar: {
     viewYear: initialJalali.jy,
-    viewMonth: initialJalali.jm, // 1 - 12
+    viewMonth: initialJalali.jm,
     selectedYear: initialJalali.jy,
     selectedMonth: initialJalali.jm,
-    selectedDay: initialJalali.jd,
-    timeSlotStart: '09:00',
-    timeSlotEnd: '11:00'
+    selectedDay: initialJalali.jd
   }
 };
 
@@ -288,7 +298,11 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 
   if (path.includes('/api/reservations') && method === 'POST') {
     const space = FALLBACK_SPACES.find(s => s.key === body.spaceKey) || FALLBACK_SPACES[0];
-    const spaceSubtotal = (body.bookingType === 'DAILY' ? space.dailyRate : space.hourlyRate) * (body.duration || 1);
+    const units = body.spaceKey === 'SHARED_DESK' ? (body.deskCount || 1) : 1;
+    const duration = body.duration || 1;
+    const baseRate = body.bookingType === 'DAILY' ? space.dailyRate : space.hourlyRate;
+    const spaceSubtotal = baseRate * duration * units;
+
     let equipFee = 0;
     (body.equipment || []).forEach(e => {
       if (e === 'recording') equipFee += 300000;
@@ -317,8 +331,9 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
       invoiceNumber,
       spaceKey: body.spaceKey,
       spaceName: space.name,
+      units,
       bookingType: body.bookingType,
-      duration: body.duration,
+      duration,
       startTime: body.startTime,
       endTime: body.endTime,
       customer: { name: body.customerName, phone: body.customerPhone, email: body.customerEmail },
@@ -334,9 +349,9 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
       reservationId: id,
       customer: reservation.customer,
       items: [
-        { title: `رزرو ${space.name} (${body.duration} ${body.bookingType === 'DAILY' ? 'روز' : 'ساعت'})`, amount: spaceSubtotal },
+        { title: `رزرو ${space.name} ${units > 1 ? `(${toPersianDigits(units)} صندلی)` : ''} - ${toPersianDigits(duration)} ${body.bookingType === 'DAILY' ? 'روز' : 'ساعت'}`, amount: spaceSubtotal },
         ...reservation.equipment.map(e => ({ title: e.name, amount: e.fee })),
-        ...cateringDetails.map(c => ({ title: `${c.name} (${c.quantity} عدد)`, amount: c.subtotal }))
+        ...cateringDetails.map(c => ({ title: `${c.name} (${toPersianDigits(c.quantity)} عدد)`, amount: c.subtotal }))
       ],
       subtotal: gross,
       discountAmount: discount,
@@ -384,9 +399,10 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         cateringRevenue: catRev,
         totalDiscountsGiven: discRev,
         breakdownBySpace: {
-          CONFERENCE_HALL: { revenue: Math.round(totalRev * 0.65), count: 3 },
-          PRIVATE_OFFICE: { revenue: Math.round(totalRev * 0.2), count: 2 },
-          SHARED_DESK: { revenue: Math.round(totalRev * 0.15), count: 4 }
+          CONFERENCE_HALL: { revenue: Math.round(totalRev * 0.55), count: 3 },
+          MEETING_ROOM: { revenue: Math.round(totalRev * 0.15), count: 3 },
+          PRIVATE_OFFICE: { revenue: Math.round(totalRev * 0.18), count: 2 },
+          SHARED_DESK: { revenue: Math.round(totalRev * 0.12), count: 5 }
         }
       },
       revenueShare: {
@@ -489,11 +505,11 @@ function applyRoleVisibility() {
     if (user.role === 'CUSTOMER') {
       bannerEl.innerHTML = `<strong>دیدگاه مشتری (${user.name}):</strong> دسترسی به رزرواسیون فضا، منوی کافه و پیگیری سفارش‌ها.`;
     } else if (user.role === 'COWORKING_OPERATOR') {
-      bannerEl.innerHTML = `<strong>دیدگاه اپراتور فضای کار (${user.name}):</strong> دسترسی به مدیریت ظرفیت صندلی‌ها و ثبت دستی.`;
+      bannerEl.innerHTML = `<strong>دیدگاه اپراتور فضای کار (${user.name}):</strong> دسترسی به مدیریت ۶۰ صندلی، ۴ اتاق اختصاصی و ثبت دستی.`;
     } else if (user.role === 'CAFE_OPERATOR') {
       bannerEl.innerHTML = `<strong>دیدگاه اپراتور سالن و کافه (${user.name}):</strong> بررسی و تأیید همایش‌ها و ویرایش منوی کافه.`;
     } else if (user.role === 'SUPER_ADMIN') {
-      bannerEl.innerHTML = `<strong>دیدگاه سوپرادمین (${user.name}):</strong> دسترسی نامحدود به تمامی ماژول‌ها و گزارشات مالی سهم درآمد (۱۰٪ - ۱۵٪).`;
+      bannerEl.innerHTML = `<strong>دیدگاه سوپرادمین (${user.name}):</strong> دسترسی کامل به تمامی بخش‌ها و گزارشات مالی سهم درآمد (۱۰٪ - ۱۵٪).`;
     }
   }
 
@@ -554,48 +570,30 @@ function applyRoleVisibility() {
     document.getElementById('admin-promo-box')?.classList.remove('hidden');
   }
 
-  // Pre-fill inputs
   const nameInput = document.getElementById('cust-name');
   const phoneInput = document.getElementById('cust-phone');
   if (nameInput && user.role === 'CUSTOMER') nameInput.value = user.name;
   if (phoneInput && user.role === 'CUSTOMER') phoneInput.value = user.phone;
 
-  // Refresh active tab
   const activeTab = document.querySelector('.mobile-nav-item.active')?.dataset.tab;
   if (activeTab === 'my-bookings') loadMyBookings();
   if (activeTab === 'admin') loadAdminData();
   if (activeTab === 'analytics') loadAnalyticsData();
 }
 
-// 4. Synchronized Desktop & Mobile Navigation
+// 4. Synchronized Navigation
 function setupNavigation() {
   const desktopTabs = document.querySelectorAll('.nav-tab-btn');
   const mobileTabs = document.querySelectorAll('.mobile-nav-item');
 
-  desktopTabs.forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-  });
-
-  mobileTabs.forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-  });
+  desktopTabs.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+  mobileTabs.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 }
 
 function switchTab(tabId) {
-  // Update Desktop
-  document.querySelectorAll('.nav-tab-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.tab === tabId);
-  });
-
-  // Update Mobile
-  document.querySelectorAll('.mobile-nav-item').forEach(b => {
-    b.classList.toggle('active', b.dataset.tab === tabId);
-  });
-
-  // Update Views
-  document.querySelectorAll('.view-panel').forEach(v => {
-    v.classList.toggle('active', v.id === `tab-${tabId}`);
-  });
+  document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.view-panel').forEach(v => v.classList.toggle('active', v.id === `tab-${tabId}`));
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -604,7 +602,7 @@ function switchTab(tabId) {
   if (tabId === 'analytics') loadAnalyticsData();
 }
 
-// 5. PersianLabs UI Jalali Calendar Component
+// 5. PersianLabs UI Jalali Calendar & Custom Time Range Selector
 function setupJalaliCalendar() {
   document.getElementById('btn-cal-prev')?.addEventListener('click', () => {
     state.calendar.viewMonth--;
@@ -624,37 +622,21 @@ function setupJalaliCalendar() {
     renderCalendar();
   });
 
-  // Quick Time Slots
-  document.querySelectorAll('.time-slot-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('.time-slot-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      state.calendar.timeSlotStart = pill.dataset.start;
-      state.calendar.timeSlotEnd = pill.dataset.end;
-      updateSyncDateTimes();
-      updatePriceBreakdown();
-    });
-  });
-
   renderCalendar();
+  setupTimeRangeDropdowns();
 }
 
 function renderCalendar() {
   const { viewYear, viewMonth, selectedYear, selectedMonth, selectedDay } = state.calendar;
 
-  // Header month title
   const titleEl = document.getElementById('cal-month-title');
   if (titleEl) {
     titleEl.innerText = `${PERSIAN_MONTH_NAMES[viewMonth - 1]} ${toPersianDigits(viewYear)}`;
   }
 
-  // Days count in Jalali month
   const totalDays = (viewMonth <= 6) ? 31 : (viewMonth <= 11 ? 30 : 29);
-
-  // Day of week for first day of Jalali month
   const firstG = jalaliToGregorian(viewYear, viewMonth, 1);
   const firstDateObj = new Date(firstG.gy, firstG.gm - 1, firstG.gd);
-  // Gregorian: 0 is Sunday. In Persian calendar: Saturday is 0, Sunday is 1 ... Friday is 6
   const gDay = firstDateObj.getDay();
   const jalaliFirstDayIndex = (gDay + 1) % 7;
 
@@ -662,12 +644,10 @@ function renderCalendar() {
   if (!matrixEl) return;
 
   let html = '';
-  // Empty padding cells before first day
   for (let i = 0; i < jalaliFirstDayIndex; i++) {
     html += `<div class="cal-day-cell disabled" style="visibility:hidden;"></div>`;
   }
 
-  // Day cells
   for (let d = 1; d <= totalDays; d++) {
     const isSelected = (viewYear === selectedYear && viewMonth === selectedMonth && d === selectedDay);
     const isToday = (viewYear === initialJalali.jy && viewMonth === initialJalali.jm && d === initialJalali.jd);
@@ -704,12 +684,98 @@ function updateSelectedDateText() {
   }
 }
 
+// Generate Time Slots for Dropdowns
+function setupTimeRangeDropdowns() {
+  const selectStart = document.getElementById('time-start-select');
+  const selectEnd = document.getElementById('time-end-select');
+  if (!selectStart || !selectEnd) return;
+
+  const timeOptions = [];
+  for (let h = 8; h <= 22; h++) {
+    const hh = String(h).padStart(2, '0');
+    timeOptions.push(`${hh}:00`);
+    timeOptions.push(`${hh}:30`);
+  }
+  timeOptions.push('23:00');
+
+  selectStart.innerHTML = timeOptions.slice(0, -1).map(t => {
+    const selected = t === state.timeRange.start ? 'selected' : '';
+    return `<option value="${t}" ${selected}>${toPersianDigits(t)}</option>`;
+  }).join('');
+
+  selectEnd.innerHTML = timeOptions.slice(1).map(t => {
+    const selected = t === state.timeRange.end ? 'selected' : '';
+    return `<option value="${t}" ${selected}>${toPersianDigits(t)}</option>`;
+  }).join('');
+
+  const recalculateTimeRange = () => {
+    const startVal = selectStart.value;
+    const endVal = selectEnd.value;
+
+    const [sh, sm] = startVal.split(':').map(Number);
+    const [eh, em] = endVal.split(':').map(Number);
+
+    const startMinutes = sh * 60 + sm;
+    const endMinutes = eh * 60 + em;
+
+    if (endMinutes <= startMinutes) {
+      showToast('ساعت پایان باید بعد از ساعت شروع باشد.', 'error');
+      // Auto adjust end time to 2 hours later
+      const newEndMinutes = Math.min(23 * 60, startMinutes + 120);
+      const newEh = String(Math.floor(newEndMinutes / 60)).padStart(2, '0');
+      const newEm = String(newEndMinutes % 60).padStart(2, '0');
+      selectEnd.value = `${newEh}:${newEm}`;
+    }
+
+    const [finalEh, finalEm] = selectEnd.value.split(':').map(Number);
+    const finalDiffMinutes = (finalEh * 60 + finalEm) - (sh * 60 + sm);
+    const durationHours = Math.max(0.5, finalDiffMinutes / 60);
+
+    state.timeRange.start = selectStart.value;
+    state.timeRange.end = selectEnd.value;
+    state.timeRange.calculatedHours = durationHours;
+
+    const displayEl = document.getElementById('calculated-duration-display');
+    if (displayEl) {
+      displayEl.innerText = `${toPersianDigits(durationHours)} ساعت (${toPersianDigits(state.timeRange.start)} الی ${toPersianDigits(state.timeRange.end)})`;
+    }
+
+    updateSyncDateTimes();
+    updatePriceBreakdown();
+  };
+
+  selectStart.addEventListener('change', recalculateTimeRange);
+  selectEnd.addEventListener('change', recalculateTimeRange);
+
+  // Setup Desk Steppers
+  document.getElementById('btn-desk-minus')?.addEventListener('click', () => {
+    state.deskCount = Math.max(1, state.deskCount - 1);
+    document.getElementById('desk-count-display').innerText = toPersianDigits(state.deskCount);
+    updatePriceBreakdown();
+  });
+
+  document.getElementById('btn-desk-plus')?.addEventListener('click', () => {
+    state.deskCount = Math.min(60, state.deskCount + 1);
+    document.getElementById('desk-count-display').innerText = toPersianDigits(state.deskCount);
+    updatePriceBreakdown();
+  });
+
+  // Daily days input
+  document.getElementById('daily-days-input')?.addEventListener('input', (e) => {
+    state.dailyDays = Math.max(1, Number(e.target.value) || 1);
+    updatePriceBreakdown();
+  });
+
+  recalculateTimeRange();
+}
+
 function updateSyncDateTimes() {
-  const { selectedYear, selectedMonth, selectedDay, timeSlotStart, timeSlotEnd } = state.calendar;
+  const { selectedYear, selectedMonth, selectedDay } = state.calendar;
+  const { start, end } = state.timeRange;
   const g = jalaliToGregorian(selectedYear, selectedMonth, selectedDay);
 
-  const startISO = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}T${timeSlotStart}:00`;
-  const endISO = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}T${timeSlotEnd}:00`;
+  const startISO = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}T${start}:00`;
+  const endISO = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}T${end}:00`;
 
   const startEl = document.getElementById('start-datetime');
   const endEl = document.getElementById('end-datetime');
@@ -744,7 +810,7 @@ function renderSpacesShowcase() {
         <div>
           <div class="space-card-top-row">
             <div class="space-card-icon">${v.icon}</div>
-            <span class="capacity-tag">ظرفیت ${toPersianDigits(s.capacity)} نفر</span>
+            <span class="capacity-tag">${v.tag}</span>
           </div>
           <h3 class="space-card-title">${s.name}</h3>
           <div class="space-card-price">${rateText} <small>${suffix}</small></div>
@@ -758,6 +824,12 @@ function renderSpacesShowcase() {
       </div>
     `;
   }).join('');
+
+  // Show/Hide desk quantity box
+  const deskBox = document.getElementById('desk-quantity-box');
+  if (deskBox) {
+    deskBox.classList.toggle('hidden', state.selectedSpaceKey !== 'SHARED_DESK');
+  }
 }
 
 window.selectSpace = function(key) {
@@ -777,12 +849,14 @@ function setupRateToggle() {
   const btnHourly = document.getElementById('rate-view-hourly');
   const btnDaily = document.getElementById('rate-view-daily');
   const selectType = document.getElementById('booking-type');
+  const dailyBox = document.getElementById('daily-duration-box');
 
   btnHourly?.addEventListener('click', () => {
     btnHourly.classList.add('active');
     btnDaily?.classList.remove('active');
     state.rateMode = 'HOURLY';
     if (selectType) selectType.value = 'HOURLY';
+    dailyBox?.classList.add('hidden');
     renderSpacesShowcase();
     updatePriceBreakdown();
   });
@@ -792,6 +866,7 @@ function setupRateToggle() {
     btnHourly?.classList.remove('active');
     state.rateMode = 'DAILY';
     if (selectType) selectType.value = 'DAILY';
+    dailyBox?.classList.remove('hidden');
     renderSpacesShowcase();
     updatePriceBreakdown();
   });
@@ -801,9 +876,11 @@ function setupRateToggle() {
     if (state.rateMode === 'DAILY') {
       btnDaily?.classList.add('active');
       btnHourly?.classList.remove('active');
+      dailyBox?.classList.remove('hidden');
     } else {
       btnHourly?.classList.add('active');
       btnDaily?.classList.remove('active');
+      dailyBox?.classList.add('hidden');
     }
     renderSpacesShowcase();
     updatePriceBreakdown();
@@ -904,20 +981,15 @@ window.addCateringFromCatalog = function(itemId) {
   showToast('آیتم به سفارش جاری اضافه شد.');
 };
 
-// 8. Live Pricing Engine
+// 8. Live Price Calculation with Custom Hours & Desk Units
 function updatePriceBreakdown() {
-  const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
-  const bookingType = document.getElementById('booking-type')?.value || 'HOURLY';
-  const duration = Number(document.getElementById('duration')?.value) || 1;
+  const space = state.spaces.find(s => s.key === state.selectedSpaceKey) || FALLBACK_SPACES[0];
+  const isDaily = state.rateMode === 'DAILY';
+  const duration = isDaily ? state.dailyDays : state.timeRange.calculatedHours;
+  const units = state.selectedSpaceKey === 'SHARED_DESK' ? state.deskCount : 1;
 
-  const suffixEl = document.getElementById('duration-suffix');
-  if (suffixEl) suffixEl.innerText = bookingType === 'DAILY' ? 'روز' : 'ساعت';
-
-  let spaceSubtotal = 0;
-  if (space) {
-    const rate = bookingType === 'DAILY' ? space.dailyRate : space.hourlyRate;
-    spaceSubtotal = rate * duration;
-  }
+  const rate = isDaily ? space.dailyRate : space.hourlyRate;
+  const spaceSubtotal = rate * duration * units;
 
   let equipFee = 0;
   if (state.selectedSpaceKey === 'CONFERENCE_HALL') {
@@ -958,7 +1030,10 @@ function updatePriceBreakdown() {
   const discAmountEl = document.getElementById('summary-discount-amount');
   const finalTotalEl = document.getElementById('summary-final-total');
 
-  if (spaceNameEl && space) spaceNameEl.innerText = `رزرو ${space.name}:`;
+  const unitText = units > 1 ? ` (${toPersianDigits(units)} صندلی)` : '';
+  const durText = isDaily ? `${toPersianDigits(duration)} روز` : `${toPersianDigits(duration)} ساعت (${toPersianDigits(state.timeRange.start)} الی ${toPersianDigits(state.timeRange.end)})`;
+
+  if (spaceNameEl && space) spaceNameEl.innerText = `رزرو ${space.name}${unitText} [${durText}]:`;
   if (spaceFeeEl) spaceFeeEl.innerText = formatCurrency(spaceSubtotal);
   if (equipFeeEl) equipFeeEl.innerText = formatCurrency(equipFee);
   if (cateringFeeEl) cateringFeeEl.innerText = formatCurrency(cateringSubtotal);
@@ -996,11 +1071,12 @@ function setupPromoEngine() {
     }
 
     try {
-      const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
-      const bookingType = document.getElementById('booking-type')?.value || 'HOURLY';
-      const duration = Number(document.getElementById('duration')?.value) || 1;
-      const baseRate = bookingType === 'DAILY' ? (space?.dailyRate || 0) : (space?.hourlyRate || 0);
-      let subtotal = baseRate * duration;
+      const space = state.spaces.find(s => s.key === state.selectedSpaceKey) || FALLBACK_SPACES[0];
+      const isDaily = state.rateMode === 'DAILY';
+      const duration = isDaily ? state.dailyDays : state.timeRange.calculatedHours;
+      const units = state.selectedSpaceKey === 'SHARED_DESK' ? state.deskCount : 1;
+      const baseRate = isDaily ? space.dailyRate : space.hourlyRate;
+      let subtotal = baseRate * duration * units;
       for (const [itemId, count] of Object.entries(state.cateringOrders)) {
         const item = state.cateringMenu.find(i => i.id === itemId);
         if (item) subtotal += item.price * count;
@@ -1047,16 +1123,15 @@ function setupBookingSubmission() {
     const custName = document.getElementById('cust-name')?.value.trim();
     const custPhone = document.getElementById('cust-phone')?.value.trim();
     const custEmail = document.getElementById('cust-email')?.value.trim();
-    const bookingType = document.getElementById('booking-type')?.value || 'HOURLY';
-    const duration = Number(document.getElementById('duration')?.value) || 1;
+    const isDaily = state.rateMode === 'DAILY';
+    const duration = isDaily ? state.dailyDays : state.timeRange.calculatedHours;
 
     updateSyncDateTimes();
     const startTime = document.getElementById('start-datetime')?.value;
     const endTime = document.getElementById('end-datetime')?.value;
 
     if (!custName || !custPhone) {
-      showToast('لطفاً نام و شماره همراه متقاضی را در مرحله ۴ وارد کنید.', 'error');
-      // Scroll to step 4 on mobile
+      showToast('لطفاً نام و شماره همراه متقاضی را در مرحله ۴ وارد فرمایید.', 'error');
       document.getElementById('cust-name')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
@@ -1072,7 +1147,8 @@ function setupBookingSubmission() {
 
     const payload = {
       spaceKey: state.selectedSpaceKey,
-      bookingType,
+      deskCount: state.selectedSpaceKey === 'SHARED_DESK' ? state.deskCount : 1,
+      bookingType: state.rateMode,
       duration,
       startTime: new Date(startTime).toISOString(),
       endTime: new Date(endTime).toISOString(),
@@ -1120,14 +1196,14 @@ function displayInvoiceModal(invoice, reservation) {
     <div style="display:flex; flex-direction:column; gap:0.75rem;">
       <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
         <div><strong>شماره فاکتور:</strong> <code>${invoice.invoiceNumber}</code></div>
-        <div><strong>شناسه رزرو:</strong> <code>${invoice.reservationId}</code></div>
+        <div><strong>شناسه پیگیری:</strong> <code>${invoice.reservationId}</code></div>
       </div>
       <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
         <div><strong>متقاضی:</strong> ${invoice.customer.name}</div>
         <div><strong>تلفن:</strong> ${toPersianDigits(invoice.customer.phone)}</div>
       </div>
       <div style="font-size:0.82rem;">
-        <strong>تاریخ رزرو:</strong> ${toPersianDigits(selectedDay)} ${PERSIAN_MONTH_NAMES[selectedMonth - 1]} ${toPersianDigits(selectedYear)}
+        <strong>تاریخ و بازه استفاده:</strong> ${toPersianDigits(selectedDay)} ${PERSIAN_MONTH_NAMES[selectedMonth - 1]} ${toPersianDigits(selectedYear)} (ساعت ${toPersianDigits(state.timeRange.start)} الی ${toPersianDigits(state.timeRange.end)})
       </div>
 
       <table class="styled-table" style="margin:0.5rem 0;">
@@ -1261,7 +1337,7 @@ function renderAdminTable() {
         <td><strong>${r.id}</strong></td>
         <td>${r.spaceName}</td>
         <td>${r.customer.name}<br><small style="color:var(--text-dim);">${toPersianDigits(r.customer.phone)}</small></td>
-        <td>${isHall ? (r.eventDetails?.topic || 'همایش') : r.bookingType}</td>
+        <td>${isHall ? (r.eventDetails?.topic || 'همایش') : `${toPersianDigits(r.duration)} ${r.bookingType === 'DAILY' ? 'روز' : 'ساعت'}`}</td>
         <td><strong>${formatCurrency(r.pricing?.finalTotal)}</strong></td>
         <td>
           <span class="capacity-tag">
@@ -1343,7 +1419,7 @@ async function loadAnalyticsData() {
     const breakdownEl = document.getElementById('space-revenue-breakdown');
     if (breakdownEl && f.breakdownBySpace) {
       breakdownEl.innerHTML = Object.entries(f.breakdownBySpace).map(([key, item]) => {
-        const space = state.spaces.find(s => s.key === key);
+        const space = state.spaces.find(s => s.key === key) || FALLBACK_SPACES.find(s => s.key === key);
         return `
           <div class="breakdown-row-item">
             <span><strong>${space?.name || key}</strong> (${toPersianDigits(item.count)} رزرو)</span>
@@ -1383,7 +1459,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   toggleHallFields();
   updatePriceBreakdown();
 
-  document.getElementById('duration')?.addEventListener('input', updatePriceBreakdown);
   document.getElementById('equip-recording')?.addEventListener('change', updatePriceBreakdown);
   document.getElementById('equip-sound')?.addEventListener('change', updatePriceBreakdown);
 });
