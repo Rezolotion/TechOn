@@ -1,11 +1,10 @@
 /**
  * TechOn Platform - Core Client Application
- * Features: Dark/Light Mode, Strict RBAC Scoping, Dynamic Catering Filters,
- * Stepped Wizard Flow, Real-time Invoicing & Analytics.
- * Works seamlessly with backend API or standalone on GitHub Pages.
+ * Premium UI/UX Engine, Interactive Spaces & Catering Showcase,
+ * Dual-Mode Standalone/Backend API Support.
  */
 
-// Demo Users Configuration
+// Demo Accounts Scoped for Testing
 const DEMO_ACCOUNTS = [
   {
     id: 'user-cust',
@@ -14,10 +13,9 @@ const DEMO_ACCOUNTS = [
     name: 'مریم رضایی',
     phone: '09124444444',
     role: 'CUSTOMER',
-    title: 'مشتری / کاربر عادی',
+    title: 'مشتری',
     avatar: '👩‍💼',
-    color: 'badge-primary',
-    desc: 'دسترسی فقط به رزرواسیون، منوی کافه و پیگیری رزروهای خود'
+    desc: 'رزرواسیون فضا، منوی کافه و پیگیری فاکتورها'
   },
   {
     id: 'user-cowork',
@@ -26,10 +24,9 @@ const DEMO_ACCOUNTS = [
     name: 'علی کاظمی',
     phone: '09122222222',
     role: 'COWORKING_OPERATOR',
-    title: 'اپراتور فضای کار اشتراکی',
+    title: 'اپراتور کار اشتراکی',
     avatar: '🏢',
-    color: 'badge-warning',
-    desc: 'دسترسی به مدیریت صندلی‌ها، اتاق‌ها و ثبت دستی مراجعین'
+    desc: 'مدیریت صندلی‌ها و ثبت دستی مراجعین'
   },
   {
     id: 'user-cafe',
@@ -38,10 +35,9 @@ const DEMO_ACCOUNTS = [
     name: 'سارا تهرانی',
     phone: '09123333333',
     role: 'CAFE_OPERATOR',
-    title: 'اپراتور سالن همایش و کافه',
+    title: 'اپراتور سالن و کافه',
     avatar: '☕',
-    color: 'badge-success',
-    desc: 'دسترسی به بررسی و تأیید رویدادهای سالن و مدیریت منوی کافه'
+    desc: 'تأیید رویدادهای همایش و مدیریت منوی کافه'
   },
   {
     id: 'user-admin',
@@ -52,29 +48,25 @@ const DEMO_ACCOUNTS = [
     role: 'SUPER_ADMIN',
     title: 'سوپرادمین (مدیریت کل)',
     avatar: '👑',
-    color: 'badge-danger',
-    desc: 'دسترسی نامحدود به تمامی بخش‌ها، ایجاد کوپن و گزارشات مالی سهم درآمد'
+    desc: 'دسترسی نامحدود به تمامی بخش‌ها و گزارشات مالی سهم ۱۰-۱۵٪'
   }
 ];
 
-// Space Visual Icons Map
-const SPACE_ICONS = {
-  CONFERENCE_HALL: '🎤',
-  PRIVATE_OFFICE: '💼',
-  DEDICATED_DESK: '🪑',
-  SHARED_DESK: '💻'
+const SPACE_VISUALS = {
+  CONFERENCE_HALL: { icon: '🏛️', tag: 'ویژه رویداد و کارگاه', desc: 'سالن چندمنظوره با استیج مجهز و استودیو ضبط' },
+  PRIVATE_OFFICE: { icon: '💼', tag: 'تیم‌های ۴ الی ۶ نفره', desc: 'اتاق اختصاصی آکوستیک با میز کنفرانس و کمد' },
+  DEDICATED_DESK: { icon: '🪑', tag: 'رزرو ماهانه و روزانه', desc: 'صندلی ارگونومیک، پریز اختصاصی و کمد کلیددار' },
+  SHARED_DESK: { icon: '💻', tag: 'فضای فلکسیبل و منعطف', desc: 'میزهای مشترک با اینترنت فیبر نوری پرسرعت' }
 };
 
-// Catering Category Icons & Persian Labels
 const CATEGORY_META = {
-  PACKAGE: { label: 'پکیج پذیرایی', icon: '🎁' },
+  PACKAGE: { label: 'پکیج تشریفات', icon: '🎁' },
   BEVERAGE_HOT: { label: 'نوشیدنی گرم', icon: '☕' },
   BEVERAGE_COLD: { label: 'نوشیدنی سرد', icon: '🧃' },
   SNACK: { label: 'اسنک و فینگرفود', icon: '🥐' },
-  MEAL: { label: 'میان‌وعده و وعده غذایی', icon: '🥪' }
+  MEAL: { label: 'میان‌وعده ویژه', icon: '🥪' }
 };
 
-// Default Fallback Data for Static/Offline Deployments
 const FALLBACK_SPACES = [
   {
     key: 'CONFERENCE_HALL',
@@ -83,7 +75,7 @@ const FALLBACK_SPACES = [
     capacity: 70,
     hourlyRate: 1500000,
     dailyRate: 10000000,
-    features: ['پروژکتور 4K', 'سیستم صوتی استودیویی', 'استیج و تریبون', 'نورپردازی تخصصی', 'اینترنت فیبر نوری اختصاصی']
+    features: ['پروژکتور 4K', 'سیستم صوتی استودیویی', 'استیج و تریبون', 'نورپردازی تخصصی', 'اینترنت فیبر نوری']
   },
   {
     key: 'PRIVATE_OFFICE',
@@ -110,20 +102,20 @@ const FALLBACK_SPACES = [
     capacity: 1,
     hourlyRate: 40000,
     dailyRate: 250000,
-    features: ['دسترسی به فضای عمومی', 'اینترنت پرسرعت', 'چای و قهوه رایگان']
+    features: ['فضای عمومی خلاق', 'اینترنت پرسرعت', 'چای و قهوه رایگان']
   }
 ];
 
 const FALLBACK_CATERING = [
-  { id: 'cat-pkg-standard', name: 'پکیج پذیرایی استاندارد همایش (چای، نسکافه، آبمیوه، کیک تازه)', category: 'PACKAGE', price: 45000 },
+  { id: 'cat-pkg-standard', name: 'پکیج استاندارد همایش (چای، نسکافه، آبمیوه، کیک تازه)', category: 'PACKAGE', price: 45000 },
   { id: 'cat-pkg-vip', name: 'پکیج تشریفات VIP (قهوه دمی تخصصی، فینگرفود، آبمیوه طبیعی)', category: 'PACKAGE', price: 95000 },
   { id: 'cat-bev-espresso', name: 'اسپرسو دبل شات ۱۰۰٪ عربیکا', category: 'BEVERAGE_HOT', price: 38000 },
   { id: 'cat-bev-latte', name: 'کافه لاته با شیر تازه محلی', category: 'BEVERAGE_HOT', price: 48000 },
   { id: 'cat-bev-coldbrew', name: 'کلد برو (دم‌سرد تخصصی اتیوپی)', category: 'BEVERAGE_COLD', price: 55000 },
-  { id: 'cat-snack-croissant', name: 'کروسان کره‌ای فرانسوی با شکلات فندقی', category: 'SNACK', price: 42000 }
+  { id: 'cat-snack-croissant', name: 'کروسان فرانسوی با شکلات فندقی', category: 'SNACK', price: 42000 }
 ];
 
-// In-Memory / LocalStorage Store for Standalone Mode
+// LocalStore Utility
 function getLocalStore(key, defaultValue) {
   try {
     const raw = localStorage.getItem(`techon_${key}`);
@@ -141,13 +133,14 @@ function setLocalStore(key, value) {
 
 // Application State
 const state = {
-  theme: 'light',
-  currentUser: DEMO_ACCOUNTS[0], // Start as Customer
+  theme: 'dark',
+  currentUser: DEMO_ACCOUNTS[0],
   spaces: [],
   cateringMenu: [],
-  selectedCategoryFilter: 'ALL',
+  rateMode: 'HOURLY', // 'HOURLY' or 'DAILY'
   selectedSpaceKey: 'CONFERENCE_HALL',
-  cateringOrders: {}, // itemId -> count
+  selectedCateringFilter: 'ALL',
+  cateringOrders: {}, // itemId -> quantity
   appliedPromo: null,
   reservations: []
 };
@@ -163,7 +156,7 @@ function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   if (!container) return;
   const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
+  toast.className = `toast-msg toast-${type}`;
   toast.innerText = message;
   container.appendChild(toast);
   setTimeout(() => {
@@ -171,7 +164,7 @@ function showToast(message, type = 'success') {
   }, 4000);
 }
 
-// API Request Wrapper with Graceful Static/Offline Fallback
+// API Request Wrapper with Auto Offline Simulation
 async function apiRequest(endpoint, method = 'GET', body = null) {
   const headers = {
     'Content-Type': 'application/json',
@@ -220,7 +213,7 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         finalTotal: subtotal - discount
       };
     }
-    return { valid: false, reason: 'کد تخفیف وارد شده معتبر نیست یا منقضی شده است.' };
+    return { valid: false, reason: 'کد تخفیف وارد شده نامعتبر است یا منقضی شده است.' };
   }
 
   if (path.includes('/api/reservations') && method === 'POST') {
@@ -338,22 +331,12 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
     };
   }
 
-  if (path.includes('/api/auth/login') && method === 'POST') {
-    const user = DEMO_ACCOUNTS.find(u => u.username === (body?.username || '').toLowerCase());
-    if (user && user.password === body?.password) {
-      return { success: true, user };
-    }
-    throw new Error('نام کاربری یا کلمه عبور نادرست است.');
-  }
-
   return { success: true };
 }
 
-// 1. Dark Mode / Light Mode Engine
+// 1. Theme Engine (Dark / Light)
 function setupThemeEngine() {
-  const savedTheme = localStorage.getItem('techon_theme') || 
-    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  
+  const savedTheme = localStorage.getItem('techon_theme') || 'dark';
   setTheme(savedTheme);
 
   const toggleBtn = document.getElementById('theme-toggle');
@@ -370,120 +353,83 @@ function setTheme(theme) {
   localStorage.setItem('techon_theme', theme);
 
   const iconEl = document.getElementById('theme-icon');
-  const labelEl = document.getElementById('theme-label');
-  if (iconEl && labelEl) {
-    if (theme === 'dark') {
-      iconEl.innerText = '☀️';
-      labelEl.innerText = 'حالت روز';
-    } else {
-      iconEl.innerText = '🌙';
-      labelEl.innerText = 'حالت شب';
-    }
+  if (iconEl) {
+    iconEl.innerText = theme === 'dark' ? '☀️' : '🌙';
   }
 }
 
-// 2. Authentication & Role Switcher
-function setupAuthSystem() {
-  const chipsContainer = document.getElementById('quick-user-chips');
-  if (chipsContainer) {
-    chipsContainer.innerHTML = DEMO_ACCOUNTS.map(u => `
-      <button type="button" class="user-chip ${u.id === state.currentUser.id ? 'active-chip' : ''}" onclick="switchUser('${u.username}')">
-        <span>${u.avatar}</span>
-        <span>${u.name} (${u.title.split(' ')[0]})</span>
-      </button>
-    `).join('');
-  }
+// 2. User Menu & Role Switcher Popover
+function setupUserMenu() {
+  const btnOpen = document.getElementById('btn-open-user-menu');
+  const popover = document.getElementById('user-menu-popover');
+  const listContainer = document.getElementById('popover-users-list');
 
-  const modalGrid = document.getElementById('demo-accounts-grid');
-  if (modalGrid) {
-    modalGrid.innerHTML = DEMO_ACCOUNTS.map(u => `
-      <div class="demo-account-card ${u.id === state.currentUser.id ? 'active-account' : ''}" onclick="switchUser('${u.username}')">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong>${u.avatar} ${u.name}</strong>
-          <span class="badge ${u.color}">${u.role}</span>
+  btnOpen?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    popover?.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!popover?.contains(e.target) && !btnOpen?.contains(e.target)) {
+      popover?.classList.add('hidden');
+    }
+  });
+
+  if (listContainer) {
+    listContainer.innerHTML = DEMO_ACCOUNTS.map(u => `
+      <div class="popover-user-row ${u.id === state.currentUser.id ? 'active-user' : ''}" onclick="switchRole('${u.username}')">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.3rem;">${u.avatar}</span>
+          <div style="text-align:right;">
+            <strong style="font-size:0.84rem; display:block;">${u.name}</strong>
+            <small style="color:var(--text-dim); font-size:0.72rem;">${u.title}</small>
+          </div>
         </div>
-        <div class="demo-cred-tag">یوزر: <code>${u.username}</code> | پسورد: <code>${u.password}</code></div>
-        <small style="color:var(--text-secondary); margin-top:0.25rem;">${u.desc}</small>
+        <span style="font-size:0.7rem; color:var(--primary); font-weight:700;">${u.id === state.currentUser.id ? 'فعال ✓' : 'انتخاب'}</span>
       </div>
     `).join('');
   }
 
-  const authModal = document.getElementById('auth-modal');
-  document.getElementById('btn-open-auth-modal')?.addEventListener('click', () => {
-    authModal?.classList.remove('hidden');
-  });
-  document.getElementById('btn-close-auth')?.addEventListener('click', () => {
-    authModal?.classList.add('hidden');
-  });
-
-  document.getElementById('form-manual-login')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value.trim();
-
-    try {
-      const res = await apiRequest('/api/auth/login', 'POST', { username, password });
-      const matched = DEMO_ACCOUNTS.find(u => u.username === res.user.username);
-      if (matched) {
-        state.currentUser = matched;
-        authModal?.classList.add('hidden');
-        applyRoleVisibility();
-        showToast(`خوش آمدید ${matched.name}!`);
-      }
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
-  });
-
-  applyRoleVisibility();
+  applyRoleScoping();
 }
 
-window.switchUser = function(username) {
+window.switchRole = function(username) {
   const target = DEMO_ACCOUNTS.find(u => u.username === username);
   if (!target) return;
   state.currentUser = target;
-  document.getElementById('auth-modal')?.classList.add('hidden');
-  applyRoleVisibility();
-  showToast(`شما به عنوان "${target.name}" (${target.title}) وارد شدید.`);
+  document.getElementById('user-menu-popover')?.classList.add('hidden');
+  setupUserMenu();
+  applyRoleScoping();
+  showToast(`نقش به "${target.name}" (${target.title}) تغییر یافت.`);
 };
 
-// 3. Strict Role-Based View & Tab Scoping
-function applyRoleVisibility() {
+// 3. Strict Role-Based View Scoping
+function applyRoleScoping() {
   const user = state.currentUser;
 
-  // Header Badge
+  // Update Header Pill
   const avatarEl = document.getElementById('current-user-avatar');
   const nameEl = document.getElementById('current-user-name');
   const roleBadge = document.getElementById('current-user-role-badge');
   if (avatarEl) avatarEl.innerText = user.avatar;
   if (nameEl) nameEl.innerText = user.name;
-  if (roleBadge) {
-    roleBadge.innerText = user.title;
-    roleBadge.className = `badge ${user.color}`;
-  }
+  if (roleBadge) roleBadge.innerText = user.title;
 
-  // Active chip sync
-  document.querySelectorAll('.user-chip').forEach(chip => {
-    chip.classList.toggle('active-chip', chip.innerText.includes(user.name));
-  });
-
-  // Perspective Banner
-  const banner = document.getElementById('role-perspective-banner');
-  if (banner) {
-    let bannerText = '';
+  // Role Context Banner
+  const bannerTextEl = document.getElementById('role-context-text');
+  if (bannerTextEl) {
     if (user.role === 'CUSTOMER') {
-      bannerText = `👁️ <strong>دیدگاه مشتری (${user.name}):</strong> شما فقط به بخش‌های رزرواسیون فضا، منوی کافه و پیگیری رزروهای خود دسترسی دارید. پنل‌های مدیریتی و مالی برای شما مخفی است.`;
+      bannerTextEl.innerHTML = `<strong>دیدگاه مشتری (${user.name}):</strong> دسترسی به رزرواسیون آنلاین فضا، منوی کافه و پیگیری فاکتورها.`;
     } else if (user.role === 'COWORKING_OPERATOR') {
-      bannerText = `👁️ <strong>دیدگاه اپراتور کار اشتراکی (${user.name}):</strong> شما به مدیریت رزروهای صندلی‌ها و اتاق‌ها و ثبت دستی مراجعین دسترسی دارید. گزارشات مالی کلان و سالن همایش مخفی است.`;
+      bannerTextEl.innerHTML = `<strong>دیدگاه اپراتور فضای کار (${user.name}):</strong> دسترسی به مدیریت ظرفیت صندلی‌ها و ثبت دستی مراجعین.`;
     } else if (user.role === 'CAFE_OPERATOR') {
-      bannerText = `👁️ <strong>دیدگاه اپراتور سالن و کافه (${user.name}):</strong> شما به بررسی و تأیید رویدادهای سالن همایش و ویرایش منوی کافه دسترسی دارید. گزارشات مالی کلان مخفی است.`;
+      bannerTextEl.innerHTML = `<strong>دیدگاه اپراتور سالن و کافه (${user.name}):</strong> دسترسی به بررسی و تأیید رویدادهای همایش و مدیریت منوی کافه.`;
     } else if (user.role === 'SUPER_ADMIN') {
-      bannerText = `👁️ <strong>دیدگاه سوپرادمین (${user.name}):</strong> شما به تمامی ۵ بخش سامانه، تاییدات، ساخت کد تخفیف و گزارشات مالی سهم درآمد (۱۰٪ الی ۱۵٪) دسترسی نامحدود دارید.`;
+      bannerTextEl.innerHTML = `<strong>دیدگاه سوپرادمین (${user.name}):</strong> دسترسی کامل به تمامی ابزارها، تاییدات، ساخت کد تخفیف و گزارشات مالی سهم درآمد (۱۰٪ - ۱۵٪).`;
     }
-    banner.innerHTML = bannerText;
   }
 
-  // Tab permissions
+  // Tabs Visibility
   const tabBooking = document.getElementById('tab-btn-booking');
   const tabCatering = document.getElementById('tab-btn-catering');
   const tabMyBookings = document.getElementById('tab-btn-my-bookings');
@@ -497,7 +443,7 @@ function applyRoleVisibility() {
     tabAdmin?.classList.add('hidden');
     tabAnalytics?.classList.add('hidden');
 
-    const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
+    const activeTab = document.querySelector('.nav-link.active')?.dataset.tab;
     if (activeTab === 'admin' || activeTab === 'analytics') tabBooking?.click();
   }
 
@@ -508,12 +454,12 @@ function applyRoleVisibility() {
     tabAdmin?.classList.remove('hidden');
     tabAnalytics?.classList.add('hidden');
     const adminTitle = document.getElementById('tab-admin-title');
-    if (adminTitle) adminTitle.innerText = 'پنل فضای اشتراکی';
+    if (adminTitle) adminTitle.innerText = 'پنل فضای کار';
 
     document.getElementById('admin-catering-box')?.classList.add('hidden');
     document.getElementById('admin-promo-box')?.classList.add('hidden');
 
-    const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
+    const activeTab = document.querySelector('.nav-link.active')?.dataset.tab;
     if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin?.click();
   }
 
@@ -529,7 +475,7 @@ function applyRoleVisibility() {
     document.getElementById('admin-catering-box')?.classList.remove('hidden');
     document.getElementById('admin-promo-box')?.classList.add('hidden');
 
-    const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
+    const activeTab = document.querySelector('.nav-link.active')?.dataset.tab;
     if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin?.click();
   }
 
@@ -546,84 +492,88 @@ function applyRoleVisibility() {
     document.getElementById('admin-promo-box')?.classList.remove('hidden');
   }
 
-  // Pre-fill booking fields
+  // Pre-fill inputs
   const nameInput = document.getElementById('cust-name');
   const phoneInput = document.getElementById('cust-phone');
   if (nameInput && user.role === 'CUSTOMER') nameInput.value = user.name;
   if (phoneInput && user.role === 'CUSTOMER') phoneInput.value = user.phone;
 
-  // Refresh tab data
-  const currentTab = document.querySelector('.nav-tab.active')?.dataset.tab;
+  // Refresh active tab data
+  const currentTab = document.querySelector('.nav-link.active')?.dataset.tab;
   if (currentTab === 'my-bookings') loadMyBookings();
   if (currentTab === 'admin') loadAdminData();
   if (currentTab === 'analytics') loadAnalyticsData();
 }
 
-// 4. Navigation Tab Switcher
+// 4. Tab Navigation
 function setupNavigation() {
-  const tabs = document.querySelectorAll('.nav-tab');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  const tabButtons = document.querySelectorAll('.nav-link');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
 
-      tab.classList.add('active');
-      const targetId = `tab-${tab.dataset.tab}`;
+      btn.classList.add('active');
+      const targetId = `tab-${btn.dataset.tab}`;
       const targetEl = document.getElementById(targetId);
       if (targetEl) targetEl.classList.add('active');
 
-      if (tab.dataset.tab === 'my-bookings') loadMyBookings();
-      if (tab.dataset.tab === 'admin') loadAdminData();
-      if (tab.dataset.tab === 'analytics') loadAnalyticsData();
+      if (btn.dataset.tab === 'my-bookings') loadMyBookings();
+      if (btn.dataset.tab === 'admin') loadAdminData();
+      if (btn.dataset.tab === 'analytics') loadAnalyticsData();
     });
   });
 }
 
-// 5. Fetch & Render Spaces
+// 5. Spaces Showcase Engine
 async function loadSpaces() {
   try {
     const data = await apiRequest('/api/spaces');
     state.spaces = data.spaces || FALLBACK_SPACES;
-    renderSpacesCatalog();
   } catch (err) {
     state.spaces = FALLBACK_SPACES;
-    renderSpacesCatalog();
   }
+  renderSpacesGrid();
 }
 
-function renderSpacesCatalog() {
-  const container = document.getElementById('spaces-list-container');
+function renderSpacesGrid() {
+  const container = document.getElementById('spaces-cards-grid');
   if (!container) return;
 
   container.innerHTML = state.spaces.map(s => {
+    const visual = SPACE_VISUALS[s.key] || { icon: '🏢', tag: 'فضای کار', desc: '' };
     const isSelected = s.key === state.selectedSpaceKey ? 'selected' : '';
-    const icon = SPACE_ICONS[s.key] || '🏢';
+    const isDaily = state.rateMode === 'DAILY';
+    const rateText = isDaily ? formatCurrency(s.dailyRate) : formatCurrency(s.hourlyRate);
+    const suffix = isDaily ? '/ روز' : '/ ساعت';
+
     return `
-      <div class="space-item ${isSelected}" data-key="${s.key}">
-        <div class="space-item-header">
-          <span class="space-name">${icon} ${s.name}</span>
-          <span class="badge badge-primary">ظرفیت: ${s.capacity} نفر</span>
+      <div class="space-card ${isSelected}" data-key="${s.key}" onclick="selectSpace('${s.key}')">
+        <div>
+          <div class="space-card-top">
+            <div class="space-icon-box">${visual.icon}</div>
+            <span class="space-capacity-pill">ظرفیت ${s.capacity} نفر</span>
+          </div>
+          <h3 class="space-title">${s.name}</h3>
+          <div class="space-price-tag">${rateText} <small>${suffix}</small></div>
+          <div class="space-amenities-tags">
+            ${(s.features || []).slice(0, 3).map(f => `<span class="amenity-chip">${f}</span>`).join('')}
+          </div>
         </div>
-        <div class="space-prices">
-          ساعتی: ${formatCurrency(s.hourlyRate)} | روزانه: ${formatCurrency(s.dailyRate)}
-        </div>
-        <div class="space-features">
-          ${(s.features || []).map(f => `<span class="feature-tag">${f}</span>`).join('')}
-        </div>
+        <button type="button" class="space-card-action-btn">
+          ${isSelected ? 'فضای انتخاب شده ✓' : 'انتخاب این فضا'}
+        </button>
       </div>
     `;
   }).join('');
-
-  container.querySelectorAll('.space-item').forEach(item => {
-    item.addEventListener('click', () => {
-      state.selectedSpaceKey = item.dataset.key;
-      renderSpacesCatalog();
-      toggleHallFields();
-      updatePriceBreakdown();
-      updateWizardStep(2);
-    });
-  });
 }
+
+window.selectSpace = function(key) {
+  state.selectedSpaceKey = key;
+  renderSpacesGrid();
+  toggleHallFields();
+  updatePriceBreakdown();
+};
 
 function toggleHallFields() {
   const hallBox = document.getElementById('hall-extra-fields');
@@ -635,38 +585,54 @@ function toggleHallFields() {
   }
 }
 
-function updateWizardStep(step) {
-  document.getElementById('wiz-step-1')?.classList.toggle('active', step >= 1);
-  document.getElementById('wiz-step-2')?.classList.toggle('active', step >= 2);
-  document.getElementById('wiz-step-3')?.classList.toggle('active', step >= 3);
+function setupRateToggle() {
+  const btnHourly = document.getElementById('rate-view-hourly');
+  const btnDaily = document.getElementById('rate-view-daily');
+  const selectType = document.getElementById('booking-type');
+
+  btnHourly?.addEventListener('click', () => {
+    btnHourly.classList.add('active');
+    btnDaily?.classList.remove('active');
+    state.rateMode = 'HOURLY';
+    if (selectType) selectType.value = 'HOURLY';
+    renderSpacesGrid();
+    updatePriceBreakdown();
+  });
+
+  btnDaily?.addEventListener('click', () => {
+    btnDaily.classList.add('active');
+    btnHourly?.classList.remove('active');
+    state.rateMode = 'DAILY';
+    if (selectType) selectType.value = 'DAILY';
+    renderSpacesGrid();
+    updatePriceBreakdown();
+  });
+
+  selectType?.addEventListener('change', (e) => {
+    state.rateMode = e.target.value;
+    if (state.rateMode === 'DAILY') {
+      btnDaily?.classList.add('active');
+      btnHourly?.classList.remove('active');
+    } else {
+      btnHourly?.classList.add('active');
+      btnDaily?.classList.remove('active');
+    }
+    renderSpacesGrid();
+    updatePriceBreakdown();
+  });
 }
 
-// 6. Fetch & Render Catering
+// 6. Catering & Café Showcase
 async function loadCateringMenu() {
   try {
     const data = await apiRequest('/api/catering/menu');
     state.cateringMenu = data.menu || FALLBACK_CATERING;
-    renderCateringBookingSelector();
-    renderCateringCatalogGrid();
-    setupCateringFilters();
   } catch (err) {
     state.cateringMenu = FALLBACK_CATERING;
-    renderCateringBookingSelector();
-    renderCateringCatalogGrid();
-    setupCateringFilters();
   }
-}
-
-function setupCateringFilters() {
-  const filterBtns = document.querySelectorAll('.filter-pill');
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.selectedCategoryFilter = btn.dataset.filter;
-      renderCateringCatalogGrid();
-    });
-  });
+  renderCateringBookingSelector();
+  renderCateringCatalogGrid();
+  setupCateringFilters();
 }
 
 function renderCateringBookingSelector() {
@@ -677,15 +643,15 @@ function renderCateringBookingSelector() {
     const qty = state.cateringOrders[item.id] || 0;
     const cat = CATEGORY_META[item.category] || { icon: '☕', label: item.category };
     return `
-      <div class="catering-order-item">
-        <div class="cat-item-info">
+      <div class="catering-selector-row">
+        <div class="cat-item-text">
           <strong>${cat.icon} ${item.name}</strong>
           <span>قیمت واحد: ${formatCurrency(item.price)}</span>
         </div>
-        <div class="cat-quantity-controls">
-          <button type="button" class="btn-qty" onclick="changeCateringQty('${item.id}', -1)">-</button>
-          <span class="qty-val" id="qty-${item.id}">${qty}</span>
-          <button type="button" class="btn-qty" onclick="changeCateringQty('${item.id}', 1)">+</button>
+        <div class="cat-counter-controls">
+          <button type="button" class="btn-counter" onclick="changeCateringQty('${item.id}', -1)">−</button>
+          <span class="counter-value" id="qty-${item.id}">${qty}</span>
+          <button type="button" class="btn-counter" onclick="changeCateringQty('${item.id}', 1)">+</button>
         </div>
       </div>
     `;
@@ -705,24 +671,38 @@ window.changeCateringQty = function(itemId, delta) {
   updatePriceBreakdown();
 };
 
+function setupCateringFilters() {
+  const filterBtns = document.querySelectorAll('.cat-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.selectedCateringFilter = btn.dataset.filter;
+      renderCateringCatalogGrid();
+    });
+  });
+}
+
 function renderCateringCatalogGrid() {
   const container = document.getElementById('catering-catalog-grid');
   if (!container) return;
 
-  const filtered = state.selectedCategoryFilter === 'ALL'
+  const filtered = state.selectedCateringFilter === 'ALL'
     ? state.cateringMenu
-    : state.cateringMenu.filter(i => i.category === state.selectedCategoryFilter);
+    : state.cateringMenu.filter(i => i.category === state.selectedCateringFilter);
 
   container.innerHTML = filtered.map(item => {
     const cat = CATEGORY_META[item.category] || { icon: '☕', label: item.category };
     return `
-      <div class="cat-card">
-        <div class="cat-card-header">
-          <h4>${cat.icon} ${item.name}</h4>
-          <span class="badge badge-primary">${cat.label}</span>
+      <div class="cat-product-card">
+        <div>
+          <div class="cat-product-header">
+            <h4>${cat.icon} ${item.name}</h4>
+            <span class="space-capacity-pill">${cat.label}</span>
+          </div>
+          <div class="cat-price-callout">${formatCurrency(item.price)}</div>
         </div>
-        <div class="cat-card-price">${formatCurrency(item.price)}</div>
-        <button class="btn btn-secondary btn-sm" onclick="selectAndBookCatering('${item.id}')">
+        <button type="button" class="space-card-action-btn" onclick="addCateringFromCatalog('${item.id}')">
           ➕ افزودن به سفارش جاری
         </button>
       </div>
@@ -730,19 +710,18 @@ function renderCateringCatalogGrid() {
   }).join('');
 }
 
-window.selectAndBookCatering = function(itemId) {
+window.addCateringFromCatalog = function(itemId) {
   window.changeCateringQty(itemId, 1);
   document.getElementById('tab-btn-booking')?.click();
-  showToast('آیتم به سفارش جاری اضافه شد.');
+  showToast('آیتم به سفارش جاری افزوده شد.');
 };
 
-// 7. Live Pricing Calculation Engine
+// 7. Live Price Calculation
 function updatePriceBreakdown() {
   const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
   const bookingType = document.getElementById('booking-type')?.value || 'HOURLY';
   const duration = Number(document.getElementById('duration')?.value) || 1;
 
-  // Suffix label
   const suffixEl = document.getElementById('duration-suffix');
   if (suffixEl) suffixEl.innerText = bookingType === 'DAILY' ? 'روز' : 'ساعت';
 
@@ -782,6 +761,7 @@ function updatePriceBreakdown() {
 
   const finalTotal = Math.max(0, subtotal - discountAmount);
 
+  const spaceNameEl = document.getElementById('summary-space-name');
   const spaceFeeEl = document.getElementById('summary-space-fee');
   const equipFeeEl = document.getElementById('summary-equip-fee');
   const cateringFeeEl = document.getElementById('summary-catering-fee');
@@ -789,10 +769,11 @@ function updatePriceBreakdown() {
   const discAmountEl = document.getElementById('summary-discount-amount');
   const finalTotalEl = document.getElementById('summary-final-total');
 
+  if (spaceNameEl && space) spaceNameEl.innerText = `رزرو ${space.name} (${duration} ${bookingType === 'DAILY' ? 'روز' : 'ساعت'}):`;
   if (spaceFeeEl) spaceFeeEl.innerText = formatCurrency(spaceSubtotal);
   if (equipFeeEl) equipFeeEl.innerText = formatCurrency(equipFee);
   if (cateringFeeEl) cateringFeeEl.innerText = formatCurrency(cateringSubtotal);
-  
+
   if (discRow && discAmountEl) {
     if (discountAmount > 0) {
       discRow.classList.remove('hidden');
@@ -805,7 +786,7 @@ function updatePriceBreakdown() {
   if (finalTotalEl) finalTotalEl.innerText = formatCurrency(finalTotal);
 }
 
-// 8. Promo Engine
+// 8. Promo Validation
 function setupPromoEngine() {
   const btnApply = document.getElementById('btn-apply-promo');
   const promoInput = document.getElementById('promo-input');
@@ -815,8 +796,8 @@ function setupPromoEngine() {
     const code = promoInput?.value.trim();
     if (!code) {
       if (feedback) {
-        feedback.innerText = 'لطفاً کد تخفیف را وارد کنید.';
-        feedback.className = 'promo-feedback text-danger';
+        feedback.innerText = 'لطفاً کد تخفیف را وارد نمایید.';
+        feedback.className = 'promo-feedback-text text-danger';
       }
       return;
     }
@@ -842,14 +823,14 @@ function setupPromoEngine() {
         state.appliedPromo = result;
         if (feedback) {
           feedback.innerText = `✅ کد تخفیف "${code}" با مبلغ ${formatCurrency(result.discountAmount)} اعمال شد.`;
-          feedback.className = 'promo-feedback text-success';
+          feedback.className = 'promo-feedback-text text-success';
         }
         updatePriceBreakdown();
       } else {
         state.appliedPromo = null;
         if (feedback) {
           feedback.innerText = `❌ ${result.reason || 'کد تخفیف نامعتبر است'}`;
-          feedback.className = 'promo-feedback text-danger';
+          feedback.className = 'promo-feedback-text text-danger';
         }
         updatePriceBreakdown();
       }
@@ -857,14 +838,14 @@ function setupPromoEngine() {
       state.appliedPromo = null;
       if (feedback) {
         feedback.innerText = `❌ ${err.message}`;
-        feedback.className = 'promo-feedback text-danger';
+        feedback.className = 'promo-feedback-text text-danger';
       }
       updatePriceBreakdown();
     }
   });
 }
 
-// 9. Booking Submission & Invoice Modal
+// 9. Booking Submission & Official Invoice Modal
 function setupBookingSubmission() {
   const submitBtn = document.getElementById('btn-submit-booking');
   submitBtn?.addEventListener('click', async () => {
@@ -877,7 +858,7 @@ function setupBookingSubmission() {
     const endTime = document.getElementById('end-datetime')?.value;
 
     if (!custName || !custPhone || !startTime || !endTime) {
-      showToast('لطفاً تمامی فیلدهای الزامی (نام، تلفن، تاریخ شروع و پایان) را تکمیل کنید.', 'error');
+      showToast('لطفاً تمامی فیلدهای الزامی (نام، تلفن، زمان شروع و پایان) را تکمیل فرمایید.', 'error');
       return;
     }
 
@@ -912,7 +893,6 @@ function setupBookingSubmission() {
     try {
       const response = await apiRequest('/api/reservations', 'POST', payload);
       showToast('رزرو شما با موفقیت ثبت شد!');
-      updateWizardStep(3);
       displayInvoiceModal(response.invoice, response.reservation);
       state.cateringOrders = {};
       state.appliedPromo = null;
@@ -922,7 +902,7 @@ function setupBookingSubmission() {
       showToast(`خطا در ثبت رزرو: ${err.message}`, 'error');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '<span>💳 ثبت نهایی و صدور فاکتور رسمی</span>';
+      submitBtn.innerHTML = '<span class="checkout-icon">💳</span><span class="checkout-text">ثبت نهایی و صدور فاکتور رسمی</span>';
     }
   });
 }
@@ -933,24 +913,23 @@ function displayInvoiceModal(invoice, reservation) {
   if (!modal || !content) return;
 
   content.innerHTML = `
-    <div class="invoice-receipt">
-      <div class="invoice-meta">
+    <div style="display:flex; flex-direction:column; gap:0.85rem;">
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
         <div><strong>شماره فاکتور:</strong> <code>${invoice.invoiceNumber}</code></div>
-        <div><strong>شماره رزرو:</strong> <code>${invoice.reservationId}</code></div>
+        <div><strong>شماره پیگیری:</strong> <code>${invoice.reservationId}</code></div>
       </div>
-      <div class="invoice-meta">
-        <div><strong>نام مشتری:</strong> ${invoice.customer.name}</div>
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+        <div><strong>نام متقاضی:</strong> ${invoice.customer.name}</div>
         <div><strong>شماره تماس:</strong> ${invoice.customer.phone}</div>
       </div>
-      <div class="invoice-meta">
-        <div><strong>وضعیت فاکتور:</strong> 
-          <span class="badge ${reservation.status === 'CONFIRMED' ? 'badge-success' : 'badge-warning'}">
-            ${reservation.status === 'CONFIRMED' ? 'تأیید شده' : 'در انتظار تایید اپراتور سالن'}
-          </span>
-        </div>
+      <div style="font-size:0.85rem;">
+        <strong>وضعیت رویداد:</strong> 
+        <span class="space-capacity-pill" style="margin-right:0.4rem;">
+          ${reservation.status === 'CONFIRMED' ? 'تأیید شده' : 'در انتظار تأیید اپراتور سالن'}
+        </span>
       </div>
 
-      <table class="invoice-items-table">
+      <table class="modern-table" style="margin:0.75rem 0;">
         <thead>
           <tr>
             <th>شرح خدمات و فضا</th>
@@ -961,49 +940,46 @@ function displayInvoiceModal(invoice, reservation) {
           ${invoice.items.map(it => `
             <tr>
               <td>${it.title}</td>
-              <td>${formatCurrency(it.amount)}</td>
+              <td><strong>${formatCurrency(it.amount)}</strong></td>
             </tr>
           `).join('')}
         </tbody>
       </table>
 
-      <div class="summary-line">
+      <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
         <span>جمع کل ناخالص:</span>
         <strong>${formatCurrency(invoice.subtotal)}</strong>
       </div>
       ${invoice.discountAmount > 0 ? `
-        <div class="summary-line text-success">
+        <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--emerald);">
           <span>تخفیف کسر شده:</span>
           <strong>- ${formatCurrency(invoice.discountAmount)}</strong>
         </div>
       ` : ''}
-      <div class="summary-divider"></div>
-      <div class="summary-total-line">
-        <span>مبلغ نهایی پرداخت شده:</span>
-        <strong class="total-amount">${formatCurrency(invoice.finalTotal)}</strong>
+      <div class="invoice-divider"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:1.1rem; font-weight:800;">مبلغ نهایی پرداخت شده:</span>
+        <strong class="final-price-callout">${formatCurrency(invoice.finalTotal)}</strong>
       </div>
     </div>
   `;
 
   modal.classList.remove('hidden');
-  const btnClose = document.getElementById('btn-close-invoice');
-  const btnDone = document.getElementById('btn-done-invoice');
-  if (btnClose) btnClose.onclick = () => modal.classList.add('hidden');
-  if (btnDone) btnDone.onclick = () => modal.classList.add('hidden');
+  document.getElementById('btn-close-invoice').onclick = () => modal.classList.add('hidden');
+  document.getElementById('btn-done-invoice').onclick = () => modal.classList.add('hidden');
 }
 
-// 10. Customer: My Bookings
+// 10. Customer: My Bookings Tab
 async function loadMyBookings() {
   const tbody = document.getElementById('my-reservations-tbody');
   if (!tbody) return;
 
   try {
-    const phone = state.currentUser.phone;
-    const data = await apiRequest(`/api/my-reservations?phone=${phone}`);
+    const data = await apiRequest('/api/my-reservations');
     const list = data.reservations || [];
 
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--text-secondary);">شما در حال حاضر رزروی ثبت نکرده‌اید.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--text-dim);">شما در حال حاضر رزروی ثبت نکرده‌اید.</td></tr>`;
       return;
     }
 
@@ -1014,12 +990,12 @@ async function loadMyBookings() {
         <td>${new Date(r.startTime).toLocaleDateString('fa-IR')} (${r.duration} ${r.bookingType === 'DAILY' ? 'روز' : 'ساعت'})</td>
         <td><strong>${formatCurrency(r.pricing?.finalTotal)}</strong></td>
         <td>
-          <span class="badge ${r.status === 'CONFIRMED' ? 'badge-success' : (r.status === 'PENDING_REVIEW' ? 'badge-warning' : 'badge-danger')}">
+          <span class="space-capacity-pill">
             ${r.status === 'PENDING_REVIEW' ? 'در انتظار بررسی' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
           </span>
         </td>
         <td>
-          <button class="btn btn-sm btn-secondary" onclick="viewExistingInvoice('${r.id}')">🧾 مشاهده رسید</button>
+          <button class="btn-counter" style="width:auto; padding:0.25rem 0.65rem;" onclick="viewExistingInvoice('${r.id}')">🧾 مشاهده رسید</button>
         </td>
       </tr>
     `).join('');
@@ -1030,7 +1006,7 @@ async function loadMyBookings() {
 
 window.viewExistingInvoice = async function(reservationId) {
   try {
-    const data = await apiRequest(`/api/my-reservations`);
+    const data = await apiRequest('/api/my-reservations');
     const r = (data.reservations || []).find(x => x.id === reservationId);
     if (r) {
       displayInvoiceModal({
@@ -1052,7 +1028,7 @@ window.viewExistingInvoice = async function(reservationId) {
   }
 };
 
-// 11. Admin & Operator Panel
+// 11. Admin & Operator CMS Panel
 async function loadAdminData() {
   try {
     const data = await apiRequest('/api/admin/reservations');
@@ -1068,7 +1044,7 @@ function renderReservationsTable() {
   if (!tbody) return;
 
   if (state.reservations.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-secondary);">هنوز رزروی در این بخش ثبت نشده است.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-dim);">هنوز رزروی در این بخش ثبت نشده است.</td></tr>`;
     return;
   }
 
@@ -1083,20 +1059,17 @@ function renderReservationsTable() {
       <tr>
         <td><strong>${r.id}</strong></td>
         <td>${r.spaceName}</td>
-        <td>${r.customer.name}<br><small>${r.customer.phone}</small></td>
+        <td>${r.customer.name}<br><small style="color:var(--text-dim);">${r.customer.phone}</small></td>
         <td>${isHall ? (r.eventDetails?.topic || 'همایش') : r.bookingType}</td>
         <td><strong>${formatCurrency(r.pricing?.finalTotal)}</strong></td>
         <td>
-          <span class="badge ${r.status === 'CONFIRMED' ? 'badge-success' : (r.status === 'PENDING_REVIEW' ? 'badge-warning' : 'badge-danger')}">
+          <span class="space-capacity-pill">
             ${r.status === 'PENDING_REVIEW' ? 'در انتظار تأیید' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
           </span>
         </td>
         <td>
           ${canApprove ? `
-            <button class="btn btn-sm btn-success" onclick="approveReservation('${r.id}')">تأیید رویداد</button>
-          ` : ''}
-          ${r.status !== 'CANCELLED' ? `
-            <button class="btn btn-sm btn-danger" onclick="cancelReservation('${r.id}')">لغو</button>
+            <button class="segment-btn active" style="margin-left:0.4rem;" onclick="approveReservation('${r.id}')">تأیید رویداد</button>
           ` : ''}
         </td>
       </tr>
@@ -1108,18 +1081,6 @@ window.approveReservation = async function(id) {
   try {
     await apiRequest(`/api/admin/reservations/${id}/approve`, 'POST');
     showToast(`رویداد سالن همایش (${id}) با موفقیت تأیید شد.`);
-    loadAdminData();
-  } catch (err) {
-    showToast(err.message, 'error');
-  }
-};
-
-window.cancelReservation = async function(id) {
-  const reason = prompt('لطفاً دلیل لغو رزرو را وارد کنید:');
-  if (reason === null) return;
-  try {
-    await apiRequest(`/api/admin/reservations/${id}/cancel`, 'POST', { reason });
-    showToast(`رزرو ${id} لغو گردید.`);
     loadAdminData();
   } catch (err) {
     showToast(err.message, 'error');
@@ -1162,7 +1123,7 @@ function setupAdminForms() {
   });
 }
 
-// 12. Financial Analytics & Revenue Share (Super Admin)
+// 12. Financial Analytics & Revenue Share
 async function loadAnalyticsData() {
   try {
     const data = await apiRequest('/api/admin/analytics');
@@ -1184,7 +1145,7 @@ async function loadAnalyticsData() {
       breakdownEl.innerHTML = Object.entries(f.breakdownBySpace).map(([key, item]) => {
         const space = state.spaces.find(s => s.key === key);
         return `
-          <div class="breakdown-row">
+          <div class="space-breakdown-row">
             <span><strong>${space?.name || key}</strong> (${item.count} رزرو)</span>
             <strong>${formatCurrency(item.revenue)}</strong>
           </div>
@@ -1195,7 +1156,7 @@ async function loadAnalyticsData() {
     const auditEl = document.getElementById('audit-log-list');
     if (auditEl && data.auditLogs) {
       auditEl.innerHTML = data.auditLogs.map(log => `
-        <div class="audit-log-item">
+        <div class="audit-stream-item">
           <div><strong>عملیات:</strong> ${log.action} | <strong>منبع:</strong> ${log.resource}</div>
           <div><small>توسط: ${log.userId} در ${new Date(log.timestamp).toLocaleTimeString('fa-IR')}</small></div>
         </div>
@@ -1207,7 +1168,7 @@ async function loadAnalyticsData() {
   }
 }
 
-// Helper: Dates
+// Default Dates
 function setDefaultDateTimes() {
   const now = new Date();
   now.setMinutes(0, 0, 0);
@@ -1228,9 +1189,10 @@ function setDefaultDateTimes() {
 // Bootstrap
 document.addEventListener('DOMContentLoaded', async () => {
   setupThemeEngine();
-  setupAuthSystem();
+  setupUserMenu();
   setupNavigation();
   setDefaultDateTimes();
+  setupRateToggle();
   await loadSpaces();
   await loadCateringMenu();
   setupPromoEngine();
@@ -1239,7 +1201,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   toggleHallFields();
   updatePriceBreakdown();
 
-  document.getElementById('booking-type')?.addEventListener('change', updatePriceBreakdown);
   document.getElementById('duration')?.addEventListener('input', updatePriceBreakdown);
   document.getElementById('equip-recording')?.addEventListener('change', updatePriceBreakdown);
   document.getElementById('equip-sound')?.addEventListener('change', updatePriceBreakdown);
