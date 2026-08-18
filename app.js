@@ -1,7 +1,7 @@
 /**
- * TechOn Platform - Core Client Application with Strict Role-Based Access Control (RBAC)
- * Handles online booking, dynamic catering calculation, promo validation,
- * multi-user role switching, admin operations, and financial analytics.
+ * TechOn Platform - Core Client Application
+ * Features: Dark/Light Mode, Strict RBAC Scoping, Dynamic Catering Filters,
+ * Stepped Wizard Flow, Real-time Invoicing & Analytics.
  */
 
 // Demo Users Configuration
@@ -16,7 +16,7 @@ const DEMO_ACCOUNTS = [
     title: 'مشتری / کاربر عادی',
     avatar: '👩‍💼',
     color: 'badge-primary',
-    desc: 'دسترسی فقط به رزرواسیون، منوی کافه و سوابق سفارشات خود'
+    desc: 'دسترسی فقط به رزرواسیون، منوی کافه و پیگیری رزروهای خود'
   },
   {
     id: 'user-cowork',
@@ -56,24 +56,43 @@ const DEMO_ACCOUNTS = [
   }
 ];
 
+// Space Visual Icons Map
+const SPACE_ICONS = {
+  CONFERENCE_HALL: '🎤',
+  PRIVATE_OFFICE: '💼',
+  DEDICATED_DESK: '🪑',
+  SHARED_DESK: '💻'
+};
+
+// Catering Category Icons & Persian Labels
+const CATEGORY_META = {
+  PACKAGE: { label: 'پکیج پذیرایی', icon: '🎁' },
+  BEVERAGE_HOT: { label: 'نوشیدنی گرم', icon: '☕' },
+  BEVERAGE_COLD: { label: 'نوشیدنی سرد', icon: '🧃' },
+  SNACK: { label: 'اسنک و فینگرفود', icon: '🥐' },
+  MEAL: { label: 'میان‌وعده و وعده غذایی', icon: '🥪' }
+};
+
 // Application State
 const state = {
+  theme: 'light',
   currentUser: DEMO_ACCOUNTS[0], // Start as Customer
   spaces: [],
   cateringMenu: [],
+  selectedCategoryFilter: 'ALL',
   selectedSpaceKey: 'CONFERENCE_HALL',
   cateringOrders: {}, // itemId -> count
   appliedPromo: null,
-  reservations: [],
-  myReservations: []
+  reservations: []
 };
 
-// Utilities
+// Currency Formatter
 function formatCurrency(amount) {
   if (!amount && amount !== 0) return '۰ تومان';
   return Number(amount).toLocaleString('fa-IR') + ' تومان';
 }
 
+// Toast Notifier
 function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
@@ -85,7 +104,7 @@ function showToast(message, type = 'success') {
   }, 4000);
 }
 
-// API Client Helper with Active Role Header
+// API Request Wrapper
 async function apiRequest(endpoint, method = 'GET', body = null) {
   const headers = {
     'Content-Type': 'application/json',
@@ -103,9 +122,41 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
   return data;
 }
 
-// 1. Authentication & Role Switcher
+// 1. Dark Mode / Light Mode Engine
+function setupThemeEngine() {
+  const savedTheme = localStorage.getItem('techon_theme') || 
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  
+  setTheme(savedTheme);
+
+  const toggleBtn = document.getElementById('theme-toggle');
+  toggleBtn?.addEventListener('click', () => {
+    const nextTheme = state.theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    showToast(nextTheme === 'dark' ? '🌙 حالت شب فعال شد' : '☀️ حالت روز فعال شد');
+  });
+}
+
+function setTheme(theme) {
+  state.theme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('techon_theme', theme);
+
+  const iconEl = document.getElementById('theme-icon');
+  const labelEl = document.getElementById('theme-label');
+  if (iconEl && labelEl) {
+    if (theme === 'dark') {
+      iconEl.innerText = '☀️';
+      labelEl.innerText = 'حالت روز';
+    } else {
+      iconEl.innerText = '🌙';
+      labelEl.innerText = 'حالت شب';
+    }
+  }
+}
+
+// 2. Authentication & Role Switcher
 function setupAuthSystem() {
-  // Render Top Quick User Chips
   const chipsContainer = document.getElementById('quick-user-chips');
   if (chipsContainer) {
     chipsContainer.innerHTML = DEMO_ACCOUNTS.map(u => `
@@ -116,7 +167,6 @@ function setupAuthSystem() {
     `).join('');
   }
 
-  // Render Modal Demo Cards
   const modalGrid = document.getElementById('demo-accounts-grid');
   if (modalGrid) {
     modalGrid.innerHTML = DEMO_ACCOUNTS.map(u => `
@@ -131,7 +181,6 @@ function setupAuthSystem() {
     `).join('');
   }
 
-  // Open / Close Auth Modal
   const authModal = document.getElementById('auth-modal');
   document.getElementById('btn-open-auth-modal')?.addEventListener('click', () => {
     authModal.classList.remove('hidden');
@@ -140,7 +189,6 @@ function setupAuthSystem() {
     authModal.classList.add('hidden');
   });
 
-  // Manual Login Form
   document.getElementById('form-manual-login')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('login-username').value.trim();
@@ -167,32 +215,28 @@ window.switchUser = function(username) {
   const target = DEMO_ACCOUNTS.find(u => u.username === username);
   if (!target) return;
   state.currentUser = target;
-  
-  // Close modal if open
   document.getElementById('auth-modal')?.classList.add('hidden');
-  
-  // Update header and navigation
   applyRoleVisibility();
   showToast(`شما به عنوان "${target.name}" (${target.title}) وارد شدید.`);
 };
 
-// 2. Strict Role-Based View & Tab Scoping
+// 3. Strict Role-Based View & Tab Scoping
 function applyRoleVisibility() {
   const user = state.currentUser;
 
-  // 2.1 Update Header Badge
+  // Header Badge
   document.getElementById('current-user-avatar').innerText = user.avatar;
   document.getElementById('current-user-name').innerText = user.name;
   const roleBadge = document.getElementById('current-user-role-badge');
   roleBadge.innerText = user.title;
   roleBadge.className = `badge ${user.color}`;
 
-  // 2.2 Update Active Chips in Top Bar
+  // Active chip sync
   document.querySelectorAll('.user-chip').forEach(chip => {
     chip.classList.toggle('active-chip', chip.innerText.includes(user.name));
   });
 
-  // 2.3 Update Role Perspective Banner
+  // Perspective Banner
   const banner = document.getElementById('role-perspective-banner');
   let bannerText = '';
   if (user.role === 'CUSTOMER') {
@@ -206,14 +250,13 @@ function applyRoleVisibility() {
   }
   banner.innerHTML = bannerText;
 
-  // 2.4 Navigation Tab Permissions
+  // Tab permissions
   const tabBooking = document.getElementById('tab-btn-booking');
   const tabCatering = document.getElementById('tab-btn-catering');
   const tabMyBookings = document.getElementById('tab-btn-my-bookings');
   const tabAdmin = document.getElementById('tab-btn-admin');
   const tabAnalytics = document.getElementById('tab-btn-analytics');
 
-  // Customer permissions
   if (user.role === 'CUSTOMER') {
     tabBooking.classList.remove('hidden');
     tabCatering.classList.remove('hidden');
@@ -221,14 +264,10 @@ function applyRoleVisibility() {
     tabAdmin.classList.add('hidden');
     tabAnalytics.classList.add('hidden');
 
-    // If currently on a forbidden tab, switch to booking
     const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
-    if (activeTab === 'admin' || activeTab === 'analytics') {
-      tabBooking.click();
-    }
+    if (activeTab === 'admin' || activeTab === 'analytics') tabBooking.click();
   }
 
-  // Coworking Operator permissions
   if (user.role === 'COWORKING_OPERATOR') {
     tabBooking.classList.remove('hidden');
     tabCatering.classList.remove('hidden');
@@ -237,7 +276,6 @@ function applyRoleVisibility() {
     tabAnalytics.classList.add('hidden');
     document.getElementById('tab-admin-title').innerText = 'پنل فضای اشتراکی';
 
-    // Scoped sub-sections
     document.getElementById('admin-catering-box')?.classList.add('hidden');
     document.getElementById('admin-promo-box')?.classList.add('hidden');
 
@@ -245,7 +283,6 @@ function applyRoleVisibility() {
     if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin.click();
   }
 
-  // Cafe & Hall Operator permissions
   if (user.role === 'CAFE_OPERATOR') {
     tabBooking.classList.remove('hidden');
     tabCatering.classList.remove('hidden');
@@ -254,7 +291,6 @@ function applyRoleVisibility() {
     tabAnalytics.classList.add('hidden');
     document.getElementById('tab-admin-title').innerText = 'پنل سالن و کافه';
 
-    // Scoped sub-sections
     document.getElementById('admin-catering-box')?.classList.remove('hidden');
     document.getElementById('admin-promo-box')?.classList.add('hidden');
 
@@ -262,7 +298,6 @@ function applyRoleVisibility() {
     if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin.click();
   }
 
-  // Super Admin permissions
   if (user.role === 'SUPER_ADMIN') {
     tabBooking.classList.remove('hidden');
     tabCatering.classList.remove('hidden');
@@ -275,20 +310,20 @@ function applyRoleVisibility() {
     document.getElementById('admin-promo-box')?.classList.remove('hidden');
   }
 
-  // Autofill customer name & phone in booking form
+  // Pre-fill booking fields
   const nameInput = document.getElementById('cust-name');
   const phoneInput = document.getElementById('cust-phone');
   if (nameInput && user.role === 'CUSTOMER') nameInput.value = user.name;
   if (phoneInput && user.role === 'CUSTOMER') phoneInput.value = user.phone;
 
-  // Refresh active tab data
+  // Refresh tab data
   const currentTab = document.querySelector('.nav-tab.active')?.dataset.tab;
   if (currentTab === 'my-bookings') loadMyBookings();
   if (currentTab === 'admin') loadAdminData();
   if (currentTab === 'analytics') loadAnalyticsData();
 }
 
-// 3. Tab Switching
+// 4. Navigation Tab Switcher
 function setupNavigation() {
   const tabs = document.querySelectorAll('.nav-tab');
   tabs.forEach(tab => {
@@ -308,7 +343,7 @@ function setupNavigation() {
   });
 }
 
-// 4. Fetch Spaces Catalog
+// 5. Fetch & Render Spaces
 async function loadSpaces() {
   try {
     const data = await apiRequest('/api/spaces');
@@ -325,10 +360,11 @@ function renderSpacesCatalog() {
 
   container.innerHTML = state.spaces.map(s => {
     const isSelected = s.key === state.selectedSpaceKey ? 'selected' : '';
+    const icon = SPACE_ICONS[s.key] || '🏢';
     return `
       <div class="space-item ${isSelected}" data-key="${s.key}">
         <div class="space-item-header">
-          <span class="space-name">${s.name}</span>
+          <span class="space-name">${icon} ${s.name}</span>
           <span class="badge badge-primary">ظرفیت: ${s.capacity} نفر</span>
         </div>
         <div class="space-prices">
@@ -347,6 +383,7 @@ function renderSpacesCatalog() {
       renderSpacesCatalog();
       toggleHallFields();
       updatePriceBreakdown();
+      updateWizardStep(2);
     });
   });
 }
@@ -361,16 +398,35 @@ function toggleHallFields() {
   }
 }
 
-// 5. Fetch Catering Menu
+function updateWizardStep(step) {
+  document.getElementById('wiz-step-1')?.classList.toggle('active', step >= 1);
+  document.getElementById('wiz-step-2')?.classList.toggle('active', step >= 2);
+  document.getElementById('wiz-step-3')?.classList.toggle('active', step >= 3);
+}
+
+// 6. Fetch & Render Catering
 async function loadCateringMenu() {
   try {
     const data = await apiRequest('/api/catering/menu');
     state.cateringMenu = data.menu || [];
     renderCateringBookingSelector();
     renderCateringCatalogGrid();
+    setupCateringFilters();
   } catch (err) {
     showToast('خطا در دریافت منوی پذیرایی', 'error');
   }
+}
+
+function setupCateringFilters() {
+  const filterBtns = document.querySelectorAll('.filter-pill');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.selectedCategoryFilter = btn.dataset.filter;
+      renderCateringCatalogGrid();
+    });
+  });
 }
 
 function renderCateringBookingSelector() {
@@ -379,10 +435,11 @@ function renderCateringBookingSelector() {
 
   container.innerHTML = state.cateringMenu.map(item => {
     const qty = state.cateringOrders[item.id] || 0;
+    const cat = CATEGORY_META[item.category] || { icon: '☕', label: item.category };
     return `
       <div class="catering-order-item">
         <div class="cat-item-info">
-          <strong>${item.name}</strong>
+          <strong>${cat.icon} ${item.name}</strong>
           <span>قیمت واحد: ${formatCurrency(item.price)}</span>
         </div>
         <div class="cat-quantity-controls">
@@ -412,12 +469,17 @@ function renderCateringCatalogGrid() {
   const container = document.getElementById('catering-catalog-grid');
   if (!container) return;
 
-  container.innerHTML = state.cateringMenu.map(item => {
+  const filtered = state.selectedCategoryFilter === 'ALL'
+    ? state.cateringMenu
+    : state.cateringMenu.filter(i => i.category === state.selectedCategoryFilter);
+
+  container.innerHTML = filtered.map(item => {
+    const cat = CATEGORY_META[item.category] || { icon: '☕', label: item.category };
     return `
       <div class="cat-card">
         <div class="cat-card-header">
-          <h4>${item.name}</h4>
-          <span class="badge badge-primary">${item.category}</span>
+          <h4>${cat.icon} ${item.name}</h4>
+          <span class="badge badge-primary">${cat.label}</span>
         </div>
         <div class="cat-card-price">${formatCurrency(item.price)}</div>
         <button class="btn btn-secondary btn-sm" onclick="selectAndBookCatering('${item.id}')">
@@ -434,11 +496,15 @@ window.selectAndBookCatering = function(itemId) {
   showToast('آیتم به سفارش جاری اضافه شد.');
 };
 
-// 6. Live Pricing Engine
+// 7. Live Pricing Calculation Engine
 function updatePriceBreakdown() {
   const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
   const bookingType = document.getElementById('booking-type').value;
   const duration = Number(document.getElementById('duration').value) || 1;
+
+  // Suffix label
+  const suffixEl = document.getElementById('duration-suffix');
+  if (suffixEl) suffixEl.innerText = bookingType === 'DAILY' ? 'روز' : 'ساعت';
 
   let spaceSubtotal = 0;
   if (space) {
@@ -491,13 +557,13 @@ function updatePriceBreakdown() {
   document.getElementById('summary-final-total').innerText = formatCurrency(finalTotal);
 }
 
-// 7. Promo Validation
+// 8. Promo Engine
 function setupPromoEngine() {
   const btnApply = document.getElementById('btn-apply-promo');
   const promoInput = document.getElementById('promo-input');
   const feedback = document.getElementById('promo-feedback');
 
-  btnApply.addEventListener('click', async () => {
+  btnApply?.addEventListener('click', async () => {
     const code = promoInput.value.trim();
     if (!code) {
       feedback.innerText = 'لطفاً کد تخفیف را وارد کنید.';
@@ -542,10 +608,10 @@ function setupPromoEngine() {
   });
 }
 
-// 8. Submit Reservation
+// 9. Booking Submission & Invoice Modal
 function setupBookingSubmission() {
   const submitBtn = document.getElementById('btn-submit-booking');
-  submitBtn.addEventListener('click', async () => {
+  submitBtn?.addEventListener('click', async () => {
     const custName = document.getElementById('cust-name').value.trim();
     const custPhone = document.getElementById('cust-phone').value.trim();
     const custEmail = document.getElementById('cust-email').value.trim();
@@ -555,7 +621,7 @@ function setupBookingSubmission() {
     const endTime = document.getElementById('end-datetime').value;
 
     if (!custName || !custPhone || !startTime || !endTime) {
-      showToast('لطفاً تمامی فیلدهای الزامی (نام، همراه و بازه زمانی) را تکمیل کنید.', 'error');
+      showToast('لطفاً تمامی فیلدهای الزامی را تکمیل کنید.', 'error');
       return;
     }
 
@@ -585,11 +651,12 @@ function setupBookingSubmission() {
     };
 
     submitBtn.disabled = true;
-    submitBtn.innerText = 'در حال ثبت و صدور فاکتور...';
+    submitBtn.innerHTML = '<span>⏳ در حال پردازش و ثبت سفارش...</span>';
 
     try {
       const response = await apiRequest('/api/reservations', 'POST', payload);
       showToast('رزرو شما با موفقیت ثبت شد!');
+      updateWizardStep(3);
       displayInvoiceModal(response.invoice, response.reservation);
       state.cateringOrders = {};
       state.appliedPromo = null;
@@ -599,7 +666,7 @@ function setupBookingSubmission() {
       showToast(`خطا در ثبت رزرو: ${err.message}`, 'error');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerText = '💳 ثبت نهایی و صدور فاکتور';
+      submitBtn.innerHTML = '<span>💳 ثبت نهایی و صدور فاکتور رسمی</span>';
     }
   });
 }
@@ -611,17 +678,17 @@ function displayInvoiceModal(invoice, reservation) {
   content.innerHTML = `
     <div class="invoice-receipt">
       <div class="invoice-meta">
-        <div><strong>شماره فاکتور:</strong> ${invoice.invoiceNumber}</div>
-        <div><strong>شماره رزرو:</strong> ${invoice.reservationId}</div>
+        <div><strong>شماره فاکتور:</strong> <code>${invoice.invoiceNumber}</code></div>
+        <div><strong>شماره رزرو:</strong> <code>${invoice.reservationId}</code></div>
       </div>
       <div class="invoice-meta">
         <div><strong>نام مشتری:</strong> ${invoice.customer.name}</div>
-        <div><strong>تلفن:</strong> ${invoice.customer.phone}</div>
+        <div><strong>شماره تماس:</strong> ${invoice.customer.phone}</div>
       </div>
       <div class="invoice-meta">
-        <div><strong>وضعیت سفارش:</strong> 
+        <div><strong>وضعیت فاکتور:</strong> 
           <span class="badge ${reservation.status === 'CONFIRMED' ? 'badge-success' : 'badge-warning'}">
-            ${reservation.status === 'CONFIRMED' ? 'تأیید شده' : 'در انتظار تایید موضوع توسط اپراتور'}
+            ${reservation.status === 'CONFIRMED' ? 'تأیید شده' : 'در انتظار تایید اپراتور سالن'}
           </span>
         </div>
       </div>
@@ -629,7 +696,7 @@ function displayInvoiceModal(invoice, reservation) {
       <table class="invoice-items-table">
         <thead>
           <tr>
-            <th>شرح خدمات</th>
+            <th>شرح خدمات و فضا</th>
             <th>مبلغ</th>
           </tr>
         </thead>
@@ -649,13 +716,13 @@ function displayInvoiceModal(invoice, reservation) {
       </div>
       ${invoice.discountAmount > 0 ? `
         <div class="summary-line text-success">
-          <span>تخفیف:</span>
+          <span>تخفیف کسر شده:</span>
           <strong>- ${formatCurrency(invoice.discountAmount)}</strong>
         </div>
       ` : ''}
       <div class="summary-divider"></div>
       <div class="summary-total-line">
-        <span>مبلغ نهایی پرداختی:</span>
+        <span>مبلغ نهایی پرداخت شده:</span>
         <strong class="total-amount">${formatCurrency(invoice.finalTotal)}</strong>
       </div>
     </div>
@@ -666,7 +733,7 @@ function displayInvoiceModal(invoice, reservation) {
   document.getElementById('btn-done-invoice').onclick = () => modal.classList.add('hidden');
 }
 
-// 9. Customer: My Bookings
+// 10. Customer: My Bookings
 async function loadMyBookings() {
   const tbody = document.getElementById('my-reservations-tbody');
   if (!tbody) return;
@@ -693,7 +760,7 @@ async function loadMyBookings() {
           </span>
         </td>
         <td>
-          <button class="btn btn-sm btn-secondary" onclick="viewExistingInvoice('${r.id}')">رسید فاکتور</button>
+          <button class="btn btn-sm btn-secondary" onclick="viewExistingInvoice('${r.id}')">🧾 مشاهده رسید</button>
         </td>
       </tr>
     `).join('');
@@ -726,7 +793,7 @@ window.viewExistingInvoice = async function(reservationId) {
   }
 };
 
-// 10. Admin & Operator Panel
+// 11. Admin & Operator Panel
 async function loadAdminData() {
   try {
     const data = await apiRequest('/api/admin/reservations');
@@ -803,7 +870,6 @@ window.cancelReservation = async function(id) {
 function setupAdminForms() {
   document.getElementById('btn-refresh-reservations')?.addEventListener('click', loadAdminData);
 
-  // Add Catering Form
   document.getElementById('form-add-catering')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('new-cat-name').value.trim();
@@ -820,7 +886,6 @@ function setupAdminForms() {
     }
   });
 
-  // Add Promo Form
   document.getElementById('form-add-promo')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const code = document.getElementById('new-promo-code').value.trim();
@@ -838,7 +903,7 @@ function setupAdminForms() {
   });
 }
 
-// 11. Financial Analytics & Revenue Share Tab (Super Admin)
+// 12. Financial Analytics & Revenue Share (Super Admin)
 async function loadAnalyticsData() {
   try {
     const data = await apiRequest('/api/admin/analytics');
@@ -850,7 +915,6 @@ async function loadAnalyticsData() {
     document.getElementById('metric-catering-rev').innerText = formatCurrency(f.cateringRevenue);
     document.getElementById('metric-discounts').innerText = formatCurrency(f.totalDiscountsGiven);
 
-    // Space Breakdown
     const breakdownEl = document.getElementById('space-revenue-breakdown');
     if (breakdownEl && f.breakdownBySpace) {
       breakdownEl.innerHTML = Object.entries(f.breakdownBySpace).map(([key, item]) => {
@@ -864,7 +928,6 @@ async function loadAnalyticsData() {
       }).join('');
     }
 
-    // Audit logs
     const auditEl = document.getElementById('audit-log-list');
     if (auditEl && data.auditLogs) {
       auditEl.innerHTML = data.auditLogs.map(log => `
@@ -880,7 +943,7 @@ async function loadAnalyticsData() {
   }
 }
 
-// Default Start/End Dates
+// Helper: Dates
 function setDefaultDateTimes() {
   const now = new Date();
   now.setMinutes(0, 0, 0);
@@ -900,6 +963,7 @@ function setDefaultDateTimes() {
 
 // Bootstrap
 document.addEventListener('DOMContentLoaded', async () => {
+  setupThemeEngine();
   setupAuthSystem();
   setupNavigation();
   setDefaultDateTimes();
