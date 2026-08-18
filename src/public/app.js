@@ -1,19 +1,71 @@
 /**
- * TechOn Platform - Core Client Application
+ * TechOn Platform - Core Client Application with Strict Role-Based Access Control (RBAC)
  * Handles online booking, dynamic catering calculation, promo validation,
- * admin operations, and financial analytics.
+ * multi-user role switching, admin operations, and financial analytics.
  */
+
+// Demo Users Configuration
+const DEMO_ACCOUNTS = [
+  {
+    id: 'user-cust',
+    username: 'customer',
+    password: 'cust123',
+    name: 'مریم رضایی',
+    phone: '09124444444',
+    role: 'CUSTOMER',
+    title: 'مشتری / کاربر عادی',
+    avatar: '👩‍💼',
+    color: 'badge-primary',
+    desc: 'دسترسی فقط به رزرواسیون، منوی کافه و سوابق سفارشات خود'
+  },
+  {
+    id: 'user-cowork',
+    username: 'cowork_op',
+    password: 'cowork123',
+    name: 'علی کاظمی',
+    phone: '09122222222',
+    role: 'COWORKING_OPERATOR',
+    title: 'اپراتور فضای کار اشتراکی',
+    avatar: '🏢',
+    color: 'badge-warning',
+    desc: 'دسترسی به مدیریت صندلی‌ها، اتاق‌ها و ثبت دستی مراجعین'
+  },
+  {
+    id: 'user-cafe',
+    username: 'cafe_op',
+    password: 'cafe123',
+    name: 'سارا تهرانی',
+    phone: '09123333333',
+    role: 'CAFE_OPERATOR',
+    title: 'اپراتور سالن همایش و کافه',
+    avatar: '☕',
+    color: 'badge-success',
+    desc: 'دسترسی به بررسی و تأیید رویدادهای سالن و مدیریت منوی کافه'
+  },
+  {
+    id: 'user-admin',
+    username: 'admin',
+    password: 'admin123',
+    name: 'مهندس نیامنش',
+    phone: '09121111111',
+    role: 'SUPER_ADMIN',
+    title: 'سوپرادمین (مدیریت کل)',
+    avatar: '👑',
+    color: 'badge-danger',
+    desc: 'دسترسی نامحدود به تمامی بخش‌ها، ایجاد کوپن و گزارشات مالی سهم درآمد'
+  }
+];
 
 // Application State
 const state = {
-  currentUserRole: 'SUPER_ADMIN',
+  currentUser: DEMO_ACCOUNTS[0], // Start as Customer
   spaces: [],
   cateringMenu: [],
   selectedSpaceKey: 'CONFERENCE_HALL',
   cateringOrders: {}, // itemId -> count
   appliedPromo: null,
   reservations: [],
-  invoices: []
+  myReservations: []
 };
 
 // Utilities
@@ -33,11 +85,11 @@ function showToast(message, type = 'success') {
   }, 4000);
 }
 
-// API Client Helper
+// API Client Helper with Active Role Header
 async function apiRequest(endpoint, method = 'GET', body = null) {
   const headers = {
     'Content-Type': 'application/json',
-    'X-User-Role': state.currentUserRole
+    'X-User-Role': state.currentUser.role
   };
 
   const options = { method, headers };
@@ -51,7 +103,192 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
   return data;
 }
 
-// 1. Initialize Tabs & Roles
+// 1. Authentication & Role Switcher
+function setupAuthSystem() {
+  // Render Top Quick User Chips
+  const chipsContainer = document.getElementById('quick-user-chips');
+  if (chipsContainer) {
+    chipsContainer.innerHTML = DEMO_ACCOUNTS.map(u => `
+      <button type="button" class="user-chip ${u.id === state.currentUser.id ? 'active-chip' : ''}" onclick="switchUser('${u.username}')">
+        <span>${u.avatar}</span>
+        <span>${u.name} (${u.title.split(' ')[0]})</span>
+      </button>
+    `).join('');
+  }
+
+  // Render Modal Demo Cards
+  const modalGrid = document.getElementById('demo-accounts-grid');
+  if (modalGrid) {
+    modalGrid.innerHTML = DEMO_ACCOUNTS.map(u => `
+      <div class="demo-account-card ${u.id === state.currentUser.id ? 'active-account' : ''}" onclick="switchUser('${u.username}')">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong>${u.avatar} ${u.name}</strong>
+          <span class="badge ${u.color}">${u.role}</span>
+        </div>
+        <div class="demo-cred-tag">یوزر: <code>${u.username}</code> | پسورد: <code>${u.password}</code></div>
+        <small style="color:var(--text-secondary); margin-top:0.25rem;">${u.desc}</small>
+      </div>
+    `).join('');
+  }
+
+  // Open / Close Auth Modal
+  const authModal = document.getElementById('auth-modal');
+  document.getElementById('btn-open-auth-modal')?.addEventListener('click', () => {
+    authModal.classList.remove('hidden');
+  });
+  document.getElementById('btn-close-auth')?.addEventListener('click', () => {
+    authModal.classList.add('hidden');
+  });
+
+  // Manual Login Form
+  document.getElementById('form-manual-login')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+
+    try {
+      const res = await apiRequest('/api/auth/login', 'POST', { username, password });
+      const matched = DEMO_ACCOUNTS.find(u => u.username === res.user.username);
+      if (matched) {
+        state.currentUser = matched;
+        authModal.classList.add('hidden');
+        applyRoleVisibility();
+        showToast(`خوش آمدید ${matched.name}!`);
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+
+  applyRoleVisibility();
+}
+
+window.switchUser = function(username) {
+  const target = DEMO_ACCOUNTS.find(u => u.username === username);
+  if (!target) return;
+  state.currentUser = target;
+  
+  // Close modal if open
+  document.getElementById('auth-modal')?.classList.add('hidden');
+  
+  // Update header and navigation
+  applyRoleVisibility();
+  showToast(`شما به عنوان "${target.name}" (${target.title}) وارد شدید.`);
+};
+
+// 2. Strict Role-Based View & Tab Scoping
+function applyRoleVisibility() {
+  const user = state.currentUser;
+
+  // 2.1 Update Header Badge
+  document.getElementById('current-user-avatar').innerText = user.avatar;
+  document.getElementById('current-user-name').innerText = user.name;
+  const roleBadge = document.getElementById('current-user-role-badge');
+  roleBadge.innerText = user.title;
+  roleBadge.className = `badge ${user.color}`;
+
+  // 2.2 Update Active Chips in Top Bar
+  document.querySelectorAll('.user-chip').forEach(chip => {
+    chip.classList.toggle('active-chip', chip.innerText.includes(user.name));
+  });
+
+  // 2.3 Update Role Perspective Banner
+  const banner = document.getElementById('role-perspective-banner');
+  let bannerText = '';
+  if (user.role === 'CUSTOMER') {
+    bannerText = `👁️ <strong>دیدگاه مشتری (${user.name}):</strong> شما فقط به بخش‌های رزرواسیون فضا، منوی کافه و پیگیری رزروهای خود دسترسی دارید. پنل‌های مدیریتی و مالی برای شما مخفی است.`;
+  } else if (user.role === 'COWORKING_OPERATOR') {
+    bannerText = `👁️ <strong>دیدگاه اپراتور کار اشتراکی (${user.name}):</strong> شما به مدیریت رزروهای صندلی‌ها و اتاق‌ها و ثبت دستی مراجعین دسترسی دارید. گزارشات مالی کلان و سالن همایش مخفی است.`;
+  } else if (user.role === 'CAFE_OPERATOR') {
+    bannerText = `👁️ <strong>دیدگاه اپراتور سالن و کافه (${user.name}):</strong> شما به بررسی و تأیید رویدادهای سالن همایش و ویرایش منوی کافه دسترسی دارید. گزارشات مالی کلان مخفی است.`;
+  } else if (user.role === 'SUPER_ADMIN') {
+    bannerText = `👁️ <strong>دیدگاه سوپرادمین (${user.name}):</strong> شما به تمامی ۵ بخش سامانه، تاییدات، ساخت کد تخفیف و گزارشات مالی سهم درآمد (۱۰٪ الی ۱۵٪) دسترسی نامحدود دارید.`;
+  }
+  banner.innerHTML = bannerText;
+
+  // 2.4 Navigation Tab Permissions
+  const tabBooking = document.getElementById('tab-btn-booking');
+  const tabCatering = document.getElementById('tab-btn-catering');
+  const tabMyBookings = document.getElementById('tab-btn-my-bookings');
+  const tabAdmin = document.getElementById('tab-btn-admin');
+  const tabAnalytics = document.getElementById('tab-btn-analytics');
+
+  // Customer permissions
+  if (user.role === 'CUSTOMER') {
+    tabBooking.classList.remove('hidden');
+    tabCatering.classList.remove('hidden');
+    tabMyBookings.classList.remove('hidden');
+    tabAdmin.classList.add('hidden');
+    tabAnalytics.classList.add('hidden');
+
+    // If currently on a forbidden tab, switch to booking
+    const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
+    if (activeTab === 'admin' || activeTab === 'analytics') {
+      tabBooking.click();
+    }
+  }
+
+  // Coworking Operator permissions
+  if (user.role === 'COWORKING_OPERATOR') {
+    tabBooking.classList.remove('hidden');
+    tabCatering.classList.remove('hidden');
+    tabMyBookings.classList.add('hidden');
+    tabAdmin.classList.remove('hidden');
+    tabAnalytics.classList.add('hidden');
+    document.getElementById('tab-admin-title').innerText = 'پنل فضای اشتراکی';
+
+    // Scoped sub-sections
+    document.getElementById('admin-catering-box')?.classList.add('hidden');
+    document.getElementById('admin-promo-box')?.classList.add('hidden');
+
+    const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
+    if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin.click();
+  }
+
+  // Cafe & Hall Operator permissions
+  if (user.role === 'CAFE_OPERATOR') {
+    tabBooking.classList.remove('hidden');
+    tabCatering.classList.remove('hidden');
+    tabMyBookings.classList.add('hidden');
+    tabAdmin.classList.remove('hidden');
+    tabAnalytics.classList.add('hidden');
+    document.getElementById('tab-admin-title').innerText = 'پنل سالن و کافه';
+
+    // Scoped sub-sections
+    document.getElementById('admin-catering-box')?.classList.remove('hidden');
+    document.getElementById('admin-promo-box')?.classList.add('hidden');
+
+    const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
+    if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin.click();
+  }
+
+  // Super Admin permissions
+  if (user.role === 'SUPER_ADMIN') {
+    tabBooking.classList.remove('hidden');
+    tabCatering.classList.remove('hidden');
+    tabMyBookings.classList.remove('hidden');
+    tabAdmin.classList.remove('hidden');
+    tabAnalytics.classList.remove('hidden');
+    document.getElementById('tab-admin-title').innerText = 'پنل مدیریت کل';
+
+    document.getElementById('admin-catering-box')?.classList.remove('hidden');
+    document.getElementById('admin-promo-box')?.classList.remove('hidden');
+  }
+
+  // Autofill customer name & phone in booking form
+  const nameInput = document.getElementById('cust-name');
+  const phoneInput = document.getElementById('cust-phone');
+  if (nameInput && user.role === 'CUSTOMER') nameInput.value = user.name;
+  if (phoneInput && user.role === 'CUSTOMER') phoneInput.value = user.phone;
+
+  // Refresh active tab data
+  const currentTab = document.querySelector('.nav-tab.active')?.dataset.tab;
+  if (currentTab === 'my-bookings') loadMyBookings();
+  if (currentTab === 'admin') loadAdminData();
+  if (currentTab === 'analytics') loadAnalyticsData();
+}
+
+// 3. Tab Switching
 function setupNavigation() {
   const tabs = document.querySelectorAll('.nav-tab');
   tabs.forEach(tab => {
@@ -64,23 +301,14 @@ function setupNavigation() {
       const targetEl = document.getElementById(targetId);
       if (targetEl) targetEl.classList.add('active');
 
+      if (tab.dataset.tab === 'my-bookings') loadMyBookings();
       if (tab.dataset.tab === 'admin') loadAdminData();
       if (tab.dataset.tab === 'analytics') loadAnalyticsData();
     });
   });
-
-  const roleSelect = document.getElementById('role-select');
-  roleSelect.addEventListener('change', (e) => {
-    state.currentUserRole = e.target.value;
-    showToast(`سطح دسترسی به ${e.target.options[e.target.selectedIndex].text} تغییر یافت.`);
-    // Reload active tab data
-    const activeTab = document.querySelector('.nav-tab.active').dataset.tab;
-    if (activeTab === 'admin') loadAdminData();
-    if (activeTab === 'analytics') loadAnalyticsData();
-  });
 }
 
-// 2. Fetch Spaces Catalog
+// 4. Fetch Spaces Catalog
 async function loadSpaces() {
   try {
     const data = await apiRequest('/api/spaces');
@@ -133,7 +361,7 @@ function toggleHallFields() {
   }
 }
 
-// 3. Fetch Catering Menu
+// 5. Fetch Catering Menu
 async function loadCateringMenu() {
   try {
     const data = await apiRequest('/api/catering/menu');
@@ -206,27 +434,24 @@ window.selectAndBookCatering = function(itemId) {
   showToast('آیتم به سفارش جاری اضافه شد.');
 };
 
-// 4. Live Pricing & Summary Engine
+// 6. Live Pricing Engine
 function updatePriceBreakdown() {
   const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
   const bookingType = document.getElementById('booking-type').value;
   const duration = Number(document.getElementById('duration').value) || 1;
 
-  // 1. Space Base Subtotal
   let spaceSubtotal = 0;
   if (space) {
     const rate = bookingType === 'DAILY' ? space.dailyRate : space.hourlyRate;
     spaceSubtotal = rate * duration;
   }
 
-  // 2. Equipment Fees
   let equipFee = 0;
   if (state.selectedSpaceKey === 'CONFERENCE_HALL') {
     if (document.getElementById('equip-recording')?.checked) equipFee += 300000;
     if (document.getElementById('equip-sound')?.checked) equipFee += 200000;
   }
 
-  // 3. Catering Subtotal
   let cateringSubtotal = 0;
   for (const [itemId, count] of Object.entries(state.cateringOrders)) {
     const item = state.cateringMenu.find(i => i.id === itemId);
@@ -237,7 +462,6 @@ function updatePriceBreakdown() {
 
   const subtotal = spaceSubtotal + equipFee + cateringSubtotal;
 
-  // 4. Discount
   let discountAmount = 0;
   if (state.appliedPromo && state.appliedPromo.valid) {
     if (state.appliedPromo.discountType === 'PERCENTAGE') {
@@ -252,7 +476,6 @@ function updatePriceBreakdown() {
 
   const finalTotal = Math.max(0, subtotal - discountAmount);
 
-  // Update UI Elements
   document.getElementById('summary-space-fee').innerText = formatCurrency(spaceSubtotal);
   document.getElementById('summary-equip-fee').innerText = formatCurrency(equipFee);
   document.getElementById('summary-catering-fee').innerText = formatCurrency(cateringSubtotal);
@@ -268,7 +491,7 @@ function updatePriceBreakdown() {
   document.getElementById('summary-final-total').innerText = formatCurrency(finalTotal);
 }
 
-// 5. Promo Code Validation
+// 7. Promo Validation
 function setupPromoEngine() {
   const btnApply = document.getElementById('btn-apply-promo');
   const promoInput = document.getElementById('promo-input');
@@ -283,7 +506,6 @@ function setupPromoEngine() {
     }
 
     try {
-      // Calculate current subtotal
       const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
       const bookingType = document.getElementById('booking-type').value;
       const duration = Number(document.getElementById('duration').value) || 1;
@@ -320,7 +542,7 @@ function setupPromoEngine() {
   });
 }
 
-// 6. Submit Reservation & Invoice Modal
+// 8. Submit Reservation
 function setupBookingSubmission() {
   const submitBtn = document.getElementById('btn-submit-booking');
   submitBtn.addEventListener('click', async () => {
@@ -369,7 +591,6 @@ function setupBookingSubmission() {
       const response = await apiRequest('/api/reservations', 'POST', payload);
       showToast('رزرو شما با موفقیت ثبت شد!');
       displayInvoiceModal(response.invoice, response.reservation);
-      // Reset form options
       state.cateringOrders = {};
       state.appliedPromo = null;
       renderCateringBookingSelector();
@@ -441,12 +662,71 @@ function displayInvoiceModal(invoice, reservation) {
   `;
 
   modal.classList.remove('hidden');
-
   document.getElementById('btn-close-invoice').onclick = () => modal.classList.add('hidden');
   document.getElementById('btn-done-invoice').onclick = () => modal.classList.add('hidden');
 }
 
-// 7. Admin & Operator Panel
+// 9. Customer: My Bookings
+async function loadMyBookings() {
+  const tbody = document.getElementById('my-reservations-tbody');
+  if (!tbody) return;
+
+  try {
+    const phone = state.currentUser.phone;
+    const data = await apiRequest(`/api/my-reservations?phone=${phone}`);
+    const list = data.reservations || [];
+
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--text-secondary);">شما در حال حاضر رزروی ثبت نکرده‌اید.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map(r => `
+      <tr>
+        <td><strong>${r.id}</strong></td>
+        <td>${r.spaceName}</td>
+        <td>${new Date(r.startTime).toLocaleDateString('fa-IR')} (${r.duration} ${r.bookingType === 'DAILY' ? 'روز' : 'ساعت'})</td>
+        <td><strong>${formatCurrency(r.pricing?.finalTotal)}</strong></td>
+        <td>
+          <span class="badge ${r.status === 'CONFIRMED' ? 'badge-success' : (r.status === 'PENDING_REVIEW' ? 'badge-warning' : 'badge-danger')}">
+            ${r.status === 'PENDING_REVIEW' ? 'در انتظار بررسی' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-secondary" onclick="viewExistingInvoice('${r.id}')">رسید فاکتور</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+window.viewExistingInvoice = async function(reservationId) {
+  try {
+    const data = await apiRequest(`/api/my-reservations`);
+    const r = (data.reservations || []).find(x => x.id === reservationId);
+    if (r) {
+      displayInvoiceModal({
+        invoiceNumber: r.invoiceNumber,
+        reservationId: r.id,
+        customer: r.customer,
+        items: [
+          { title: `رزرو ${r.spaceName}`, amount: r.pricing.spaceSubtotal },
+          ...r.equipment.map(e => ({ title: e.name, amount: e.fee })),
+          ...r.catering.map(c => ({ title: `${c.name} (${c.quantity} عدد)`, amount: c.subtotal }))
+        ],
+        subtotal: r.pricing.subtotal,
+        discountAmount: r.pricing.discountAmount,
+        finalTotal: r.pricing.finalTotal
+      }, r);
+    }
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+};
+
+// 10. Admin & Operator Panel
 async function loadAdminData() {
   try {
     const data = await apiRequest('/api/admin/reservations');
@@ -462,13 +742,17 @@ function renderReservationsTable() {
   if (!tbody) return;
 
   if (state.reservations.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-secondary);">هنوز رزروی ثبت نشده است.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-secondary);">هنوز رزروی در این بخش ثبت نشده است.</td></tr>`;
     return;
   }
+
+  const role = state.currentUser.role;
 
   tbody.innerHTML = state.reservations.map(r => {
     const isHall = r.spaceKey === 'CONFERENCE_HALL';
     const isPending = r.status === 'PENDING_REVIEW';
+    const canApprove = (role === 'SUPER_ADMIN' || role === 'CAFE_OPERATOR') && isPending && isHall;
+
     return `
       <tr>
         <td><strong>${r.id}</strong></td>
@@ -482,7 +766,7 @@ function renderReservationsTable() {
           </span>
         </td>
         <td>
-          ${isPending ? `
+          ${canApprove ? `
             <button class="btn btn-sm btn-success" onclick="approveReservation('${r.id}')">تأیید رویداد</button>
           ` : ''}
           ${r.status !== 'CANCELLED' ? `
@@ -554,7 +838,7 @@ function setupAdminForms() {
   });
 }
 
-// 8. Financial Analytics & Revenue Share Tab
+// 11. Financial Analytics & Revenue Share Tab (Super Admin)
 async function loadAnalyticsData() {
   try {
     const data = await apiRequest('/api/admin/analytics');
@@ -596,12 +880,12 @@ async function loadAnalyticsData() {
   }
 }
 
-// Default Start/End Dates helper (today + 2 hours)
+// Default Start/End Dates
 function setDefaultDateTimes() {
   const now = new Date();
   now.setMinutes(0, 0, 0);
-  const start = new Date(now.getTime() + 3600000); // 1 hr later
-  const end = new Date(now.getTime() + 3 * 3600000); // 3 hrs later
+  const start = new Date(now.getTime() + 3600000);
+  const end = new Date(now.getTime() + 3 * 3600000);
 
   const formatLocalISO = (d) => {
     const offset = d.getTimezoneOffset() * 60000;
@@ -616,6 +900,7 @@ function setDefaultDateTimes() {
 
 // Bootstrap
 document.addEventListener('DOMContentLoaded', async () => {
+  setupAuthSystem();
   setupNavigation();
   setDefaultDateTimes();
   await loadSpaces();
@@ -626,7 +911,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   toggleHallFields();
   updatePriceBreakdown();
 
-  // Listeners for live price changes
   document.getElementById('booking-type')?.addEventListener('change', updatePriceBreakdown);
   document.getElementById('duration')?.addEventListener('input', updatePriceBreakdown);
   document.getElementById('equip-recording')?.addEventListener('change', updatePriceBreakdown);

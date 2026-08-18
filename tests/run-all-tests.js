@@ -177,11 +177,40 @@ async function runTestSuite() {
     });
     assert(apiBooking.status === 201 && apiBooking.data.success, 'POST /api/reservations created reservation via REST API');
 
-    // 5.6 Admin Analytics & Revenue Share API
+    // 5.6 Auth Login API Test
+    const loginSuccess = await makeRequest(TEST_PORT, '/api/auth/login', 'POST', {
+      username: 'admin',
+      password: 'admin123'
+    });
+    assert(loginSuccess.status === 200 && loginSuccess.data.user.role === 'SUPER_ADMIN', 'POST /api/auth/login authenticated admin user');
+
+    const loginFail = await makeRequest(TEST_PORT, '/api/auth/login', 'POST', {
+      username: 'admin',
+      password: 'wrongpassword'
+    });
+    assert(loginFail.status === 401, 'POST /api/auth/login rejected invalid credentials with 401');
+
+    // 5.7 Role Isolation & Access Control Test
+    const customerAdminAccess = await makeRequest(TEST_PORT, '/api/admin/reservations', 'GET', null, {
+      'X-User-Role': 'CUSTOMER'
+    });
+    assert(customerAdminAccess.status === 403, 'Customer role denied from GET /api/admin/reservations with 403 Forbidden');
+
+    const customerAnalyticsAccess = await makeRequest(TEST_PORT, '/api/admin/analytics', 'GET', null, {
+      'X-User-Role': 'CUSTOMER'
+    });
+    assert(customerAnalyticsAccess.status === 403, 'Customer role denied from GET /api/admin/analytics with 403 Forbidden');
+
+    const operatorAnalyticsAccess = await makeRequest(TEST_PORT, '/api/admin/analytics', 'GET', null, {
+      'X-User-Role': 'COWORKING_OPERATOR'
+    });
+    assert(operatorAnalyticsAccess.status === 403, 'Operator role denied from GET /api/admin/analytics with 403 Forbidden');
+
+    // 5.8 Admin Analytics & Revenue Share API
     const analytics = await makeRequest(TEST_PORT, '/api/admin/analytics', 'GET', null, {
       'X-User-Role': 'SUPER_ADMIN'
     });
-    assert(analytics.status === 200 && analytics.data.revenueShare.contractorShare10 > 0, 'GET /api/admin/analytics calculated contractor revenue share');
+    assert(analytics.status === 200 && analytics.data.revenueShare.contractorShare10 > 0, 'SuperAdmin GET /api/admin/analytics calculated contractor revenue share');
 
   } finally {
     await new Promise(resolve => testServer.close(resolve));

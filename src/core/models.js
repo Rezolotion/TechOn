@@ -58,3 +58,43 @@ export const PaymentStatus = Object.freeze({
   REFUNDED: 'REFUNDED',
   FAILED: 'FAILED'
 });
+
+export const DemoUsers = Object.freeze([
+  {
+    id: 'user-admin',
+    username: 'admin',
+    password: 'admin123',
+    name: 'مهندس نیامنش (سوپرادمین)',
+    phone: '09121111111',
+    role: UserRoles.SUPER_ADMIN,
+    title: 'مدیریت ارشد پلتفرم'
+  },
+  {
+    id: 'user-cowork',
+    username: 'cowork_op',
+    password: 'cowork123',
+    name: 'علی کاظمی (اپراتور اشتراکی)',
+    phone: '09122222222',
+    role: UserRoles.COWORKING_OPERATOR,
+    title: 'مسئول فضای کار و میزها'
+  },
+  {
+    id: 'user-cafe',
+    username: 'cafe_op',
+    password: 'cafe123',
+    name: 'سارا تهرانی (اپراتور سالن و کافه)',
+    phone: '09123333333',
+    role: UserRoles.CAFE_OPERATOR,
+    title: 'مسئول تشریفات و همایش‌ها'
+  },
+  {
+    id: 'user-cust',
+    username: 'customer',
+    password: 'cust123',
+    name: 'مریم رضایی (کاربر / مشتری)',
+    phone: '09124444444',
+    role: UserRoles.CUSTOMER,
+    title: 'مشتری پلتفرم'
+  }
+]);
+

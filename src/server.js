@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { SpaceTypes, UserRoles, ReservationStatus } from './core/models.js';
+import { SpaceTypes, UserRoles, ReservationStatus, DemoUsers } from './core/models.js';
 import { SecurityGuard, Permissions } from './security/rbac.js';
 import { Sanitizer } from './security/sanitizer.js';
 import { CateringService } from './services/CateringService.js';
@@ -130,6 +130,46 @@ export function createServer() {
         });
       }
 
+      // 1.1 Auth Login
+      if (pathname === '/api/auth/login' && method === 'POST') {
+        const body = await parseBody(req);
+        const { username, password } = body;
+        const user = DemoUsers.find(u => u.username === (username || '').trim().toLowerCase());
+        if (!user || user.password !== password) {
+          return sendJSON(res, 401, {
+            success: false,
+            error: 'INVALID_CREDENTIALS',
+            message: 'نام کاربری یا کلمه عبور وارد شده نادرست است.'
+          });
+        }
+        const { password: _, ...userSafe } = user;
+        return sendJSON(res, 200, {
+          success: true,
+          user: userSafe,
+          token: `techon-token-${user.id}-${Date.now()}`
+        });
+      }
+
+      // 1.2 Auth Users List (for fast demo switching)
+      if (pathname === '/api/auth/users' && method === 'GET') {
+        return sendJSON(res, 200, {
+          success: true,
+          users: DemoUsers.map(({ password, ...safe }) => safe)
+        });
+      }
+
+      // 1.3 Customer: My Bookings
+      if (pathname === '/api/my-reservations' && method === 'GET') {
+        const phone = parsedUrl.searchParams.get('phone');
+        const list = phone
+          ? reservationService.reservations.filter(r => r.customer?.phone === phone)
+          : reservationService.reservations;
+        return sendJSON(res, 200, {
+          success: true,
+          reservations: list
+        });
+      }
+
       // 2. Spaces Catalog
       if (pathname === '/api/spaces' && method === 'GET') {
         return sendJSON(res, 200, {
@@ -175,7 +215,7 @@ export function createServer() {
         }
       }
 
-      // 6. Admin / Operator: List All Reservations
+      // 6. Admin / Operator: List Reservations with Role-Based Scoping
       if (pathname === '/api/admin/reservations' && method === 'GET') {
         if (!SecurityGuard.hasPermission(userRole, Permissions.VIEW_ALL_RESERVATIONS)) {
           return sendJSON(res, 403, {
@@ -184,9 +224,19 @@ export function createServer() {
             message: 'دسترسی مشاهده تمام رزروها برای این نقش مجاز نیست.'
           });
         }
+
+        let filtered = reservationService.reservations;
+        if (userRole === UserRoles.COWORKING_OPERATOR) {
+          // Coworking operator only manages desks & private rooms
+          filtered = filtered.filter(r => r.spaceKey !== 'CONFERENCE_HALL');
+        } else if (userRole === UserRoles.CAFE_OPERATOR) {
+          // Cafe & Hall operator only manages halls and catering
+          filtered = filtered.filter(r => r.spaceKey === 'CONFERENCE_HALL' || (r.catering && r.catering.length > 0));
+        }
+
         return sendJSON(res, 200, {
           success: true,
-          reservations: reservationService.reservations,
+          reservations: filtered,
           invoices: reservationService.invoices
         });
       }
