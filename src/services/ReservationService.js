@@ -31,6 +31,9 @@ export class ReservationService {
       throw new Error('بازه زمانی مشخص‌شده نامعتبر است');
     }
 
+    const space = SpaceTypes[spaceKey];
+    const maxCapacity = space?.count || 1;
+
     const conflicts = this.reservations.filter(r => {
       if (r.spaceKey !== spaceKey) return false;
       if (r.status === ReservationStatus.CANCELLED) return false;
@@ -39,7 +42,7 @@ export class ReservationService {
       return (start < rEnd && end > rStart);
     });
 
-    return conflicts.length === 0;
+    return conflicts.length < maxCapacity;
   }
 
   createReservation(payload) {

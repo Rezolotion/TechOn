@@ -701,6 +701,53 @@ button, input, select, textarea {
   color: var(--primary);
 }
 
+/* Time Range Picker & Duration Banner */
+.time-range-picker-box {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem;
+  margin-top: 0.85rem;
+}
+
+.calculated-duration-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-right: 4px solid var(--primary);
+  border-radius: var(--radius-xs);
+  padding: 0.65rem 0.85rem;
+  margin-top: 0.65rem;
+}
+
+.dur-info span { font-size: 0.76rem; color: var(--text-muted); display: block; }
+.dur-info strong { font-size: 1.05rem; color: var(--primary); font-weight: 900; }
+
+.dur-type-select {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dur-type-select label { font-size: 0.74rem; color: var(--text-dim); }
+.form-control-sm { padding: 0.35rem 0.65rem; font-size: 0.78rem; width: auto; }
+
+.desk-quantity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xs);
+  padding: 0.65rem 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.desk-quantity-row label { font-size: 0.82rem; font-weight: 700; display: block; }
+.desk-quantity-row small { font-size: 0.72rem; color: var(--text-dim); }
+
 /* Quick Time Slots */
 .quick-time-slots {
   display: flex;

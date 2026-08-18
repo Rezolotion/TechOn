@@ -12,35 +12,43 @@ export const UserRoles = Object.freeze({
 export const SpaceTypes = Object.freeze({
   CONFERENCE_HALL: {
     id: 'hall-main',
+    key: 'CONFERENCE_HALL',
     name: 'سالن همایش و رویداد تکان',
+    count: 1,
     capacity: 70,
     hourlyRate: 1500000, // Tomans / Hour
     dailyRate: 10000000,  // Tomans / Day
     features: ['پروژکتور 4K', 'سیستم صوتی استودیویی', 'استیج و تریبون', 'نورپردازی تخصصی', 'اینترنت فیبر نوری اختصاصی']
   },
+  MEETING_ROOM: {
+    id: 'meeting-room-1',
+    key: 'MEETING_ROOM',
+    name: 'اتاق جلسه و ویدیوکنفرانس',
+    count: 1,
+    capacity: 12,
+    hourlyRate: 250000,
+    dailyRate: 1600000,
+    features: ['نمایشگر ۶۵ اینچ 4K', 'تخته وایت‌برد شیشه‌ای', 'تجهیزات کنفرانس آنلاین', 'پذیرایی جلسه']
+  },
   PRIVATE_OFFICE: {
     id: 'office-private',
-    name: 'اتاق کار اختصاصی تیم ۴-۶ نفره',
+    key: 'PRIVATE_OFFICE',
+    name: 'اتاق کار اختصاصی تیم (۴ اتاق)',
+    count: 4,
     capacity: 6,
     hourlyRate: 350000,
     dailyRate: 2400000,
-    features: ['تخته وایت‌برد', 'میز کنفرانس کوچک', 'کمد اختصاصی']
-  },
-  DEDICATED_DESK: {
-    id: 'desk-dedicated',
-    name: 'صندلی اختصاصی (ماهانه/روزانه)',
-    capacity: 1,
-    hourlyRate: 60000,
-    dailyRate: 400000,
-    features: ['پریز اختصاصی', 'صندلی ارگونومیک', 'کمد کلیددار']
+    features: ['۴ اتاق کار مجزا', 'تخته وایت‌برد', 'میز کنفرانس کوچک', 'کمد کلیددار اختصاصی']
   },
   SHARED_DESK: {
     id: 'desk-shared',
-    name: 'صندلی اشتراکی (فلکسیبل)',
+    key: 'SHARED_DESK',
+    name: 'صندلی کار اشتراکی (۶۰ صندلی)',
+    count: 60,
     capacity: 1,
     hourlyRate: 40000,
     dailyRate: 250000,
-    features: ['دسترسی به فضای عمومی', 'اینترنت پرسرعت', 'چای و قهوه رایگان']
+    features: ['۶۰ صندلی استاندارد', 'صندلی ارگونومیک', 'پریز اختصاصی', 'اینترنت پرسرعت', 'چای و قهوه رایگان']
   }
 });
 
