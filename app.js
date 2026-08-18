@@ -1,10 +1,10 @@
 /**
- * TechOn Platform - Core Client Application
- * Premium UI/UX Engine, Interactive Spaces & Catering Showcase,
- * Dual-Mode Standalone/Backend API Support.
+ * TechOn Platform - Mobile-First Client Application
+ * Features: PersianLabs UI Jalali Calendar, App-style Bottom Navigation,
+ * Touch-optimized Steppers, Real-time Pricing & Invoicing.
  */
 
-// Demo Accounts Scoped for Testing
+// Demo Users Configuration
 const DEMO_ACCOUNTS = [
   {
     id: 'user-cust',
@@ -13,7 +13,7 @@ const DEMO_ACCOUNTS = [
     name: 'مریم رضایی',
     phone: '09124444444',
     role: 'CUSTOMER',
-    title: 'مشتری',
+    title: 'مشتری / کاربر عادی',
     avatar: '👩‍💼',
     desc: 'رزرواسیون فضا، منوی کافه و پیگیری فاکتورها'
   },
@@ -53,10 +53,10 @@ const DEMO_ACCOUNTS = [
 ];
 
 const SPACE_VISUALS = {
-  CONFERENCE_HALL: { icon: '🏛️', tag: 'ویژه رویداد و کارگاه', desc: 'سالن چندمنظوره با استیج مجهز و استودیو ضبط' },
-  PRIVATE_OFFICE: { icon: '💼', tag: 'تیم‌های ۴ الی ۶ نفره', desc: 'اتاق اختصاصی آکوستیک با میز کنفرانس و کمد' },
-  DEDICATED_DESK: { icon: '🪑', tag: 'رزرو ماهانه و روزانه', desc: 'صندلی ارگونومیک، پریز اختصاصی و کمد کلیددار' },
-  SHARED_DESK: { icon: '💻', tag: 'فضای فلکسیبل و منعطف', desc: 'میزهای مشترک با اینترنت فیبر نوری پرسرعت' }
+  CONFERENCE_HALL: { icon: '🏛️', tag: 'سالن همایش و رویداد', desc: 'ظرفیت ۷۰ نفر با استیج و سیستم صوتی' },
+  PRIVATE_OFFICE: { icon: '💼', tag: 'اتاق اختصاصی تیم', desc: 'تیم‌های ۴ الی ۶ نفره با میز کنفرانس' },
+  DEDICATED_DESK: { icon: '🪑', tag: 'صندلی اختصاصی', desc: 'رزرو ماهانه و روزانه با کمد کلیددار' },
+  SHARED_DESK: { icon: '💻', tag: 'صندلی اشتراکی', desc: 'فضای عمومی پر انرژی با اینترنت پرسرعت' }
 };
 
 const CATEGORY_META = {
@@ -66,6 +66,15 @@ const CATEGORY_META = {
   SNACK: { label: 'اسنک و فینگرفود', icon: '🥐' },
   MEAL: { label: 'میان‌وعده ویژه', icon: '🥪' }
 };
+
+const PERSIAN_MONTH_NAMES = [
+  'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+  'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+];
+
+const PERSIAN_WEEKDAY_NAMES = [
+  'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'
+];
 
 const FALLBACK_SPACES = [
   {
@@ -115,6 +124,52 @@ const FALLBACK_CATERING = [
   { id: 'cat-snack-croissant', name: 'کروسان فرانسوی با شکلات فندقی', category: 'SNACK', price: 42000 }
 ];
 
+// Jalali Calendar Algorithm (Accurate conversion)
+function gregorianToJalali(gy, gm, gd) {
+  const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+  let gy2 = (gm > 2) ? (gy + 1) : gy;
+  let days = 355666 + (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) + gd + g_d_m[gm - 1];
+  let jy = -1595 + (33 * Math.floor(days / 12053));
+  days %= 12053;
+  jy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    jy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
+  }
+  let jm = (days < 186) ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30);
+  let jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+  return { jy, jm, jd };
+}
+
+function jalaliToGregorian(jy, jm, jd) {
+  let sal_a = [0, 31, 62, 93, 124, 155, 186, 216, 246, 276, 306, 336];
+  let jy2 = jy + 1595;
+  let days = -355668 + (365 * jy2) + Math.floor(jy2 / 33) * 8 + Math.floor(((jy2 % 33) + 3) / 4) + jd + sal_a[jm - 1];
+  let gy = 400 * Math.floor(days / 146097);
+  days %= 146097;
+  if (days > 36524) {
+    gy += 100 * Math.floor(--days / 36524);
+    days %= 36524;
+    if (days >= 365) days++;
+  }
+  gy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    gy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
+  }
+  let gd = days + 1;
+  const sal_g = [0, 31, ((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  let gm = 0;
+  for (gm = 0; gm < 13; gm++) {
+    let v = sal_g[gm];
+    if (gd <= v) break;
+    gd -= v;
+  }
+  return { gy, gm, gd };
+}
+
 // LocalStore Utility
 function getLocalStore(key, defaultValue) {
   try {
@@ -132,17 +187,29 @@ function setLocalStore(key, value) {
 }
 
 // Application State
+const nowG = new Date();
+const initialJalali = gregorianToJalali(nowG.getFullYear(), nowG.getMonth() + 1, nowG.getDate());
+
 const state = {
   theme: 'dark',
   currentUser: DEMO_ACCOUNTS[0],
   spaces: [],
   cateringMenu: [],
-  rateMode: 'HOURLY', // 'HOURLY' or 'DAILY'
+  rateMode: 'HOURLY',
   selectedSpaceKey: 'CONFERENCE_HALL',
   selectedCateringFilter: 'ALL',
   cateringOrders: {}, // itemId -> quantity
   appliedPromo: null,
-  reservations: []
+  reservations: [],
+  calendar: {
+    viewYear: initialJalali.jy,
+    viewMonth: initialJalali.jm, // 1 - 12
+    selectedYear: initialJalali.jy,
+    selectedMonth: initialJalali.jm,
+    selectedDay: initialJalali.jd,
+    timeSlotStart: '09:00',
+    timeSlotEnd: '11:00'
+  }
 };
 
 // Currency Formatter
@@ -151,20 +218,25 @@ function formatCurrency(amount) {
   return Number(amount).toLocaleString('fa-IR') + ' تومان';
 }
 
+function toPersianDigits(n) {
+  const f = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+  return String(n).replace(/[0-9]/g, w => f[+w]);
+}
+
 // Toast Notifier
 function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   if (!container) return;
   const toast = document.createElement('div');
-  toast.className = `toast-msg toast-${type}`;
+  toast.className = `toast-item toast-${type}`;
   toast.innerText = message;
   container.appendChild(toast);
   setTimeout(() => {
     toast.remove();
-  }, 4000);
+  }, 3500);
 }
 
-// API Request Wrapper with Auto Offline Simulation
+// API Request Wrapper with Graceful Offline Simulation
 async function apiRequest(endpoint, method = 'GET', body = null) {
   const headers = {
     'Content-Type': 'application/json',
@@ -180,11 +252,9 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
       const data = await res.json();
       return data;
     }
-  } catch (err) {
-    // Network or static hosting - fallback to local simulation
-  }
+  } catch (err) {}
 
-  // --- CLIENT-SIDE FALLBACK HANDLER ---
+  // Client-Side Fallback Handler
   const url = new URL(endpoint, window.location.origin);
   const path = url.pathname;
 
@@ -213,7 +283,7 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         finalTotal: subtotal - discount
       };
     }
-    return { valid: false, reason: 'کد تخفیف وارد شده نامعتبر است یا منقضی شده است.' };
+    return { valid: false, reason: 'کد تخفیف نامعتبر یا منقضی است.' };
   }
 
   if (path.includes('/api/reservations') && method === 'POST') {
@@ -339,11 +409,10 @@ function setupThemeEngine() {
   const savedTheme = localStorage.getItem('techon_theme') || 'dark';
   setTheme(savedTheme);
 
-  const toggleBtn = document.getElementById('theme-toggle');
-  toggleBtn?.addEventListener('click', () => {
-    const nextTheme = state.theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    showToast(nextTheme === 'dark' ? '🌙 حالت شب فعال شد' : '☀️ حالت روز فعال شد');
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const next = state.theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    showToast(next === 'dark' ? '🌙 حالت شب فعال شد' : '☀️ حالت روز فعال شد');
   });
 }
 
@@ -351,63 +420,62 @@ function setTheme(theme) {
   state.theme = theme;
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('techon_theme', theme);
-
-  const iconEl = document.getElementById('theme-icon');
-  if (iconEl) {
-    iconEl.innerText = theme === 'dark' ? '☀️' : '🌙';
-  }
+  const icon = document.getElementById('theme-icon');
+  if (icon) icon.innerText = theme === 'dark' ? '☀️' : '🌙';
 }
 
-// 2. User Menu & Role Switcher Popover
+// 2. User Roles & Bottom Sheet Modal
 function setupUserMenu() {
+  const modal = document.getElementById('user-role-modal');
   const btnOpen = document.getElementById('btn-open-user-menu');
-  const popover = document.getElementById('user-menu-popover');
-  const listContainer = document.getElementById('popover-users-list');
+  const btnClose = document.getElementById('btn-close-role-modal');
+  const listContainer = document.getElementById('roles-modal-list');
 
-  btnOpen?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    popover?.classList.toggle('hidden');
+  btnOpen?.addEventListener('click', () => {
+    modal?.classList.remove('hidden');
   });
 
-  document.addEventListener('click', (e) => {
-    if (!popover?.contains(e.target) && !btnOpen?.contains(e.target)) {
-      popover?.classList.add('hidden');
-    }
+  btnClose?.addEventListener('click', () => {
+    modal?.classList.add('hidden');
+  });
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.add('hidden');
   });
 
   if (listContainer) {
     listContainer.innerHTML = DEMO_ACCOUNTS.map(u => `
-      <div class="popover-user-row ${u.id === state.currentUser.id ? 'active-user' : ''}" onclick="switchRole('${u.username}')">
-        <div style="display:flex; align-items:center; gap:0.5rem;">
-          <span style="font-size:1.3rem;">${u.avatar}</span>
-          <div style="text-align:right;">
-            <strong style="font-size:0.84rem; display:block;">${u.name}</strong>
-            <small style="color:var(--text-dim); font-size:0.72rem;">${u.title}</small>
+      <div class="role-option-card ${u.id === state.currentUser.id ? 'active-role' : ''}" onclick="switchUserRole('${u.username}')">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <span style="font-size:1.5rem;">${u.avatar}</span>
+          <div>
+            <strong style="font-size:0.88rem; display:block;">${u.name}</strong>
+            <small style="font-size:0.72rem; color:var(--text-dim);">${u.title}</small>
           </div>
         </div>
-        <span style="font-size:0.7rem; color:var(--primary); font-weight:700;">${u.id === state.currentUser.id ? 'فعال ✓' : 'انتخاب'}</span>
+        <span style="font-size:0.76rem; color:var(--primary); font-weight:800;">${u.id === state.currentUser.id ? 'فعال ✓' : 'انتخاب'}</span>
       </div>
     `).join('');
   }
 
-  applyRoleScoping();
+  applyRoleVisibility();
 }
 
-window.switchRole = function(username) {
+window.switchUserRole = function(username) {
   const target = DEMO_ACCOUNTS.find(u => u.username === username);
   if (!target) return;
   state.currentUser = target;
-  document.getElementById('user-menu-popover')?.classList.add('hidden');
+  document.getElementById('user-role-modal')?.classList.add('hidden');
   setupUserMenu();
-  applyRoleScoping();
+  applyRoleVisibility();
   showToast(`نقش به "${target.name}" (${target.title}) تغییر یافت.`);
 };
 
-// 3. Strict Role-Based View Scoping
-function applyRoleScoping() {
+// 3. Strict Scoping per Role
+function applyRoleVisibility() {
   const user = state.currentUser;
 
-  // Update Header Pill
+  // Header profile sync
   const avatarEl = document.getElementById('current-user-avatar');
   const nameEl = document.getElementById('current-user-name');
   const roleBadge = document.getElementById('current-user-role-badge');
@@ -415,77 +483,71 @@ function applyRoleScoping() {
   if (nameEl) nameEl.innerText = user.name;
   if (roleBadge) roleBadge.innerText = user.title;
 
-  // Role Context Banner
-  const bannerTextEl = document.getElementById('role-context-text');
-  if (bannerTextEl) {
+  // Alert banner sync
+  const bannerEl = document.getElementById('role-context-text');
+  if (bannerEl) {
     if (user.role === 'CUSTOMER') {
-      bannerTextEl.innerHTML = `<strong>دیدگاه مشتری (${user.name}):</strong> دسترسی به رزرواسیون آنلاین فضا، منوی کافه و پیگیری فاکتورها.`;
+      bannerEl.innerHTML = `<strong>دیدگاه مشتری (${user.name}):</strong> دسترسی به رزرواسیون فضا، منوی کافه و پیگیری سفارش‌ها.`;
     } else if (user.role === 'COWORKING_OPERATOR') {
-      bannerTextEl.innerHTML = `<strong>دیدگاه اپراتور فضای کار (${user.name}):</strong> دسترسی به مدیریت ظرفیت صندلی‌ها و ثبت دستی مراجعین.`;
+      bannerEl.innerHTML = `<strong>دیدگاه اپراتور فضای کار (${user.name}):</strong> دسترسی به مدیریت ظرفیت صندلی‌ها و ثبت دستی.`;
     } else if (user.role === 'CAFE_OPERATOR') {
-      bannerTextEl.innerHTML = `<strong>دیدگاه اپراتور سالن و کافه (${user.name}):</strong> دسترسی به بررسی و تأیید رویدادهای همایش و مدیریت منوی کافه.`;
+      bannerEl.innerHTML = `<strong>دیدگاه اپراتور سالن و کافه (${user.name}):</strong> بررسی و تأیید همایش‌ها و ویرایش منوی کافه.`;
     } else if (user.role === 'SUPER_ADMIN') {
-      bannerTextEl.innerHTML = `<strong>دیدگاه سوپرادمین (${user.name}):</strong> دسترسی کامل به تمامی ابزارها، تاییدات، ساخت کد تخفیف و گزارشات مالی سهم درآمد (۱۰٪ - ۱۵٪).`;
+      bannerEl.innerHTML = `<strong>دیدگاه سوپرادمین (${user.name}):</strong> دسترسی نامحدود به تمامی ماژول‌ها و گزارشات مالی سهم درآمد (۱۰٪ - ۱۵٪).`;
     }
   }
 
-  // Tabs Visibility
-  const tabBooking = document.getElementById('tab-btn-booking');
-  const tabCatering = document.getElementById('tab-btn-catering');
-  const tabMyBookings = document.getElementById('tab-btn-my-bookings');
-  const tabAdmin = document.getElementById('tab-btn-admin');
-  const tabAnalytics = document.getElementById('tab-btn-analytics');
+  // Desktop & Mobile Tabs Scoping
+  const dAdmin = document.getElementById('d-tab-admin');
+  const dAnalytics = document.getElementById('d-tab-analytics');
+  const dMyBookings = document.getElementById('d-tab-my-bookings');
+
+  const mAdmin = document.getElementById('m-tab-admin');
+  const mAnalytics = document.getElementById('m-tab-analytics');
+  const mMyBookings = document.getElementById('m-tab-my-bookings');
 
   if (user.role === 'CUSTOMER') {
-    tabBooking?.classList.remove('hidden');
-    tabCatering?.classList.remove('hidden');
-    tabMyBookings?.classList.remove('hidden');
-    tabAdmin?.classList.add('hidden');
-    tabAnalytics?.classList.add('hidden');
+    dAdmin?.classList.add('hidden');
+    dAnalytics?.classList.add('hidden');
+    dMyBookings?.classList.remove('hidden');
 
-    const activeTab = document.querySelector('.nav-link.active')?.dataset.tab;
-    if (activeTab === 'admin' || activeTab === 'analytics') tabBooking?.click();
+    mAdmin?.classList.add('hidden');
+    mAnalytics?.classList.add('hidden');
+    mMyBookings?.classList.remove('hidden');
+
+    const activeTab = document.querySelector('.mobile-nav-item.active')?.dataset.tab;
+    if (activeTab === 'admin' || activeTab === 'analytics') switchTab('booking');
   }
 
-  if (user.role === 'COWORKING_OPERATOR') {
-    tabBooking?.classList.remove('hidden');
-    tabCatering?.classList.remove('hidden');
-    tabMyBookings?.classList.add('hidden');
-    tabAdmin?.classList.remove('hidden');
-    tabAnalytics?.classList.add('hidden');
-    const adminTitle = document.getElementById('tab-admin-title');
-    if (adminTitle) adminTitle.innerText = 'پنل فضای کار';
+  if (user.role === 'COWORKING_OPERATOR' || user.role === 'CAFE_OPERATOR') {
+    dAdmin?.classList.remove('hidden');
+    dAnalytics?.classList.add('hidden');
+    dMyBookings?.classList.add('hidden');
 
-    document.getElementById('admin-catering-box')?.classList.add('hidden');
+    mAdmin?.classList.remove('hidden');
+    mAnalytics?.classList.add('hidden');
+    mMyBookings?.classList.add('hidden');
+
+    const adminTitle = document.getElementById('d-tab-admin-title');
+    if (adminTitle) adminTitle.innerText = user.role === 'CAFE_OPERATOR' ? 'پنل سالن و کافه' : 'پنل فضای کار';
+
+    document.getElementById('admin-catering-box')?.classList.toggle('hidden', user.role !== 'CAFE_OPERATOR');
     document.getElementById('admin-promo-box')?.classList.add('hidden');
 
-    const activeTab = document.querySelector('.nav-link.active')?.dataset.tab;
-    if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin?.click();
-  }
-
-  if (user.role === 'CAFE_OPERATOR') {
-    tabBooking?.classList.remove('hidden');
-    tabCatering?.classList.remove('hidden');
-    tabMyBookings?.classList.add('hidden');
-    tabAdmin?.classList.remove('hidden');
-    tabAnalytics?.classList.add('hidden');
-    const adminTitle = document.getElementById('tab-admin-title');
-    if (adminTitle) adminTitle.innerText = 'پنل سالن و کافه';
-
-    document.getElementById('admin-catering-box')?.classList.remove('hidden');
-    document.getElementById('admin-promo-box')?.classList.add('hidden');
-
-    const activeTab = document.querySelector('.nav-link.active')?.dataset.tab;
-    if (activeTab === 'analytics' || activeTab === 'my-bookings') tabAdmin?.click();
+    const activeTab = document.querySelector('.mobile-nav-item.active')?.dataset.tab;
+    if (activeTab === 'analytics' || activeTab === 'my-bookings') switchTab('admin');
   }
 
   if (user.role === 'SUPER_ADMIN') {
-    tabBooking?.classList.remove('hidden');
-    tabCatering?.classList.remove('hidden');
-    tabMyBookings?.classList.remove('hidden');
-    tabAdmin?.classList.remove('hidden');
-    tabAnalytics?.classList.remove('hidden');
-    const adminTitle = document.getElementById('tab-admin-title');
+    dAdmin?.classList.remove('hidden');
+    dAnalytics?.classList.remove('hidden');
+    dMyBookings?.classList.remove('hidden');
+
+    mAdmin?.classList.remove('hidden');
+    mAnalytics?.classList.remove('hidden');
+    mMyBookings?.classList.remove('hidden');
+
+    const adminTitle = document.getElementById('d-tab-admin-title');
     if (adminTitle) adminTitle.innerText = 'پنل مدیریت کل';
 
     document.getElementById('admin-catering-box')?.classList.remove('hidden');
@@ -498,34 +560,164 @@ function applyRoleScoping() {
   if (nameInput && user.role === 'CUSTOMER') nameInput.value = user.name;
   if (phoneInput && user.role === 'CUSTOMER') phoneInput.value = user.phone;
 
-  // Refresh active tab data
-  const currentTab = document.querySelector('.nav-link.active')?.dataset.tab;
-  if (currentTab === 'my-bookings') loadMyBookings();
-  if (currentTab === 'admin') loadAdminData();
-  if (currentTab === 'analytics') loadAnalyticsData();
+  // Refresh active tab
+  const activeTab = document.querySelector('.mobile-nav-item.active')?.dataset.tab;
+  if (activeTab === 'my-bookings') loadMyBookings();
+  if (activeTab === 'admin') loadAdminData();
+  if (activeTab === 'analytics') loadAnalyticsData();
 }
 
-// 4. Tab Navigation
+// 4. Synchronized Desktop & Mobile Navigation
 function setupNavigation() {
-  const tabButtons = document.querySelectorAll('.nav-link');
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabButtons.forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+  const desktopTabs = document.querySelectorAll('.nav-tab-btn');
+  const mobileTabs = document.querySelectorAll('.mobile-nav-item');
 
-      btn.classList.add('active');
-      const targetId = `tab-${btn.dataset.tab}`;
-      const targetEl = document.getElementById(targetId);
-      if (targetEl) targetEl.classList.add('active');
+  desktopTabs.forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
 
-      if (btn.dataset.tab === 'my-bookings') loadMyBookings();
-      if (btn.dataset.tab === 'admin') loadAdminData();
-      if (btn.dataset.tab === 'analytics') loadAnalyticsData();
-    });
+  mobileTabs.forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 }
 
-// 5. Spaces Showcase Engine
+function switchTab(tabId) {
+  // Update Desktop
+  document.querySelectorAll('.nav-tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabId);
+  });
+
+  // Update Mobile
+  document.querySelectorAll('.mobile-nav-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabId);
+  });
+
+  // Update Views
+  document.querySelectorAll('.view-panel').forEach(v => {
+    v.classList.toggle('active', v.id === `tab-${tabId}`);
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (tabId === 'my-bookings') loadMyBookings();
+  if (tabId === 'admin') loadAdminData();
+  if (tabId === 'analytics') loadAnalyticsData();
+}
+
+// 5. PersianLabs UI Jalali Calendar Component
+function setupJalaliCalendar() {
+  document.getElementById('btn-cal-prev')?.addEventListener('click', () => {
+    state.calendar.viewMonth--;
+    if (state.calendar.viewMonth < 1) {
+      state.calendar.viewMonth = 12;
+      state.calendar.viewYear--;
+    }
+    renderCalendar();
+  });
+
+  document.getElementById('btn-cal-next')?.addEventListener('click', () => {
+    state.calendar.viewMonth++;
+    if (state.calendar.viewMonth > 12) {
+      state.calendar.viewMonth = 1;
+      state.calendar.viewYear++;
+    }
+    renderCalendar();
+  });
+
+  // Quick Time Slots
+  document.querySelectorAll('.time-slot-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.time-slot-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      state.calendar.timeSlotStart = pill.dataset.start;
+      state.calendar.timeSlotEnd = pill.dataset.end;
+      updateSyncDateTimes();
+      updatePriceBreakdown();
+    });
+  });
+
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const { viewYear, viewMonth, selectedYear, selectedMonth, selectedDay } = state.calendar;
+
+  // Header month title
+  const titleEl = document.getElementById('cal-month-title');
+  if (titleEl) {
+    titleEl.innerText = `${PERSIAN_MONTH_NAMES[viewMonth - 1]} ${toPersianDigits(viewYear)}`;
+  }
+
+  // Days count in Jalali month
+  const totalDays = (viewMonth <= 6) ? 31 : (viewMonth <= 11 ? 30 : 29);
+
+  // Day of week for first day of Jalali month
+  const firstG = jalaliToGregorian(viewYear, viewMonth, 1);
+  const firstDateObj = new Date(firstG.gy, firstG.gm - 1, firstG.gd);
+  // Gregorian: 0 is Sunday. In Persian calendar: Saturday is 0, Sunday is 1 ... Friday is 6
+  const gDay = firstDateObj.getDay();
+  const jalaliFirstDayIndex = (gDay + 1) % 7;
+
+  const matrixEl = document.getElementById('cal-days-matrix');
+  if (!matrixEl) return;
+
+  let html = '';
+  // Empty padding cells before first day
+  for (let i = 0; i < jalaliFirstDayIndex; i++) {
+    html += `<div class="cal-day-cell disabled" style="visibility:hidden;"></div>`;
+  }
+
+  // Day cells
+  for (let d = 1; d <= totalDays; d++) {
+    const isSelected = (viewYear === selectedYear && viewMonth === selectedMonth && d === selectedDay);
+    const isToday = (viewYear === initialJalali.jy && viewMonth === initialJalali.jm && d === initialJalali.jd);
+
+    html += `
+      <button type="button" class="cal-day-cell ${isSelected ? 'active-day' : ''} ${isToday ? 'today-marker' : ''}" onclick="selectJalaliDate(${d})">
+        ${toPersianDigits(d)}
+      </button>
+    `;
+  }
+
+  matrixEl.innerHTML = html;
+  updateSelectedDateText();
+}
+
+window.selectJalaliDate = function(day) {
+  state.calendar.selectedYear = state.calendar.viewYear;
+  state.calendar.selectedMonth = state.calendar.viewMonth;
+  state.calendar.selectedDay = day;
+  renderCalendar();
+  updateSyncDateTimes();
+  showToast(`تاریخ ${toPersianDigits(day)} ${PERSIAN_MONTH_NAMES[state.calendar.selectedMonth - 1]} انتخاب شد.`);
+};
+
+function updateSelectedDateText() {
+  const { selectedYear, selectedMonth, selectedDay } = state.calendar;
+  const g = jalaliToGregorian(selectedYear, selectedMonth, selectedDay);
+  const dateObj = new Date(g.gy, g.gm - 1, g.gd);
+  const weekday = PERSIAN_WEEKDAY_NAMES[dateObj.getDay()];
+
+  const textEl = document.getElementById('selected-jalali-date-text');
+  if (textEl) {
+    textEl.innerText = `${weekday} ${toPersianDigits(selectedDay)} ${PERSIAN_MONTH_NAMES[selectedMonth - 1]} ${toPersianDigits(selectedYear)}`;
+  }
+}
+
+function updateSyncDateTimes() {
+  const { selectedYear, selectedMonth, selectedDay, timeSlotStart, timeSlotEnd } = state.calendar;
+  const g = jalaliToGregorian(selectedYear, selectedMonth, selectedDay);
+
+  const startISO = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}T${timeSlotStart}:00`;
+  const endISO = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}T${timeSlotEnd}:00`;
+
+  const startEl = document.getElementById('start-datetime');
+  const endEl = document.getElementById('end-datetime');
+  if (startEl) startEl.value = startISO;
+  if (endEl) endEl.value = endISO;
+}
+
+// 6. Spaces Showcase Grid
 async function loadSpaces() {
   try {
     const data = await apiRequest('/api/spaces');
@@ -533,35 +725,35 @@ async function loadSpaces() {
   } catch (err) {
     state.spaces = FALLBACK_SPACES;
   }
-  renderSpacesGrid();
+  renderSpacesShowcase();
 }
 
-function renderSpacesGrid() {
+function renderSpacesShowcase() {
   const container = document.getElementById('spaces-cards-grid');
   if (!container) return;
 
   container.innerHTML = state.spaces.map(s => {
-    const visual = SPACE_VISUALS[s.key] || { icon: '🏢', tag: 'فضای کار', desc: '' };
+    const v = SPACE_VISUALS[s.key] || { icon: '🏢', tag: 'فضای کار' };
     const isSelected = s.key === state.selectedSpaceKey ? 'selected' : '';
     const isDaily = state.rateMode === 'DAILY';
     const rateText = isDaily ? formatCurrency(s.dailyRate) : formatCurrency(s.hourlyRate);
     const suffix = isDaily ? '/ روز' : '/ ساعت';
 
     return `
-      <div class="space-card ${isSelected}" data-key="${s.key}" onclick="selectSpace('${s.key}')">
+      <div class="space-card-item ${isSelected}" data-key="${s.key}" onclick="selectSpace('${s.key}')">
         <div>
-          <div class="space-card-top">
-            <div class="space-icon-box">${visual.icon}</div>
-            <span class="space-capacity-pill">ظرفیت ${s.capacity} نفر</span>
+          <div class="space-card-top-row">
+            <div class="space-card-icon">${v.icon}</div>
+            <span class="capacity-tag">ظرفیت ${toPersianDigits(s.capacity)} نفر</span>
           </div>
-          <h3 class="space-title">${s.name}</h3>
-          <div class="space-price-tag">${rateText} <small>${suffix}</small></div>
-          <div class="space-amenities-tags">
-            ${(s.features || []).slice(0, 3).map(f => `<span class="amenity-chip">${f}</span>`).join('')}
+          <h3 class="space-card-title">${s.name}</h3>
+          <div class="space-card-price">${rateText} <small>${suffix}</small></div>
+          <div class="space-features-chips">
+            ${(s.features || []).slice(0, 3).map(f => `<span class="feature-pill">${f}</span>`).join('')}
           </div>
         </div>
-        <button type="button" class="space-card-action-btn">
-          ${isSelected ? 'فضای انتخاب شده ✓' : 'انتخاب این فضا'}
+        <button type="button" class="btn-select-space">
+          ${isSelected ? 'فضا انتخاب شد ✓' : 'انتخاب فضا'}
         </button>
       </div>
     `;
@@ -570,7 +762,7 @@ function renderSpacesGrid() {
 
 window.selectSpace = function(key) {
   state.selectedSpaceKey = key;
-  renderSpacesGrid();
+  renderSpacesShowcase();
   toggleHallFields();
   updatePriceBreakdown();
 };
@@ -578,11 +770,7 @@ window.selectSpace = function(key) {
 function toggleHallFields() {
   const hallBox = document.getElementById('hall-extra-fields');
   if (!hallBox) return;
-  if (state.selectedSpaceKey === 'CONFERENCE_HALL') {
-    hallBox.classList.remove('hidden');
-  } else {
-    hallBox.classList.add('hidden');
-  }
+  hallBox.classList.toggle('hidden', state.selectedSpaceKey !== 'CONFERENCE_HALL');
 }
 
 function setupRateToggle() {
@@ -595,7 +783,7 @@ function setupRateToggle() {
     btnDaily?.classList.remove('active');
     state.rateMode = 'HOURLY';
     if (selectType) selectType.value = 'HOURLY';
-    renderSpacesGrid();
+    renderSpacesShowcase();
     updatePriceBreakdown();
   });
 
@@ -604,7 +792,7 @@ function setupRateToggle() {
     btnHourly?.classList.remove('active');
     state.rateMode = 'DAILY';
     if (selectType) selectType.value = 'DAILY';
-    renderSpacesGrid();
+    renderSpacesShowcase();
     updatePriceBreakdown();
   });
 
@@ -617,12 +805,12 @@ function setupRateToggle() {
       btnHourly?.classList.add('active');
       btnDaily?.classList.remove('active');
     }
-    renderSpacesGrid();
+    renderSpacesShowcase();
     updatePriceBreakdown();
   });
 }
 
-// 6. Catering & Café Showcase
+// 7. Catering & Café Showcase
 async function loadCateringMenu() {
   try {
     const data = await apiRequest('/api/catering/menu');
@@ -630,12 +818,12 @@ async function loadCateringMenu() {
   } catch (err) {
     state.cateringMenu = FALLBACK_CATERING;
   }
-  renderCateringBookingSelector();
+  renderCateringBookingList();
   renderCateringCatalogGrid();
   setupCateringFilters();
 }
 
-function renderCateringBookingSelector() {
+function renderCateringBookingList() {
   const container = document.getElementById('catering-booking-list');
   if (!container) return;
 
@@ -643,15 +831,15 @@ function renderCateringBookingSelector() {
     const qty = state.cateringOrders[item.id] || 0;
     const cat = CATEGORY_META[item.category] || { icon: '☕', label: item.category };
     return `
-      <div class="catering-selector-row">
-        <div class="cat-item-text">
+      <div class="catering-row-item">
+        <div class="cat-details">
           <strong>${cat.icon} ${item.name}</strong>
           <span>قیمت واحد: ${formatCurrency(item.price)}</span>
         </div>
-        <div class="cat-counter-controls">
-          <button type="button" class="btn-counter" onclick="changeCateringQty('${item.id}', -1)">−</button>
-          <span class="counter-value" id="qty-${item.id}">${qty}</span>
-          <button type="button" class="btn-counter" onclick="changeCateringQty('${item.id}', 1)">+</button>
+        <div class="cat-stepper">
+          <button type="button" class="btn-step" onclick="changeCateringQty('${item.id}', -1)">−</button>
+          <span class="step-value" id="qty-${item.id}">${toPersianDigits(qty)}</span>
+          <button type="button" class="btn-step" onclick="changeCateringQty('${item.id}', 1)">+</button>
         </div>
       </div>
     `;
@@ -667,12 +855,12 @@ window.changeCateringQty = function(itemId, delta) {
     state.cateringOrders[itemId] = next;
   }
   const qtyEl = document.getElementById(`qty-${itemId}`);
-  if (qtyEl) qtyEl.innerText = next;
+  if (qtyEl) qtyEl.innerText = toPersianDigits(next);
   updatePriceBreakdown();
 };
 
 function setupCateringFilters() {
-  const filterBtns = document.querySelectorAll('.cat-filter-btn');
+  const filterBtns = document.querySelectorAll('.filter-pill-btn');
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       filterBtns.forEach(b => b.classList.remove('active'));
@@ -694,15 +882,15 @@ function renderCateringCatalogGrid() {
   container.innerHTML = filtered.map(item => {
     const cat = CATEGORY_META[item.category] || { icon: '☕', label: item.category };
     return `
-      <div class="cat-product-card">
+      <div class="cat-item-card">
         <div>
-          <div class="cat-product-header">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <h4>${cat.icon} ${item.name}</h4>
-            <span class="space-capacity-pill">${cat.label}</span>
+            <span class="capacity-tag">${cat.label}</span>
           </div>
-          <div class="cat-price-callout">${formatCurrency(item.price)}</div>
+          <div class="cat-price-row">${formatCurrency(item.price)}</div>
         </div>
-        <button type="button" class="space-card-action-btn" onclick="addCateringFromCatalog('${item.id}')">
+        <button type="button" class="btn-select-space" onclick="addCateringFromCatalog('${item.id}')">
           ➕ افزودن به سفارش جاری
         </button>
       </div>
@@ -712,11 +900,11 @@ function renderCateringCatalogGrid() {
 
 window.addCateringFromCatalog = function(itemId) {
   window.changeCateringQty(itemId, 1);
-  document.getElementById('tab-btn-booking')?.click();
-  showToast('آیتم به سفارش جاری افزوده شد.');
+  switchTab('booking');
+  showToast('آیتم به سفارش جاری اضافه شد.');
 };
 
-// 7. Live Price Calculation
+// 8. Live Pricing Engine
 function updatePriceBreakdown() {
   const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
   const bookingType = document.getElementById('booking-type')?.value || 'HOURLY';
@@ -761,6 +949,7 @@ function updatePriceBreakdown() {
 
   const finalTotal = Math.max(0, subtotal - discountAmount);
 
+  // Update Desktop Card
   const spaceNameEl = document.getElementById('summary-space-name');
   const spaceFeeEl = document.getElementById('summary-space-fee');
   const equipFeeEl = document.getElementById('summary-equip-fee');
@@ -769,7 +958,7 @@ function updatePriceBreakdown() {
   const discAmountEl = document.getElementById('summary-discount-amount');
   const finalTotalEl = document.getElementById('summary-final-total');
 
-  if (spaceNameEl && space) spaceNameEl.innerText = `رزرو ${space.name} (${duration} ${bookingType === 'DAILY' ? 'روز' : 'ساعت'}):`;
+  if (spaceNameEl && space) spaceNameEl.innerText = `رزرو ${space.name}:`;
   if (spaceFeeEl) spaceFeeEl.innerText = formatCurrency(spaceSubtotal);
   if (equipFeeEl) equipFeeEl.innerText = formatCurrency(equipFee);
   if (cateringFeeEl) cateringFeeEl.innerText = formatCurrency(cateringSubtotal);
@@ -784,9 +973,13 @@ function updatePriceBreakdown() {
   }
 
   if (finalTotalEl) finalTotalEl.innerText = formatCurrency(finalTotal);
+
+  // Update Mobile Floating Bar
+  const mobileTotalEl = document.getElementById('mobile-bottom-total-price');
+  if (mobileTotalEl) mobileTotalEl.innerText = formatCurrency(finalTotal);
 }
 
-// 8. Promo Validation
+// 9. Promo Engine
 function setupPromoEngine() {
   const btnApply = document.getElementById('btn-apply-promo');
   const promoInput = document.getElementById('promo-input');
@@ -796,8 +989,8 @@ function setupPromoEngine() {
     const code = promoInput?.value.trim();
     if (!code) {
       if (feedback) {
-        feedback.innerText = 'لطفاً کد تخفیف را وارد نمایید.';
-        feedback.className = 'promo-feedback-text text-danger';
+        feedback.innerText = 'لطفاً کد تخفیف را وارد فرمایید.';
+        feedback.className = 'promo-feedback-msg text-danger';
       }
       return;
     }
@@ -822,15 +1015,15 @@ function setupPromoEngine() {
       if (result.valid) {
         state.appliedPromo = result;
         if (feedback) {
-          feedback.innerText = `✅ کد تخفیف "${code}" با مبلغ ${formatCurrency(result.discountAmount)} اعمال شد.`;
-          feedback.className = 'promo-feedback-text text-success';
+          feedback.innerText = `✅ کد تخفیف "${code}" با موفقیت اعمال شد.`;
+          feedback.className = 'promo-feedback-msg text-success';
         }
         updatePriceBreakdown();
       } else {
         state.appliedPromo = null;
         if (feedback) {
-          feedback.innerText = `❌ ${result.reason || 'کد تخفیف نامعتبر است'}`;
-          feedback.className = 'promo-feedback-text text-danger';
+          feedback.innerText = `❌ ${result.reason || 'کد نامعتبر است'}`;
+          feedback.className = 'promo-feedback-msg text-danger';
         }
         updatePriceBreakdown();
       }
@@ -838,27 +1031,33 @@ function setupPromoEngine() {
       state.appliedPromo = null;
       if (feedback) {
         feedback.innerText = `❌ ${err.message}`;
-        feedback.className = 'promo-feedback-text text-danger';
+        feedback.className = 'promo-feedback-msg text-danger';
       }
       updatePriceBreakdown();
     }
   });
 }
 
-// 9. Booking Submission & Official Invoice Modal
+// 10. Booking Submission & Official Invoice Modal
 function setupBookingSubmission() {
-  const submitBtn = document.getElementById('btn-submit-booking');
-  submitBtn?.addEventListener('click', async () => {
+  const submitDesktop = document.getElementById('btn-submit-booking');
+  const submitMobile = document.getElementById('btn-mobile-checkout-action');
+
+  const handleBooking = async () => {
     const custName = document.getElementById('cust-name')?.value.trim();
     const custPhone = document.getElementById('cust-phone')?.value.trim();
     const custEmail = document.getElementById('cust-email')?.value.trim();
     const bookingType = document.getElementById('booking-type')?.value || 'HOURLY';
     const duration = Number(document.getElementById('duration')?.value) || 1;
+
+    updateSyncDateTimes();
     const startTime = document.getElementById('start-datetime')?.value;
     const endTime = document.getElementById('end-datetime')?.value;
 
-    if (!custName || !custPhone || !startTime || !endTime) {
-      showToast('لطفاً تمامی فیلدهای الزامی (نام، تلفن، زمان شروع و پایان) را تکمیل فرمایید.', 'error');
+    if (!custName || !custPhone) {
+      showToast('لطفاً نام و شماره همراه متقاضی را در مرحله ۴ وارد کنید.', 'error');
+      // Scroll to step 4 on mobile
+      document.getElementById('cust-name')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
@@ -887,24 +1086,27 @@ function setupBookingSubmission() {
       promoCode: state.appliedPromo?.code
     };
 
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span>⏳ در حال پردازش و ثبت سفارش...</span>';
+    if (submitDesktop) submitDesktop.disabled = true;
+    if (submitMobile) submitMobile.disabled = true;
 
     try {
       const response = await apiRequest('/api/reservations', 'POST', payload);
-      showToast('رزرو شما با موفقیت ثبت شد!');
+      showToast('رزرو با موفقیت ثبت شد!');
       displayInvoiceModal(response.invoice, response.reservation);
       state.cateringOrders = {};
       state.appliedPromo = null;
-      renderCateringBookingSelector();
+      renderCateringBookingList();
       updatePriceBreakdown();
     } catch (err) {
-      showToast(`خطا در ثبت رزرو: ${err.message}`, 'error');
+      showToast(`خطا: ${err.message}`, 'error');
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<span class="checkout-icon">💳</span><span class="checkout-text">ثبت نهایی و صدور فاکتور رسمی</span>';
+      if (submitDesktop) submitDesktop.disabled = false;
+      if (submitMobile) submitMobile.disabled = false;
     }
-  });
+  };
+
+  submitDesktop?.addEventListener('click', handleBooking);
+  submitMobile?.addEventListener('click', handleBooking);
 }
 
 function displayInvoiceModal(invoice, reservation) {
@@ -912,27 +1114,26 @@ function displayInvoiceModal(invoice, reservation) {
   const content = document.getElementById('invoice-content');
   if (!modal || !content) return;
 
+  const { selectedYear, selectedMonth, selectedDay } = state.calendar;
+
   content.innerHTML = `
-    <div style="display:flex; flex-direction:column; gap:0.85rem;">
-      <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+      <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
         <div><strong>شماره فاکتور:</strong> <code>${invoice.invoiceNumber}</code></div>
-        <div><strong>شماره پیگیری:</strong> <code>${invoice.reservationId}</code></div>
+        <div><strong>شناسه رزرو:</strong> <code>${invoice.reservationId}</code></div>
       </div>
-      <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
-        <div><strong>نام متقاضی:</strong> ${invoice.customer.name}</div>
-        <div><strong>شماره تماس:</strong> ${invoice.customer.phone}</div>
+      <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+        <div><strong>متقاضی:</strong> ${invoice.customer.name}</div>
+        <div><strong>تلفن:</strong> ${toPersianDigits(invoice.customer.phone)}</div>
       </div>
-      <div style="font-size:0.85rem;">
-        <strong>وضعیت رویداد:</strong> 
-        <span class="space-capacity-pill" style="margin-right:0.4rem;">
-          ${reservation.status === 'CONFIRMED' ? 'تأیید شده' : 'در انتظار تأیید اپراتور سالن'}
-        </span>
+      <div style="font-size:0.82rem;">
+        <strong>تاریخ رزرو:</strong> ${toPersianDigits(selectedDay)} ${PERSIAN_MONTH_NAMES[selectedMonth - 1]} ${toPersianDigits(selectedYear)}
       </div>
 
-      <table class="modern-table" style="margin:0.75rem 0;">
+      <table class="styled-table" style="margin:0.5rem 0;">
         <thead>
           <tr>
-            <th>شرح خدمات و فضا</th>
+            <th>شرح خدمت</th>
             <th>مبلغ</th>
           </tr>
         </thead>
@@ -946,20 +1147,20 @@ function displayInvoiceModal(invoice, reservation) {
         </tbody>
       </table>
 
-      <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+      <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
         <span>جمع کل ناخالص:</span>
         <strong>${formatCurrency(invoice.subtotal)}</strong>
       </div>
       ${invoice.discountAmount > 0 ? `
-        <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--emerald);">
-          <span>تخفیف کسر شده:</span>
+        <div style="display:flex; justify-content:space-between; font-size:0.88rem; color:var(--emerald);">
+          <span>تخفیف ویژه:</span>
           <strong>- ${formatCurrency(invoice.discountAmount)}</strong>
         </div>
       ` : ''}
-      <div class="invoice-divider"></div>
+      <div class="invoice-divider-line"></div>
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:1.1rem; font-weight:800;">مبلغ نهایی پرداخت شده:</span>
-        <strong class="final-price-callout">${formatCurrency(invoice.finalTotal)}</strong>
+        <span style="font-size:1rem; font-weight:800;">مبلغ نهایی پرداخت:</span>
+        <strong class="final-total-amount" style="font-size:1.3rem;">${formatCurrency(invoice.finalTotal)}</strong>
       </div>
     </div>
   `;
@@ -969,7 +1170,7 @@ function displayInvoiceModal(invoice, reservation) {
   document.getElementById('btn-done-invoice').onclick = () => modal.classList.add('hidden');
 }
 
-// 10. Customer: My Bookings Tab
+// 11. Customer: My Orders Tab
 async function loadMyBookings() {
   const tbody = document.getElementById('my-reservations-tbody');
   if (!tbody) return;
@@ -979,7 +1180,7 @@ async function loadMyBookings() {
     const list = data.reservations || [];
 
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--text-dim);">شما در حال حاضر رزروی ثبت نکرده‌اید.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.25rem; color:var(--text-dim);">هنوز سفارشی ثبت نکرده‌اید.</td></tr>`;
       return;
     }
 
@@ -987,15 +1188,15 @@ async function loadMyBookings() {
       <tr>
         <td><strong>${r.id}</strong></td>
         <td>${r.spaceName}</td>
-        <td>${new Date(r.startTime).toLocaleDateString('fa-IR')} (${r.duration} ${r.bookingType === 'DAILY' ? 'روز' : 'ساعت'})</td>
+        <td>${new Date(r.startTime).toLocaleDateString('fa-IR')} (${toPersianDigits(r.duration)} ${r.bookingType === 'DAILY' ? 'روز' : 'ساعت'})</td>
         <td><strong>${formatCurrency(r.pricing?.finalTotal)}</strong></td>
         <td>
-          <span class="space-capacity-pill">
-            ${r.status === 'PENDING_REVIEW' ? 'در انتظار بررسی' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
+          <span class="capacity-tag">
+            ${r.status === 'PENDING_REVIEW' ? 'در انتظار تایید' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
           </span>
         </td>
         <td>
-          <button class="btn-counter" style="width:auto; padding:0.25rem 0.65rem;" onclick="viewExistingInvoice('${r.id}')">🧾 مشاهده رسید</button>
+          <button class="btn-sm-action" onclick="viewExistingInvoice('${r.id}')">🧾 رسید</button>
         </td>
       </tr>
     `).join('');
@@ -1004,10 +1205,10 @@ async function loadMyBookings() {
   }
 }
 
-window.viewExistingInvoice = async function(reservationId) {
+window.viewExistingInvoice = async function(id) {
   try {
     const data = await apiRequest('/api/my-reservations');
-    const r = (data.reservations || []).find(x => x.id === reservationId);
+    const r = (data.reservations || []).find(x => x.id === id);
     if (r) {
       displayInvoiceModal({
         invoiceNumber: r.invoiceNumber,
@@ -1016,7 +1217,7 @@ window.viewExistingInvoice = async function(reservationId) {
         items: [
           { title: `رزرو ${r.spaceName}`, amount: r.pricing.spaceSubtotal },
           ...r.equipment.map(e => ({ title: e.name, amount: e.fee })),
-          ...r.catering.map(c => ({ title: `${c.name} (${c.quantity} عدد)`, amount: c.subtotal }))
+          ...r.catering.map(c => ({ title: `${c.name} (${toPersianDigits(c.quantity)} عدد)`, amount: c.subtotal }))
         ],
         subtotal: r.pricing.subtotal,
         discountAmount: r.pricing.discountAmount,
@@ -1028,23 +1229,23 @@ window.viewExistingInvoice = async function(reservationId) {
   }
 };
 
-// 11. Admin & Operator CMS Panel
+// 12. Admin CMS Panel
 async function loadAdminData() {
   try {
     const data = await apiRequest('/api/admin/reservations');
     state.reservations = data.reservations || [];
-    renderReservationsTable();
+    renderAdminTable();
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
 
-function renderReservationsTable() {
+function renderAdminTable() {
   const tbody = document.getElementById('reservations-tbody');
   if (!tbody) return;
 
   if (state.reservations.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-dim);">هنوز رزروی در این بخش ثبت نشده است.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.25rem; color:var(--text-dim);">هنوز سفارشی در این بخش وجود ندارد.</td></tr>`;
     return;
   }
 
@@ -1059,17 +1260,17 @@ function renderReservationsTable() {
       <tr>
         <td><strong>${r.id}</strong></td>
         <td>${r.spaceName}</td>
-        <td>${r.customer.name}<br><small style="color:var(--text-dim);">${r.customer.phone}</small></td>
+        <td>${r.customer.name}<br><small style="color:var(--text-dim);">${toPersianDigits(r.customer.phone)}</small></td>
         <td>${isHall ? (r.eventDetails?.topic || 'همایش') : r.bookingType}</td>
         <td><strong>${formatCurrency(r.pricing?.finalTotal)}</strong></td>
         <td>
-          <span class="space-capacity-pill">
-            ${r.status === 'PENDING_REVIEW' ? 'در انتظار تأیید' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
+          <span class="capacity-tag">
+            ${r.status === 'PENDING_REVIEW' ? 'در انتظار تایید' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
           </span>
         </td>
         <td>
           ${canApprove ? `
-            <button class="segment-btn active" style="margin-left:0.4rem;" onclick="approveReservation('${r.id}')">تأیید رویداد</button>
+            <button class="btn-sm-action" style="background:var(--emerald); color:white;" onclick="approveReservation('${r.id}')">تأیید</button>
           ` : ''}
         </td>
       </tr>
@@ -1080,7 +1281,7 @@ function renderReservationsTable() {
 window.approveReservation = async function(id) {
   try {
     await apiRequest(`/api/admin/reservations/${id}/approve`, 'POST');
-    showToast(`رویداد سالن همایش (${id}) با موفقیت تأیید شد.`);
+    showToast(`رویداد سالن همایش (${id}) تأیید گردید.`);
     loadAdminData();
   } catch (err) {
     showToast(err.message, 'error');
@@ -1098,7 +1299,7 @@ function setupAdminForms() {
 
     try {
       await apiRequest('/api/admin/catering/items', 'POST', { name, category, price });
-      showToast('آیتم جدید با موفقیت به منوی کافه اضافه شد.');
+      showToast('آیتم جدید به منوی کافه اضافه شد.');
       e.target.reset();
       loadCateringMenu();
     } catch (err) {
@@ -1111,10 +1312,9 @@ function setupAdminForms() {
     const code = document.getElementById('new-promo-code').value.trim();
     const type = document.getElementById('new-promo-type').value;
     const value = Number(document.getElementById('new-promo-val').value);
-    const maxDiscount = Number(document.getElementById('new-promo-max').value) || undefined;
 
     try {
-      await apiRequest('/api/admin/promos', 'POST', { code, type, value, maxDiscount });
+      await apiRequest('/api/admin/promos', 'POST', { code, type, value });
       showToast(`کد تخفیف ${code} ایجاد شد.`);
       e.target.reset();
     } catch (err) {
@@ -1123,7 +1323,7 @@ function setupAdminForms() {
   });
 }
 
-// 12. Financial Analytics & Revenue Share
+// 13. Financial Dashboard
 async function loadAnalyticsData() {
   try {
     const data = await apiRequest('/api/admin/analytics');
@@ -1145,8 +1345,8 @@ async function loadAnalyticsData() {
       breakdownEl.innerHTML = Object.entries(f.breakdownBySpace).map(([key, item]) => {
         const space = state.spaces.find(s => s.key === key);
         return `
-          <div class="space-breakdown-row">
-            <span><strong>${space?.name || key}</strong> (${item.count} رزرو)</span>
+          <div class="breakdown-row-item">
+            <span><strong>${space?.name || key}</strong> (${toPersianDigits(item.count)} رزرو)</span>
             <strong>${formatCurrency(item.revenue)}</strong>
           </div>
         `;
@@ -1156,7 +1356,7 @@ async function loadAnalyticsData() {
     const auditEl = document.getElementById('audit-log-list');
     if (auditEl && data.auditLogs) {
       auditEl.innerHTML = data.auditLogs.map(log => `
-        <div class="audit-stream-item">
+        <div class="audit-item">
           <div><strong>عملیات:</strong> ${log.action} | <strong>منبع:</strong> ${log.resource}</div>
           <div><small>توسط: ${log.userId} در ${new Date(log.timestamp).toLocaleTimeString('fa-IR')}</small></div>
         </div>
@@ -1168,31 +1368,13 @@ async function loadAnalyticsData() {
   }
 }
 
-// Default Dates
-function setDefaultDateTimes() {
-  const now = new Date();
-  now.setMinutes(0, 0, 0);
-  const start = new Date(now.getTime() + 3600000);
-  const end = new Date(now.getTime() + 3 * 3600000);
-
-  const formatLocalISO = (d) => {
-    const offset = d.getTimezoneOffset() * 60000;
-    return new Date(d.getTime() - offset).toISOString().slice(0, 16);
-  };
-
-  const startInput = document.getElementById('start-datetime');
-  const endInput = document.getElementById('end-datetime');
-  if (startInput) startInput.value = formatLocalISO(start);
-  if (endInput) endInput.value = formatLocalISO(end);
-}
-
 // Bootstrap
 document.addEventListener('DOMContentLoaded', async () => {
   setupThemeEngine();
   setupUserMenu();
   setupNavigation();
-  setDefaultDateTimes();
   setupRateToggle();
+  setupJalaliCalendar();
   await loadSpaces();
   await loadCateringMenu();
   setupPromoEngine();
