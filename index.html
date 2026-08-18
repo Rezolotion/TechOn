@@ -11,6 +11,16 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+  <!-- Top Notification / Quick Switch Bar -->
+  <div class="quick-auth-bar">
+    <div class="quick-auth-container">
+      <span class="quick-auth-title">🧪 تغییر سریع کاربر تستی:</span>
+      <div class="quick-user-chips" id="quick-user-chips">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
   <!-- Top Navigation Header -->
   <header class="app-header">
     <div class="header-container">
@@ -25,40 +35,52 @@
       </div>
 
       <div class="header-actions">
-        <!-- Role Switcher -->
-        <div class="role-selector-wrapper">
-          <label for="role-select">👤 سطح دسترسی فعلی:</label>
-          <select id="role-select" class="role-select">
-            <option value="CUSTOMER">مشتری / کاربر عادی</option>
-            <option value="COWORKING_OPERATOR">اپراتور فضای کار اشتراکی</option>
-            <option value="CAFE_OPERATOR">اپراتور سالن همایش و کافه</option>
-            <option value="SUPER_ADMIN" selected>سوپرادمین (مدیریت کل)</option>
-          </select>
+        <!-- Active User Profile Card -->
+        <div class="user-profile-badge" id="btn-open-auth-modal">
+          <div class="user-avatar" id="current-user-avatar">👤</div>
+          <div class="user-info">
+            <strong id="current-user-name">کاربر ناشناس</strong>
+            <span class="badge badge-primary" id="current-user-role-badge">CUSTOMER</span>
+          </div>
+          <button class="btn btn-sm btn-secondary" title="تغییر حساب کاربری">🔑 ورود / تغییر</button>
         </div>
 
         <div class="system-status-badge" id="system-status">
           <span class="pulse-dot"></span>
-          <span id="status-text">سیستم آنلاین</span>
+          <span id="status-text">سیستم فعال</span>
         </div>
       </div>
     </div>
 
-    <!-- Main Tabs -->
+    <!-- Main Navigation Tabs with RBAC Scoping -->
     <nav class="main-nav">
       <div class="nav-container">
+        <!-- Tab 1: Booking (Everyone) -->
         <button class="nav-tab active" data-tab="booking" id="tab-btn-booking">
           <span class="tab-icon">🏢</span>
           <span class="tab-title">رزرواسیون فضا و سالن</span>
         </button>
+
+        <!-- Tab 2: Catering Menu (Everyone) -->
         <button class="nav-tab" data-tab="catering" id="tab-btn-catering">
           <span class="tab-icon">☕</span>
           <span class="tab-title">منوی پذیرایی کافه</span>
         </button>
-        <button class="nav-tab" data-tab="admin" id="tab-btn-admin">
-          <span class="tab-icon">🛠️</span>
-          <span class="tab-title">پنل مدیریت و ثبت دستی</span>
+
+        <!-- Tab 3: My Bookings (Customer & Admin) -->
+        <button class="nav-tab" data-tab="my-bookings" id="tab-btn-my-bookings">
+          <span class="tab-icon">📄</span>
+          <span class="tab-title">پیگیری رزروهای من</span>
         </button>
-        <button class="nav-tab" data-tab="analytics" id="tab-btn-analytics">
+
+        <!-- Tab 4: Operator / CMS (Operators & Admin ONLY) -->
+        <button class="nav-tab hidden" data-tab="admin" id="tab-btn-admin">
+          <span class="tab-icon">🛠️</span>
+          <span class="tab-title" id="tab-admin-title">پنل مدیریت و اپراتور</span>
+        </button>
+
+        <!-- Tab 5: Financial Analytics (SUPER_ADMIN ONLY) -->
+        <button class="nav-tab hidden" data-tab="analytics" id="tab-btn-analytics">
           <span class="tab-icon">📊</span>
           <span class="tab-title">گزارشات مالی و سهم درآمد</span>
         </button>
@@ -68,6 +90,11 @@
 
   <!-- Main Content Body -->
   <main class="app-main">
+    <!-- Role Banner -->
+    <div class="role-perspective-banner" id="role-perspective-banner">
+      <!-- Dynamically filled to describe what the current role sees -->
+    </div>
+
     <!-- TAB 1: Booking & Reservation Portal -->
     <section id="tab-booking" class="tab-content active">
       <div class="section-header">
@@ -84,7 +111,6 @@
           </div>
 
           <div class="spaces-list" id="spaces-list-container">
-            <!-- Dynamically populated -->
             <div class="loading-spinner">در حال دریافت لیست فضاها...</div>
           </div>
         </div>
@@ -245,11 +271,39 @@
       </div>
     </section>
 
-    <!-- TAB 3: Operator & Admin CMS Panel -->
+    <!-- TAB 3: Customer's My Bookings -->
+    <section id="tab-my-bookings" class="tab-content">
+      <div class="section-header">
+        <h2>📄 پیگیری و سوابق رزروهای من</h2>
+        <p>مشاهده جزئیات سفارش‌ها، وضعیت تایید رویداد و دانلود فاکتورهای صادر شده.</p>
+      </div>
+
+      <div class="admin-card">
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>شماره رزرو</th>
+                <th>فضا</th>
+                <th>بازه زمانی</th>
+                <th>مبلغ کل</th>
+                <th>وضعیت</th>
+                <th>فاکتور</th>
+              </tr>
+            </thead>
+            <tbody id="my-reservations-tbody">
+              <!-- Dynamically injected -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: Operator & Admin CMS Panel -->
     <section id="tab-admin" class="tab-content">
       <div class="section-header">
-        <h2>پنل مدیریت، ثبت دستی و اپراتورها</h2>
-        <p>تایید رزروهای همایش، ثبت دستی رزرواسیون‌های تلفنی/حضوری، و مدیریت منوی کافه.</p>
+        <h2 id="admin-panel-title">پنل مدیریت، ثبت دستی و اپراتورها</h2>
+        <p id="admin-panel-desc">تایید رزروهای همایش، ثبت دستی رزرواسیون‌های تلفنی/حضوری، و مدیریت منوی کافه.</p>
       </div>
 
       <div class="admin-grid">
@@ -280,15 +334,15 @@
           </div>
         </div>
 
-        <!-- Section B: Manual Phone/In-Person Booking & Catering Management -->
+        <!-- Section B: Management tools scoped by role -->
         <div class="admin-card">
           <div class="card-header">
-            <h3>☕ مدیریت منوی کافه و کدهای تخفیف</h3>
+            <h3>⚙️ ابزارهای عملیاتی و پنل مدیریت</h3>
           </div>
 
           <div class="admin-sub-sections">
-            <!-- Add Catering Item -->
-            <div class="admin-form-box">
+            <!-- Add Catering Item (Cafe Operator & Admin) -->
+            <div class="admin-form-box" id="admin-catering-box">
               <h4>➕ افزودن آیتم به منوی کافه</h4>
               <form id="form-add-catering">
                 <div class="form-group">
@@ -315,9 +369,9 @@
               </form>
             </div>
 
-            <!-- Create Promo Code -->
-            <div class="admin-form-box">
-              <h4>🎟️ ساخت کد تخفیف جدید</h4>
+            <!-- Create Promo Code (Super Admin ONLY) -->
+            <div class="admin-form-box" id="admin-promo-box">
+              <h4>🎟️ ساخت کد تخفیف جدید (سوپرادمین)</h4>
               <form id="form-add-promo">
                 <div class="form-group">
                   <label for="new-promo-code">کد تخفیف (لاتین):</label>
@@ -348,7 +402,7 @@
       </div>
     </section>
 
-    <!-- TAB 4: Financial Analytics & Revenue Share -->
+    <!-- TAB 5: Financial Analytics & Revenue Share (SUPER_ADMIN ONLY) -->
     <section id="tab-analytics" class="tab-content">
       <div class="section-header">
         <h2>گزارشات مالی، عملکرد و سهم درآمد (Revenue Sharing)</h2>
@@ -412,6 +466,42 @@
       </div>
     </section>
   </main>
+
+  <!-- Modal: User Login & Role Switcher -->
+  <div class="modal-overlay hidden" id="auth-modal">
+    <div class="modal-card auth-modal-card">
+      <div class="modal-header">
+        <h3>🔐 ورود و تغییر نقش کاربری</h3>
+        <button class="modal-close" id="btn-close-auth">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="sub-label">برای مشاهده دیدگاه هر نقش، می‌توانید با یوزر/پسورد وارد شوید یا روی کارت‌های زیر مستقیماً کلیک کنید:</p>
+        
+        <!-- Pre-seeded accounts grid -->
+        <div class="demo-accounts-grid" id="demo-accounts-grid">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <!-- Manual Login Form -->
+        <form id="form-manual-login" class="manual-login-form">
+          <h4>یا ورود دستی با نام کاربری:</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="login-username">نام کاربری:</label>
+              <input type="text" id="login-username" class="form-control" placeholder="admin" required>
+            </div>
+            <div class="form-group">
+              <label for="login-password">کلمه عبور:</label>
+              <input type="password" id="login-password" class="form-control" placeholder="admin123" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">ورود به حساب</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal: Invoice & Receipt View -->
   <div class="modal-overlay hidden" id="invoice-modal">
