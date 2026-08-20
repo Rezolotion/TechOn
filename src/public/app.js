@@ -1,7 +1,14 @@
 /**
- * TechOn Platform - Mobile-First Client Application
- * Features: 4 Exact Space Inventories (60 Desks, 4 Offices, 1 Meeting Room, 1 Hall),
- * Custom Time Range Picker (Start Hour -> End Hour), PersianLabs UI Jalali Calendar.
+ * TechOn Platform - High-Performance Client Application
+ * Features:
+ * 1. Dark/Light Theme System
+ * 2. Strict Role-Based Access Control (RBAC) & 1-Click Role Switcher Bottom Sheet
+ * 3. Flow Separation (Coworking Space vs Conference Hall) - Big Papa's UX
+ * 4. Multi-Slot Hourly Basket & Daily Range / Custom Schedulers - Reza Sr's UX
+ * 5. Interactive Persian Jalali Calendar
+ * 6. Collapsible Catering & Add-ons
+ * 7. Live Real-Time Invoice Breakdown & Modal Receipt
+ * 8. Responsive Desktop & Mobile Adaptive Layout
  */
 
 // Demo Users Configuration
@@ -15,7 +22,8 @@ const DEMO_ACCOUNTS = [
     role: 'CUSTOMER',
     title: 'مشتری / کاربر عادی',
     avatar: '👩‍💼',
-    desc: 'رزرواسیون فضا، منوی کافه و پیگیری فاکتورها'
+    color: 'badge-primary',
+    desc: 'دسترسی فقط به رزرواسیون، منوی کافه و پیگیری رزروهای خود'
   },
   {
     id: 'user-cowork',
@@ -24,9 +32,10 @@ const DEMO_ACCOUNTS = [
     name: 'علی کاظمی',
     phone: '09122222222',
     role: 'COWORKING_OPERATOR',
-    title: 'اپراتور کار اشتراکی',
+    title: 'اپراتور فضای کار اشتراکی',
     avatar: '🏢',
-    desc: 'مدیریت صندلی‌ها و ثبت دستی مراجعین'
+    color: 'badge-warning',
+    desc: 'دسترسی به مدیریت صندلی‌ها، اتاق‌ها و ثبت دستی مراجعین'
   },
   {
     id: 'user-cafe',
@@ -35,9 +44,10 @@ const DEMO_ACCOUNTS = [
     name: 'سارا تهرانی',
     phone: '09123333333',
     role: 'CAFE_OPERATOR',
-    title: 'اپراتور سالن و کافه',
+    title: 'اپراتور سالن همایش و کافه',
     avatar: '☕',
-    desc: 'تأیید رویدادهای همایش و مدیریت منوی کافه'
+    color: 'badge-success',
+    desc: 'دسترسی به بررسی و تأیید رویدادهای سالن و مدیریت منوی کافه'
   },
   {
     id: 'user-admin',
@@ -48,179 +58,34 @@ const DEMO_ACCOUNTS = [
     role: 'SUPER_ADMIN',
     title: 'سوپرادمین (مدیریت کل)',
     avatar: '👑',
-    desc: 'دسترسی نامحدود به تمامی ماژول‌ها و گزارشات مالی سهم ۱۰-۱۵٪'
+    color: 'badge-danger',
+    desc: 'دسترسی نامحدود به تمامی بخش‌ها، ایجاد کوپن و گزارشات مالی سهم درآمد'
   }
 ];
 
-// 4 Exact Spaces of TechOn
-const FALLBACK_SPACES = [
-  {
-    key: 'CONFERENCE_HALL',
-    id: 'hall-main',
-    name: 'سالن همایش و رویداد تکان (۱ سالن)',
-    count: 1,
-    capacity: 70,
-    hourlyRate: 1500000,
-    dailyRate: 10000000,
-    features: ['پروژکتور 4K', 'سیستم صوتی استودیویی', 'استیج و تریبون', 'نورپردازی تخصصی', 'اینترنت فیبر نوری']
-  },
-  {
-    key: 'MEETING_ROOM',
-    id: 'meeting-room-1',
-    name: 'اتاق جلسه و ویدیوکنفرانس (۱ اتاق)',
-    count: 1,
-    capacity: 12,
-    hourlyRate: 250000,
-    dailyRate: 1600000,
-    features: ['نمایشگر ۶۵ اینچ 4K', 'تخته وایت‌برد شیشه‌ای', 'تجهیزات وب‌کم کنفرانس', 'پذیرایی جلسه']
-  },
-  {
-    key: 'PRIVATE_OFFICE',
-    id: 'office-private',
-    name: 'اتاق کار اختصاصی تیم (۴ اتاق)',
-    count: 4,
-    capacity: 6,
-    hourlyRate: 350000,
-    dailyRate: 2400000,
-    features: ['۴ اتاق مجزا', 'تخته وایت‌برد', 'میز کنفرانس کوچک', 'کمد کلیددار اختصاصی']
-  },
-  {
-    key: 'SHARED_DESK',
-    id: 'desk-shared',
-    name: 'صندلی کار اشتراکی (۶۰ صندلی)',
-    count: 60,
-    capacity: 1,
-    hourlyRate: 40000,
-    dailyRate: 250000,
-    features: ['۶۰ صندلی استاندارد', 'صندلی ارگونومیک', 'پریز اختصاصی', 'اینترنت پرسرعت', 'چای و قهوه رایگان']
-  }
-];
-
-const SPACE_VISUALS = {
-  CONFERENCE_HALL: { icon: '🏛️', tag: '۱ سالن همایش ۷۰ نفره' },
-  MEETING_ROOM: { icon: '👥', tag: '۱ اتاق جلسه ۱۲ نفره' },
-  PRIVATE_OFFICE: { icon: '💼', tag: '۴ اتاق کار اختصاصی' },
-  SHARED_DESK: { icon: '💻', tag: '۶۰ صندلی کار اشتراکی' }
+// Space Visual Icons Map
+const SPACE_ICONS = {
+  CONFERENCE_HALL: '🎤',
+  MEETING_ROOM: '🤝',
+  PRIVATE_OFFICE: '💼',
+  SHARED_DESK: '💻'
 };
 
+// Catering Category Icons & Persian Labels
 const CATEGORY_META = {
-  PACKAGE: { label: 'پکیج تشریفات', icon: '🎁' },
+  PACKAGE: { label: 'پکیج پذیرایی', icon: '🎁' },
   BEVERAGE_HOT: { label: 'نوشیدنی گرم', icon: '☕' },
   BEVERAGE_COLD: { label: 'نوشیدنی سرد', icon: '🧃' },
   SNACK: { label: 'اسنک و فینگرفود', icon: '🥐' },
-  MEAL: { label: 'میان‌وعده ویژه', icon: '🥪' }
+  MEAL: { label: 'میان‌وعده و وعده غذایی', icon: '🥪' }
 };
 
-const PERSIAN_MONTH_NAMES = [
-  'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
-  'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
-];
-
-const PERSIAN_WEEKDAY_NAMES = [
-  'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'
-];
-
-const FALLBACK_CATERING = [
-  { id: 'cat-pkg-standard', name: 'پکیج استاندارد همایش (چای، نسکافه، آبمیوه، کیک تازه)', category: 'PACKAGE', price: 45000 },
-  { id: 'cat-pkg-vip', name: 'پکیج تشریفات VIP (قهوه دمی تخصصی، فینگرفود، آبمیوه طبیعی)', category: 'PACKAGE', price: 95000 },
-  { id: 'cat-bev-espresso', name: 'اسپرسو دبل شات ۱۰۰٪ عربیکا', category: 'BEVERAGE_HOT', price: 38000 },
-  { id: 'cat-bev-latte', name: 'کافه لاته با شیر تازه محلی', category: 'BEVERAGE_HOT', price: 48000 },
-  { id: 'cat-bev-coldbrew', name: 'کلد برو (دم‌سرد تخصصی اتیوپی)', category: 'BEVERAGE_COLD', price: 55000 },
-  { id: 'cat-snack-croissant', name: 'کروسان فرانسوی با شکلات فندقی', category: 'SNACK', price: 42000 }
-];
-
-// Jalali Algorithms
-function gregorianToJalali(gy, gm, gd) {
-  const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-  let gy2 = (gm > 2) ? (gy + 1) : gy;
-  let days = 355666 + (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) + gd + g_d_m[gm - 1];
-  let jy = -1595 + (33 * Math.floor(days / 12053));
-  days %= 12053;
-  jy += 4 * Math.floor(days / 1461);
-  days %= 1461;
-  if (days > 365) {
-    jy += Math.floor((days - 1) / 365);
-    days = (days - 1) % 365;
-  }
-  let jm = (days < 186) ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30);
-  let jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
-  return { jy, jm, jd };
+// Persian Digits Helper
+function toPersianDigits(n) {
+  if (n === null || n === undefined) return '';
+  const map = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+  return String(n).replace(/[0-9]/g, d => map[d]);
 }
-
-function jalaliToGregorian(jy, jm, jd) {
-  let sal_a = [0, 31, 62, 93, 124, 155, 186, 216, 246, 276, 306, 336];
-  let jy2 = jy + 1595;
-  let days = -355668 + (365 * jy2) + Math.floor(jy2 / 33) * 8 + Math.floor(((jy2 % 33) + 3) / 4) + jd + sal_a[jm - 1];
-  let gy = 400 * Math.floor(days / 146097);
-  days %= 146097;
-  if (days > 36524) {
-    gy += 100 * Math.floor(--days / 36524);
-    days %= 36524;
-    if (days >= 365) days++;
-  }
-  gy += 4 * Math.floor(days / 1461);
-  days %= 1461;
-  if (days > 365) {
-    gy += Math.floor((days - 1) / 365);
-    days = (days - 1) % 365;
-  }
-  let gd = days + 1;
-  const sal_g = [0, 31, ((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  let gm = 0;
-  for (gm = 0; gm < 13; gm++) {
-    let v = sal_g[gm];
-    if (gd <= v) break;
-    gd -= v;
-  }
-  return { gy, gm, gd };
-}
-
-// LocalStore Utility
-function getLocalStore(key, defaultValue) {
-  try {
-    const raw = localStorage.getItem(`techon_${key}`);
-    return raw ? JSON.parse(raw) : defaultValue;
-  } catch (e) {
-    return defaultValue;
-  }
-}
-
-function setLocalStore(key, value) {
-  try {
-    localStorage.setItem(`techon_${key}`, JSON.stringify(value));
-  } catch (e) {}
-}
-
-const nowG = new Date();
-const initialJalali = gregorianToJalali(nowG.getFullYear(), nowG.getMonth() + 1, nowG.getDate());
-
-// Application State
-const state = {
-  theme: 'dark',
-  currentUser: DEMO_ACCOUNTS[0],
-  spaces: [],
-  cateringMenu: [],
-  rateMode: 'HOURLY', // 'HOURLY' or 'DAILY'
-  selectedSpaceKey: 'CONFERENCE_HALL',
-  selectedCateringFilter: 'ALL',
-  cateringOrders: {}, // itemId -> quantity
-  appliedPromo: null,
-  reservations: [],
-  deskCount: 1,
-  dailyDays: 1,
-  timeRange: {
-    start: '09:00',
-    end: '11:00',
-    calculatedHours: 2
-  },
-  calendar: {
-    viewYear: initialJalali.jy,
-    viewMonth: initialJalali.jm,
-    selectedYear: initialJalali.jy,
-    selectedMonth: initialJalali.jm,
-    selectedDay: initialJalali.jd
-  }
-};
 
 // Currency Formatter
 function formatCurrency(amount) {
@@ -228,10 +93,45 @@ function formatCurrency(amount) {
   return Number(amount).toLocaleString('fa-IR') + ' تومان';
 }
 
-function toPersianDigits(n) {
-  const f = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-  return String(n).replace(/[0-9]/g, w => f[+w]);
+// Date Formatter
+function formatPersianDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      return d.toLocaleDateString('fa-IR', { month: 'long', day: 'numeric', weekday: 'short' });
+    }
+    return new Date(dateStr).toLocaleDateString('fa-IR', { month: 'long', day: 'numeric', weekday: 'short' });
+  } catch (e) {
+    return dateStr;
+  }
 }
+
+// Application State
+const state = {
+  theme: 'dark',
+  currentUser: DEMO_ACCOUNTS[0],
+  spaces: [],
+  cateringMenu: [],
+  selectedCategoryFilter: 'ALL',
+  selectedFlow: 'COWORKING', // 'COWORKING' or 'HALL'
+  selectedSpaceKey: 'SHARED_DESK',
+  bookingType: 'HOURLY', // 'HOURLY' or 'DAILY'
+  rateViewMode: 'HOURLY',
+  deskCount: 1,
+  selectedCalendarDate: new Date().toISOString().slice(0, 10),
+  selectedCalendarLabel: 'امروز',
+  hourlySlots: [], // Array of { id, date, dateLabel, startTime, endTime, startTimeStr, endTimeStr, hours, label }
+  dailyMode: 'RANGE', // 'RANGE' or 'CUSTOM'
+  dailyStartDate: new Date().toISOString().slice(0, 10),
+  dailyEndDate: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10),
+  customDailyDates: [], // Array of string dates 'YYYY-MM-DD'
+  cateringOrders: {}, // itemId -> count
+  cateringAddonOpen: true,
+  appliedPromo: null,
+  reservations: []
+};
 
 // Toast Notifier
 function showToast(message, type = 'success') {
@@ -243,192 +143,375 @@ function showToast(message, type = 'success') {
   container.appendChild(toast);
   setTimeout(() => {
     toast.remove();
-  }, 3500);
+  }, 4000);
 }
 
-// API Request Wrapper with Graceful Offline Simulation
-async function apiRequest(endpoint, method = 'GET', body = null) {
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-User-Role': state.currentUser.role
-  };
+// Default Data Specifications for Client-Side Standalone Fallback (GitHub Pages Mode)
+const DEFAULT_SPACES = [
+  {
+    key: 'SHARED_DESK',
+    name: 'صندلی کار اشتراکی (۶۰ صندلی)',
+    hourlyRate: 40000,
+    dailyRate: 250000,
+    capacity: 60,
+    totalUnits: 60,
+    unitLabel: 'صندلی',
+    description: 'فضای کار اشتراکی آرام، اینترنت فیبر نوری پرسرعت، صندلی ارگونومیک، پریز اختصاصی و چای نامحدود.',
+    features: ['اینترنت پرسرعت ۱ Gbps', 'صندلی ارگونومیک استاندارد', 'پریز برق اختصاصی', 'پذیرایی پایه (چای و آب)']
+  },
+  {
+    key: 'PRIVATE_OFFICE',
+    name: 'اتاق کار اختصاصی تیم (۴ اتاق)',
+    hourlyRate: 350000,
+    dailyRate: 2400000,
+    capacity: 4,
+    totalUnits: 4,
+    unitLabel: 'اتاق',
+    description: 'اتاق دربسته ۴ نفره مجهز به میز اختصاصی، وایت‌برد و محیطی کاملاً آکوستیک برای تمرکز تیمی.',
+    features: ['محیط کاملاً آکوستیک و مستقل', 'ظرفیت تا ۴ نفر', 'وایت‌برد شیشه‌ای و تلویزیون', 'تهویه مطبوع مجزا']
+  },
+  {
+    key: 'MEETING_ROOM',
+    name: 'اتاق جلسه و ویدیوکنفرانس (۱ اتاق)',
+    hourlyRate: 250000,
+    dailyRate: 1800000,
+    capacity: 12,
+    totalUnits: 1,
+    unitLabel: 'اتاق',
+    description: 'اتاق جلسه ۱۲ نفره مجهز به نمایشگر ۶۵ اینچ 4K، سیستم صوتی و وبکم کنفرانس هوشمند.',
+    features: ['نمایشگر ۶۵ اینچ 4K', 'تجهیزات وبکم و میکروفون کنفرانس', 'وایت‌برد شیشه‌ای بزرگ', 'عایق صوتی پیشرفته']
+  },
+  {
+    key: 'CONFERENCE_HALL',
+    name: 'سالن همایش و رویداد تکـان (۱ سالن)',
+    hourlyRate: 1500000,
+    dailyRate: 12000000,
+    capacity: 70,
+    totalUnits: 1,
+    unitLabel: 'سالن',
+    description: 'سالن همایش حرفه‌ای با ظرفیت ۷۰ نفر، استیج اختصاصی، پروژکتور 4K، سیستم صوتی استودیویی و نورپردازی.',
+    features: ['ظرفیت ۷۰ نفر صندلی سینمایی', 'ویدیو پروژکتور لیزری 4K و پرده عریض', 'سیستم صوت و میکروفون بی‌سیم', 'استیج اختصاصی و نورپردازی تئاتری', 'امکان ضبط چنددوربینه و لایواستریم']
+  }
+];
 
-  const options = { method, headers };
-  if (body) options.body = JSON.stringify(body);
+const DEFAULT_CATERING = [
+  { id: 'pkg-basic', name: 'پکیج پایه تکان (چای/قهوه + بیسکوییت)', category: 'PACKAGE', price: 45000, description: 'چای تازه‌دم لاهیجان یا قهوه فرانسه به همراه بیسکوییت پذیرایی' },
+  { id: 'pkg-vip', name: 'پکیج VIP تکان (قهوه دمی + کروسان + فینگر)', category: 'PACKAGE', price: 120000, description: 'قهوه تخصصی دمی + کروسان فرانسوی تازه + اسنک مغزدار' },
+  { id: 'pkg-meeting', name: 'پکیج تشریفات جلسه (پذیرایی VIP + آبمیوه طبیعی)', category: 'PACKAGE', price: 160000, description: 'پذیرایی کامل جلسات شرکتی با میوه فصل و نوشیدنی تازه' },
+  { id: 'bev-espresso', name: 'اسپرسو دوبل تخصصی', category: 'BEVERAGE_HOT', price: 55000, description: '۱۰۰٪ عربیکا با رست مدیوم' },
+  { id: 'bev-latte', name: 'لاته آرت', category: 'BEVERAGE_HOT', price: 65000, description: 'شیر تازه با کف مخملی و اسپرسو سینگل' },
+  { id: 'bev-tea', name: 'چای لاهیجان با هل و دارچین', category: 'BEVERAGE_HOT', price: 35000, description: 'سرو در قوری سنتی با نبات' },
+  { id: 'bev-smoothie', name: 'اسموتی بری و پشن‌فروت طبیعی', category: 'BEVERAGE_COLD', price: 85000, description: 'بدون شکر افزوده با میوه‌های ارگانیک' },
+  { id: 'bev-coldbrew', name: 'کلدبرو مخصوص کافه تکان', category: 'BEVERAGE_COLD', price: 75000, description: 'عصاره‌گیری سرد ۱۸ ساعته' },
+  { id: 'snack-croissant', name: 'کروسان بادام فرانسوی تازه', category: 'SNACK', price: 60000, description: 'پخت روزانه در کافه تکان' },
+  { id: 'meal-club', name: 'کلاب ساندویچ بیکن بوقلمون', category: 'MEAL', price: 110000, description: 'نان تست هفت‌غله با سس خردل دیژون' }
+];
 
+function getStoredCateringMenu() {
   try {
-    const res = await fetch(endpoint, options);
-    if (res.ok) {
-      const data = await res.json();
-      return data;
+    const raw = localStorage.getItem('techon_standalone_catering');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return DEFAULT_CATERING;
+}
+
+function getStoredReservations() {
+  try {
+    const raw = localStorage.getItem('techon_standalone_reservations');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [];
+}
+
+function saveStoredReservations(list) {
+  try {
+    localStorage.setItem('techon_standalone_reservations', JSON.stringify(list));
+  } catch (e) {}
+}
+
+function getStoredPromos() {
+  const defaults = {
+    'TECHON2026': { type: 'PERCENT', value: 20, maxDiscount: 500000 },
+    'STARTUP50': { type: 'PERCENT', value: 50, maxDiscount: 1000000 },
+    'EVENTVIP': { type: 'PERCENT', value: 15, maxDiscount: 1500000 }
+  };
+  try {
+    const raw = localStorage.getItem('techon_standalone_promos');
+    if (raw) return { ...defaults, ...JSON.parse(raw) };
+  } catch (e) {}
+  return defaults;
+}
+
+// Check if running on GitHub Pages or static host
+const isStaticHost = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
+
+// API Request Wrapper with Auto Standalone Fallback
+async function apiRequest(endpoint, method = 'GET', body = null) {
+  // If not static host, try network fetch first
+  if (!isStaticHost) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'X-User-Role': state.currentUser.role
+      };
+      const options = { method, headers };
+      if (body) options.body = JSON.stringify(body);
+
+      const res = await fetch(endpoint, options);
+      if (res.ok) {
+        const data = await res.json();
+        return data;
+      }
+    } catch (netErr) {
+      console.warn('[TechOn] Network fetch failed, falling back to standalone client engine:', netErr);
     }
-  } catch (err) {}
-
-  // Client-Side Fallback Handler
-  const url = new URL(endpoint, window.location.origin);
-  const path = url.pathname;
-
-  if (path.includes('/api/spaces') && method === 'GET') {
-    return { success: true, spaces: FALLBACK_SPACES };
   }
 
-  if (path.includes('/api/catering/menu') && method === 'GET') {
-    const customMenu = getLocalStore('catering_menu', FALLBACK_CATERING);
-    return { success: true, menu: customMenu };
+  // --- Standalone Fallback Engine ---
+  if (endpoint === '/api/health' && method === 'GET') {
+    return { status: 'UP', platform: 'TechOn (Standalone/GitHub Pages)', timestamp: new Date().toISOString() };
   }
 
-  if (path.includes('/api/promo/validate') && method === 'POST') {
+  if (endpoint === '/api/spaces' && method === 'GET') {
+    return { success: true, spaces: DEFAULT_SPACES };
+  }
+
+  if (endpoint === '/api/catering/menu' && method === 'GET') {
+    return { success: true, menu: getStoredCateringMenu() };
+  }
+
+  if (endpoint === '/api/promo/validate' && method === 'POST') {
     const code = (body?.code || '').trim().toUpperCase();
     const subtotal = Number(body?.subtotal) || 0;
-    if (code === 'TECHON2026' || code === 'SPRING2026' || code === 'OFF20') {
-      const discount = Math.min((subtotal * 20) / 100, 500000);
-      return {
-        valid: true,
-        code,
-        discountType: 'PERCENTAGE',
-        discountValue: 20,
-        maxDiscount: 500000,
-        discountAmount: discount,
-        subtotal,
-        finalTotal: subtotal - discount
-      };
+    const promos = getStoredPromos();
+    const promo = promos[code];
+
+    if (!promo) {
+      return { valid: false, message: 'کد تخفیف وارد شده معتبر نمی‌باشد.' };
     }
-    return { valid: false, reason: 'کد تخفیف نامعتبر یا منقضی است.' };
-  }
 
-  if (path.includes('/api/reservations') && method === 'POST') {
-    const space = FALLBACK_SPACES.find(s => s.key === body.spaceKey) || FALLBACK_SPACES[0];
-    const units = body.spaceKey === 'SHARED_DESK' ? (body.deskCount || 1) : 1;
-    const duration = body.duration || 1;
-    const baseRate = body.bookingType === 'DAILY' ? space.dailyRate : space.hourlyRate;
-    const spaceSubtotal = baseRate * duration * units;
-
-    let equipFee = 0;
-    (body.equipment || []).forEach(e => {
-      if (e === 'recording') equipFee += 300000;
-      if (e === 'sound_system') equipFee += 200000;
-    });
-
-    const menu = getLocalStore('catering_menu', FALLBACK_CATERING);
-    let cateringSubtotal = 0;
-    const cateringDetails = (body.cateringOrders || []).map(o => {
-      const it = menu.find(m => m.id === o.itemId);
-      const sub = (it ? it.price : 0) * o.quantity;
-      cateringSubtotal += sub;
-      return { itemId: o.itemId, name: it?.name || 'آیتم کافه', quantity: o.quantity, unitPrice: it?.price || 0, subtotal: sub };
-    });
-
-    const gross = spaceSubtotal + equipFee + cateringSubtotal;
     let discount = 0;
-    if (body.promoCode === 'TECHON2026') discount = Math.min((gross * 20) / 100, 500000);
+    if (promo.type === 'PERCENT') {
+      discount = Math.round((subtotal * promo.value) / 100);
+      if (promo.maxDiscount && discount > promo.maxDiscount) {
+        discount = promo.maxDiscount;
+      }
+    } else {
+      discount = Math.min(subtotal, promo.value || 0);
+    }
 
-    const finalTotal = Math.max(0, gross - discount);
-    const id = `RES-${Date.now().toString().slice(-6)}`;
-    const invoiceNumber = `INV-${Date.now().toString().slice(-8)}`;
-
-    const reservation = {
-      id,
-      invoiceNumber,
-      spaceKey: body.spaceKey,
-      spaceName: space.name,
-      units,
-      bookingType: body.bookingType,
-      duration,
-      startTime: body.startTime,
-      endTime: body.endTime,
-      customer: { name: body.customerName, phone: body.customerPhone, email: body.customerEmail },
-      eventDetails: { topic: body.eventTopic, targetAudienceCount: body.targetAudienceCount },
-      equipment: (body.equipment || []).map(e => ({ type: e, name: e === 'recording' ? 'ضبط فیلمبرداری مراسم' : 'سیستم صوتی استیج', fee: e === 'recording' ? 300000 : 200000 })),
-      catering: cateringDetails,
-      status: body.spaceKey === 'CONFERENCE_HALL' ? 'PENDING_REVIEW' : 'CONFIRMED',
-      pricing: { spaceSubtotal, equipmentFee: equipFee, cateringSubtotal, subtotal: gross, discountAmount: discount, finalTotal }
-    };
-
-    const invoice = {
-      invoiceNumber,
-      reservationId: id,
-      customer: reservation.customer,
-      items: [
-        { title: `رزرو ${space.name} ${units > 1 ? `(${toPersianDigits(units)} صندلی)` : ''} - ${toPersianDigits(duration)} ${body.bookingType === 'DAILY' ? 'روز' : 'ساعت'}`, amount: spaceSubtotal },
-        ...reservation.equipment.map(e => ({ title: e.name, amount: e.fee })),
-        ...cateringDetails.map(c => ({ title: `${c.name} (${toPersianDigits(c.quantity)} عدد)`, amount: c.subtotal }))
-      ],
-      subtotal: gross,
+    return {
+      valid: true,
+      code,
       discountAmount: discount,
-      finalTotal
+      finalTotal: Math.max(0, subtotal - discount),
+      message: `کد تخفیف با موفقیت اعمال شد (${promo.value}% تخفیف)`
+    };
+  }
+
+  if (endpoint === '/api/reservations' && method === 'POST') {
+    const resList = getStoredReservations();
+    const space = DEFAULT_SPACES.find(s => s.key === body.spaceKey) || DEFAULT_SPACES[0];
+    const duration = Number(body.duration) || 1;
+    const bookingType = body.bookingType || 'HOURLY';
+    const rate = bookingType === 'DAILY' ? space.dailyRate : space.hourlyRate;
+    const spaceSubtotal = Math.round(rate * duration);
+
+    // Calculate catering
+    let cateringSubtotal = 0;
+    const detailedCatering = [];
+    if (Array.isArray(body.catering)) {
+      const menu = getStoredCateringMenu();
+      for (const item of body.catering) {
+        const menuItem = menu.find(m => m.id === item.id);
+        if (menuItem) {
+          const itemSub = menuItem.price * item.quantity;
+          cateringSubtotal += itemSub;
+          detailedCatering.push({ name: menuItem.name, quantity: item.quantity, subtotal: itemSub });
+        }
+      }
+    }
+
+    const subtotal = spaceSubtotal + (body.equipmentFee || 0) + cateringSubtotal;
+    const discountAmount = body.appliedPromo?.discountAmount || 0;
+    const finalTotal = Math.max(0, subtotal - discountAmount);
+
+    const resId = `RES-${Date.now().toString().slice(-6)}`;
+    const invoiceNum = `INV-${Date.now().toString().slice(-6)}`;
+
+    const newReservation = {
+      id: resId,
+      spaceKey: space.key,
+      spaceName: space.name,
+      bookingType,
+      duration,
+      scheduleDescription: body.scheduleDescription || `${duration} ${bookingType === 'DAILY' ? 'روز' : 'ساعت'}`,
+      timeSlots: body.timeSlots || [],
+      dailySchedule: body.dailySchedule || null,
+      startTime: body.startTime || new Date().toISOString(),
+      endTime: body.endTime || new Date().toISOString(),
+      status: space.key === 'CONFERENCE_HALL' ? 'PENDING_REVIEW' : 'CONFIRMED',
+      customer: {
+        name: body.customerName || state.currentUser.name,
+        phone: body.customerPhone || state.currentUser.phone,
+        email: body.customerEmail || ''
+      },
+      equipment: body.selectedEquipment || [],
+      catering: detailedCatering,
+      pricing: {
+        spaceSubtotal,
+        equipmentFee: body.equipmentFee || 0,
+        cateringSubtotal,
+        discountAmount,
+        finalTotal
+      },
+      createdAt: new Date().toISOString()
     };
 
-    const all = getLocalStore('reservations', []);
-    all.unshift(reservation);
-    setLocalStore('reservations', all);
+    const newInvoice = {
+      invoiceNumber: invoiceNum,
+      reservationId: resId,
+      customer: newReservation.customer,
+      scheduleDescription: newReservation.scheduleDescription,
+      items: [
+        { title: `رزرو ${space.name} (${newReservation.scheduleDescription})`, amount: spaceSubtotal },
+        ...(body.selectedEquipment || []).map(e => ({ title: e.name, amount: e.fee })),
+        ...detailedCatering.map(c => ({ title: `${c.name} (تعداد: ${c.quantity})`, amount: c.subtotal }))
+      ],
+      subtotal,
+      discountAmount,
+      finalTotal,
+      paymentStatus: 'PAID',
+      paidAt: new Date().toISOString()
+    };
 
-    return { success: true, reservation, invoice };
+    resList.unshift(newReservation);
+    saveStoredReservations(resList);
+
+    return {
+      success: true,
+      reservation: newReservation,
+      invoice: newInvoice
+    };
   }
 
-  if (path.includes('/api/my-reservations') && method === 'GET') {
-    const all = getLocalStore('reservations', []);
-    return { success: true, reservations: all };
+  if (endpoint.startsWith('/api/my-reservations') && method === 'GET') {
+    const list = getStoredReservations();
+    const urlObj = new URL(endpoint, 'http://dummy.local');
+    const phone = urlObj.searchParams.get('phone');
+    const filtered = phone ? list.filter(r => r.customer?.phone === phone) : list;
+    return { success: true, reservations: filtered };
   }
 
-  if (path.includes('/api/admin/reservations') && method === 'GET') {
-    const all = getLocalStore('reservations', []);
-    return { success: true, reservations: all };
+  if (endpoint === '/api/admin/reservations' && method === 'GET') {
+    const list = getStoredReservations();
+    return { success: true, reservations: list };
   }
 
-  if (path.includes('/api/admin/reservations/') && path.includes('/approve') && method === 'POST') {
-    const all = getLocalStore('reservations', []);
-    const parts = path.split('/');
-    const resId = parts[parts.indexOf('reservations') + 1];
-    const target = all.find(r => r.id === resId);
-    if (target) target.status = 'CONFIRMED';
-    setLocalStore('reservations', all);
-    return { success: true, reservation: target };
+  if (endpoint.includes('/approve') && method === 'POST') {
+    const match = endpoint.match(/\/api\/admin\/reservations\/([^/]+)\/approve/);
+    const resId = match ? match[1] : null;
+    const list = getStoredReservations();
+    const target = list.find(r => r.id === resId);
+    if (target) {
+      target.status = 'CONFIRMED';
+      saveStoredReservations(list);
+      return { success: true, reservation: target };
+    }
+    return { success: false, error: 'رزرو یافت نشد' };
   }
 
-  if (path.includes('/api/admin/analytics') && method === 'GET') {
-    const all = getLocalStore('reservations', []);
-    const totalRev = all.reduce((acc, r) => acc + (r.pricing?.finalTotal || 0), 12500000);
-    const catRev = all.reduce((acc, r) => acc + (r.pricing?.cateringSubtotal || 0), 1850000);
-    const discRev = all.reduce((acc, r) => acc + (r.pricing?.discountAmount || 0), 900000);
+  if (endpoint.includes('/cancel') && method === 'POST') {
+    const match = endpoint.match(/\/api\/admin\/reservations\/([^/]+)\/cancel/);
+    const resId = match ? match[1] : null;
+    const list = getStoredReservations();
+    const target = list.find(r => r.id === resId);
+    if (target) {
+      target.status = 'CANCELLED';
+      target.cancellationReason = body?.reason || 'لغو توسط مدیر';
+      saveStoredReservations(list);
+      return { success: true, reservation: target };
+    }
+    return { success: false, error: 'رزرو یافت نشد' };
+  }
+
+  if (endpoint === '/api/admin/catering/items' && method === 'POST') {
+    const list = getStoredCateringMenu();
+    const newItem = {
+      id: `custom-${Date.now()}`,
+      name: body.name,
+      category: body.category || 'SNACK',
+      price: Number(body.price) || 0,
+      description: body.description || ''
+    };
+    list.push(newItem);
+    localStorage.setItem('techon_standalone_catering', JSON.stringify(list));
+    return { success: true, item: newItem };
+  }
+
+  if (endpoint === '/api/admin/promos' && method === 'POST') {
+    const promos = getStoredPromos();
+    const code = (body.code || '').trim().toUpperCase();
+    promos[code] = {
+      type: body.type || 'PERCENT',
+      value: Number(body.value) || 0,
+      maxDiscount: Number(body.maxDiscount) || 500000
+    };
+    localStorage.setItem('techon_standalone_promos', JSON.stringify(promos));
+    return { success: true, promo: { code, ...promos[code] } };
+  }
+
+  if (endpoint === '/api/admin/analytics' && method === 'GET') {
+    const list = getStoredReservations();
+    let totalRevenue = 0;
+    let spaceRevenue = 0;
+    let cateringRevenue = 0;
+
+    for (const r of list) {
+      if (r.status !== 'CANCELLED') {
+        totalRevenue += r.pricing?.finalTotal || 0;
+        spaceRevenue += r.pricing?.spaceSubtotal || 0;
+        cateringRevenue += r.pricing?.cateringSubtotal || 0;
+      }
+    }
+
+    const contractorShare10 = Math.round(totalRevenue * 0.10);
+    const contractorShare15 = Math.round(totalRevenue * 0.15);
 
     return {
       success: true,
       financials: {
-        totalRevenue: totalRev,
-        spaceRevenue: totalRev - catRev,
-        cateringRevenue: catRev,
-        totalDiscountsGiven: discRev,
-        breakdownBySpace: {
-          CONFERENCE_HALL: { revenue: Math.round(totalRev * 0.55), count: 3 },
-          MEETING_ROOM: { revenue: Math.round(totalRev * 0.15), count: 3 },
-          PRIVATE_OFFICE: { revenue: Math.round(totalRev * 0.18), count: 2 },
-          SHARED_DESK: { revenue: Math.round(totalRev * 0.12), count: 5 }
-        }
+        totalRevenue,
+        spaceRevenue,
+        cateringRevenue,
+        totalReservations: list.length,
+        activeReservations: list.filter(r => r.status === 'CONFIRMED').length,
+        pendingReviewCount: list.filter(r => r.status === 'PENDING_REVIEW').length
       },
       revenueShare: {
-        totalRevenue: totalRev,
-        contractorShare10: Math.round(totalRev * 0.10),
-        contractorShare15: Math.round(totalRev * 0.15)
+        rateMinPercentage: 10,
+        rateMaxPercentage: 15,
+        contractorShare10,
+        contractorShare15,
+        clientShare85: totalRevenue - contractorShare15,
+        clientShare90: totalRevenue - contractorShare10
       },
-      auditLogs: [
-        { action: 'CONFIRM_HALL_EVENT', resource: 'RES-948123', userId: 'user-admin', timestamp: new Date().toISOString() },
-        { action: 'CREATE_PROMO', resource: 'TECHON2026', userId: 'user-admin', timestamp: new Date().toISOString() }
-      ]
+      auditLogs: []
     };
   }
 
-  return { success: true };
+  return { success: false, error: 'Endpoint not supported' };
 }
 
-// 1. Theme Engine (Dark / Light)
+// 1. Dark Mode / Light Mode
 function setupThemeEngine() {
   const savedTheme = localStorage.getItem('techon_theme') || 'dark';
   setTheme(savedTheme);
 
   document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    const next = state.theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    showToast(next === 'dark' ? '🌙 حالت شب فعال شد' : '☀️ حالت روز فعال شد');
+    const nextTheme = state.theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    showToast(nextTheme === 'dark' ? '🌙 حالت شب فعال شد' : '☀️ حالت روز فعال شد');
   });
 }
 
@@ -436,24 +519,20 @@ function setTheme(theme) {
   state.theme = theme;
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('techon_theme', theme);
-  const icon = document.getElementById('theme-icon');
-  if (icon) icon.innerText = theme === 'dark' ? '☀️' : '🌙';
+
+  const iconEl = document.getElementById('theme-icon');
+  if (iconEl) iconEl.innerText = theme === 'dark' ? '☀️' : '🌙';
 }
 
-// 2. User Roles & Bottom Sheet Modal
-function setupUserMenu() {
+// 2. Authentication & Role Switcher
+function setupAuthSystem() {
   const modal = document.getElementById('user-role-modal');
   const btnOpen = document.getElementById('btn-open-user-menu');
   const btnClose = document.getElementById('btn-close-role-modal');
   const listContainer = document.getElementById('roles-modal-list');
 
-  btnOpen?.addEventListener('click', () => {
-    modal?.classList.remove('hidden');
-  });
-
-  btnClose?.addEventListener('click', () => {
-    modal?.classList.add('hidden');
-  });
+  btnOpen?.addEventListener('click', () => modal?.classList.remove('hidden'));
+  btnClose?.addEventListener('click', () => modal?.classList.add('hidden'));
 
   modal?.addEventListener('click', (e) => {
     if (e.target === modal) modal.classList.add('hidden');
@@ -482,7 +561,7 @@ window.switchUserRole = function(username) {
   if (!target) return;
   state.currentUser = target;
   document.getElementById('user-role-modal')?.classList.add('hidden');
-  setupUserMenu();
+  setupAuthSystem();
   applyRoleVisibility();
   showToast(`نقش به "${target.name}" (${target.title}) تغییر یافت.`);
 };
@@ -602,152 +681,137 @@ function switchTab(tabId) {
   if (tabId === 'analytics') loadAnalyticsData();
 }
 
-// 5. PersianLabs UI Jalali Calendar & Custom Time Range Selector
-function setupJalaliCalendar() {
-  document.getElementById('btn-cal-prev')?.addEventListener('click', () => {
-    state.calendar.viewMonth--;
-    if (state.calendar.viewMonth < 1) {
-      state.calendar.viewMonth = 12;
-      state.calendar.viewYear--;
-    }
-    renderCalendar();
-  });
+// 5. Service Flow Switcher (Coworking vs Hall Separation - Big Papa's UX)
+function setupServiceFlowSwitcher() {
+  const btnCowork = document.getElementById('btn-flow-cowork');
+  const btnHall = document.getElementById('btn-flow-hall');
 
-  document.getElementById('btn-cal-next')?.addEventListener('click', () => {
-    state.calendar.viewMonth++;
-    if (state.calendar.viewMonth > 12) {
-      state.calendar.viewMonth = 1;
-      state.calendar.viewYear++;
-    }
-    renderCalendar();
-  });
+  btnCowork?.addEventListener('click', () => {
+    state.selectedFlow = 'COWORKING';
+    btnCowork.classList.add('active');
+    btnHall?.classList.remove('active');
 
-  renderCalendar();
-  setupTimeRangeDropdowns();
-}
-
-function renderCalendar() {
-  const { viewYear, viewMonth, selectedYear, selectedMonth, selectedDay } = state.calendar;
-
-  const titleEl = document.getElementById('cal-month-title');
-  if (titleEl) {
-    titleEl.innerText = `${PERSIAN_MONTH_NAMES[viewMonth - 1]} ${toPersianDigits(viewYear)}`;
-  }
-
-  const totalDays = (viewMonth <= 6) ? 31 : (viewMonth <= 11 ? 30 : 29);
-  const firstG = jalaliToGregorian(viewYear, viewMonth, 1);
-  const firstDateObj = new Date(firstG.gy, firstG.gm - 1, firstG.gd);
-  const gDay = firstDateObj.getDay();
-  const jalaliFirstDayIndex = (gDay + 1) % 7;
-
-  const matrixEl = document.getElementById('cal-days-matrix');
-  if (!matrixEl) return;
-
-  let html = '';
-  for (let i = 0; i < jalaliFirstDayIndex; i++) {
-    html += `<div class="cal-day-cell disabled" style="visibility:hidden;"></div>`;
-  }
-
-  for (let d = 1; d <= totalDays; d++) {
-    const isSelected = (viewYear === selectedYear && viewMonth === selectedMonth && d === selectedDay);
-    const isToday = (viewYear === initialJalali.jy && viewMonth === initialJalali.jm && d === initialJalali.jd);
-
-    html += `
-      <button type="button" class="cal-day-cell ${isSelected ? 'active-day' : ''} ${isToday ? 'today-marker' : ''}" onclick="selectJalaliDate(${d})">
-        ${toPersianDigits(d)}
-      </button>
-    `;
-  }
-
-  matrixEl.innerHTML = html;
-  updateSelectedDateText();
-}
-
-window.selectJalaliDate = function(day) {
-  state.calendar.selectedYear = state.calendar.viewYear;
-  state.calendar.selectedMonth = state.calendar.viewMonth;
-  state.calendar.selectedDay = day;
-  renderCalendar();
-  updateSyncDateTimes();
-  showToast(`تاریخ ${toPersianDigits(day)} ${PERSIAN_MONTH_NAMES[state.calendar.selectedMonth - 1]} انتخاب شد.`);
-};
-
-function updateSelectedDateText() {
-  const { selectedYear, selectedMonth, selectedDay } = state.calendar;
-  const g = jalaliToGregorian(selectedYear, selectedMonth, selectedDay);
-  const dateObj = new Date(g.gy, g.gm - 1, g.gd);
-  const weekday = PERSIAN_WEEKDAY_NAMES[dateObj.getDay()];
-
-  const textEl = document.getElementById('selected-jalali-date-text');
-  if (textEl) {
-    textEl.innerText = `${weekday} ${toPersianDigits(selectedDay)} ${PERSIAN_MONTH_NAMES[selectedMonth - 1]} ${toPersianDigits(selectedYear)}`;
-  }
-}
-
-// Generate Time Slots for Dropdowns
-function setupTimeRangeDropdowns() {
-  const selectStart = document.getElementById('time-start-select');
-  const selectEnd = document.getElementById('time-end-select');
-  if (!selectStart || !selectEnd) return;
-
-  const timeOptions = [];
-  for (let h = 8; h <= 22; h++) {
-    const hh = String(h).padStart(2, '0');
-    timeOptions.push(`${hh}:00`);
-    timeOptions.push(`${hh}:30`);
-  }
-  timeOptions.push('23:00');
-
-  selectStart.innerHTML = timeOptions.slice(0, -1).map(t => {
-    const selected = t === state.timeRange.start ? 'selected' : '';
-    return `<option value="${t}" ${selected}>${toPersianDigits(t)}</option>`;
-  }).join('');
-
-  selectEnd.innerHTML = timeOptions.slice(1).map(t => {
-    const selected = t === state.timeRange.end ? 'selected' : '';
-    return `<option value="${t}" ${selected}>${toPersianDigits(t)}</option>`;
-  }).join('');
-
-  const recalculateTimeRange = () => {
-    const startVal = selectStart.value;
-    const endVal = selectEnd.value;
-
-    const [sh, sm] = startVal.split(':').map(Number);
-    const [eh, em] = endVal.split(':').map(Number);
-
-    const startMinutes = sh * 60 + sm;
-    const endMinutes = eh * 60 + em;
-
-    if (endMinutes <= startMinutes) {
-      showToast('ساعت پایان باید بعد از ساعت شروع باشد.', 'error');
-      // Auto adjust end time to 2 hours later
-      const newEndMinutes = Math.min(23 * 60, startMinutes + 120);
-      const newEh = String(Math.floor(newEndMinutes / 60)).padStart(2, '0');
-      const newEm = String(newEndMinutes % 60).padStart(2, '0');
-      selectEnd.value = `${newEh}:${newEm}`;
+    if (state.selectedSpaceKey === 'CONFERENCE_HALL') {
+      state.selectedSpaceKey = 'SHARED_DESK';
     }
 
-    const [finalEh, finalEm] = selectEnd.value.split(':').map(Number);
-    const finalDiffMinutes = (finalEh * 60 + finalEm) - (sh * 60 + sm);
-    const durationHours = Math.max(0.5, finalDiffMinutes / 60);
+    const heading = document.getElementById('space-section-heading');
+    const sub = document.getElementById('space-section-subheading');
+    if (heading) heading.innerText = 'انتخاب صندلی یا اتاق کار اشتراکی';
+    if (sub) sub.innerText = 'موجودی تکان: ۶۰ صندلی کار اشتراکی، ۴ اتاق اختصاصی و ۱ اتاق جلسه';
 
-    state.timeRange.start = selectStart.value;
-    state.timeRange.end = selectEnd.value;
-    state.timeRange.calculatedHours = durationHours;
-
-    const displayEl = document.getElementById('calculated-duration-display');
-    if (displayEl) {
-      displayEl.innerText = `${toPersianDigits(durationHours)} ساعت (${toPersianDigits(state.timeRange.start)} الی ${toPersianDigits(state.timeRange.end)})`;
-    }
-
-    updateSyncDateTimes();
+    renderSpacesCatalog();
+    toggleHallFields();
     updatePriceBreakdown();
-  };
+  });
 
-  selectStart.addEventListener('change', recalculateTimeRange);
-  selectEnd.addEventListener('change', recalculateTimeRange);
+  btnHall?.addEventListener('click', () => {
+    state.selectedFlow = 'HALL';
+    btnHall.classList.add('active');
+    btnCowork?.classList.remove('active');
 
-  // Setup Desk Steppers
+    state.selectedSpaceKey = 'CONFERENCE_HALL';
+
+    const heading = document.getElementById('space-section-heading');
+    const sub = document.getElementById('space-section-subheading');
+    if (heading) heading.innerText = 'سالن همایش و رویدادهای تکـان';
+    if (sub) sub.innerText = 'سالن مجهز ۷۰ نفره با استیج، ضبط استودیویی و تجهیزات حرفه‌ای صوت و تصویر';
+
+    renderSpacesCatalog();
+    toggleHallFields();
+    updatePriceBreakdown();
+  });
+}
+
+// 6. Fetch & Render Spaces
+async function loadSpaces() {
+  try {
+    const data = await apiRequest('/api/spaces');
+    state.spaces = data.spaces || [];
+    renderSpacesCatalog();
+  } catch (err) {
+    showToast('خطا در دریافت لیست فضاها', 'error');
+  }
+}
+
+function renderSpacesCatalog() {
+  const container = document.getElementById('spaces-cards-grid');
+  if (!container) return;
+
+  let filteredSpaces = state.spaces;
+  if (state.selectedFlow === 'COWORKING') {
+    filteredSpaces = state.spaces.filter(s => s.key !== 'CONFERENCE_HALL');
+  } else if (state.selectedFlow === 'HALL') {
+    filteredSpaces = state.spaces.filter(s => s.key === 'CONFERENCE_HALL');
+  }
+
+  container.innerHTML = filteredSpaces.map(s => {
+    const isSelected = s.key === state.selectedSpaceKey ? 'active' : '';
+    const icon = SPACE_ICONS[s.key] || '🏢';
+    const rateDisplay = state.rateViewMode === 'DAILY'
+      ? `${formatCurrency(s.dailyRate)} <small>/ روز</small>`
+      : `${formatCurrency(s.hourlyRate)} <small>/ ساعت</small>`;
+
+    return `
+      <div class="space-card ${isSelected}" data-key="${s.key}">
+        <div class="space-card-top">
+          <div class="space-icon-box">${icon}</div>
+          <span class="capacity-tag">ظرفیت: ${toPersianDigits(s.capacity)} نفر</span>
+        </div>
+        <h4 class="space-name-title">${s.name}</h4>
+        <div class="space-rate-price">${rateDisplay}</div>
+        <div class="space-tags-row">
+          ${(s.features || []).slice(0, 3).map(f => `<span class="spec-tag">${f}</span>`).join('')}
+        </div>
+        <button type="button" class="btn-select-space">
+          <span>${isSelected ? 'انتخاب شده ✓' : 'انتخاب فضا'}</span>
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.space-card').forEach(card => {
+    card.addEventListener('click', () => {
+      state.selectedSpaceKey = card.dataset.key;
+      renderSpacesCatalog();
+      toggleHallFields();
+      toggleDeskQuantity();
+      updatePriceBreakdown();
+    });
+  });
+}
+
+function toggleHallFields() {
+  const hallBox = document.getElementById('hall-extra-fields');
+  if (!hallBox) return;
+  hallBox.classList.toggle('hidden', state.selectedSpaceKey !== 'CONFERENCE_HALL');
+}
+
+function toggleDeskQuantity() {
+  const deskBox = document.getElementById('desk-quantity-box');
+  if (!deskBox) return;
+  deskBox.classList.toggle('hidden', state.selectedSpaceKey !== 'SHARED_DESK');
+}
+
+function setupRateToggle() {
+  const btnHourly = document.getElementById('rate-view-hourly');
+  const btnDaily = document.getElementById('rate-view-daily');
+
+  btnHourly?.addEventListener('click', () => {
+    state.rateViewMode = 'HOURLY';
+    btnHourly.classList.add('active');
+    btnDaily?.classList.remove('active');
+    renderSpacesCatalog();
+  });
+
+  btnDaily?.addEventListener('click', () => {
+    state.rateViewMode = 'DAILY';
+    btnDaily.classList.add('active');
+    btnHourly?.classList.remove('active');
+    renderSpacesCatalog();
+  });
+
+  // Desk stepper
   document.getElementById('btn-desk-minus')?.addEventListener('click', () => {
     state.deskCount = Math.max(1, state.deskCount - 1);
     document.getElementById('desk-count-display').innerText = toPersianDigits(state.deskCount);
@@ -759,148 +823,325 @@ function setupTimeRangeDropdowns() {
     document.getElementById('desk-count-display').innerText = toPersianDigits(state.deskCount);
     updatePriceBreakdown();
   });
-
-  // Daily days input
-  document.getElementById('daily-days-input')?.addEventListener('input', (e) => {
-    state.dailyDays = Math.max(1, Number(e.target.value) || 1);
-    updatePriceBreakdown();
-  });
-
-  recalculateTimeRange();
 }
 
-function updateSyncDateTimes() {
-  const { selectedYear, selectedMonth, selectedDay } = state.calendar;
-  const { start, end } = state.timeRange;
-  const g = jalaliToGregorian(selectedYear, selectedMonth, selectedDay);
+// 7. Interactive Persian Jalali Calendar
+function setupJalaliCalendar() {
+  const matrix = document.getElementById('cal-days-matrix');
+  if (!matrix) return;
 
-  const startISO = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}T${start}:00`;
-  const endISO = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}T${end}:00`;
+  const daysInMonth = 31;
+  const startDayOffset = 3; // Example offset for month view
 
-  const startEl = document.getElementById('start-datetime');
-  const endEl = document.getElementById('end-datetime');
-  if (startEl) startEl.value = startISO;
-  if (endEl) endEl.value = endISO;
-}
-
-// 6. Spaces Showcase Grid
-async function loadSpaces() {
-  try {
-    const data = await apiRequest('/api/spaces');
-    state.spaces = data.spaces || FALLBACK_SPACES;
-  } catch (err) {
-    state.spaces = FALLBACK_SPACES;
+  let daysHtml = '';
+  for (let i = 0; i < startDayOffset; i++) {
+    daysHtml += `<div class="cal-day-cell disabled-cell"></div>`;
   }
-  renderSpacesShowcase();
-}
 
-function renderSpacesShowcase() {
-  const container = document.getElementById('spaces-cards-grid');
-  if (!container) return;
+  const today = new Date();
+  const currentDayNum = 28; // Default active demo day
 
-  container.innerHTML = state.spaces.map(s => {
-    const v = SPACE_VISUALS[s.key] || { icon: '🏢', tag: 'فضای کار' };
-    const isSelected = s.key === state.selectedSpaceKey ? 'selected' : '';
-    const isDaily = state.rateMode === 'DAILY';
-    const rateText = isDaily ? formatCurrency(s.dailyRate) : formatCurrency(s.hourlyRate);
-    const suffix = isDaily ? '/ روز' : '/ ساعت';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d === currentDayNum;
+    const isPast = d < currentDayNum - 2;
+    const classes = ['cal-day-cell'];
+    if (isPast) classes.push('past-cell');
+    if (isToday) classes.push('active-day-cell');
 
-    return `
-      <div class="space-card-item ${isSelected}" data-key="${s.key}" onclick="selectSpace('${s.key}')">
-        <div>
-          <div class="space-card-top-row">
-            <div class="space-card-icon">${v.icon}</div>
-            <span class="capacity-tag">${v.tag}</span>
-          </div>
-          <h3 class="space-card-title">${s.name}</h3>
-          <div class="space-card-price">${rateText} <small>${suffix}</small></div>
-          <div class="space-features-chips">
-            ${(s.features || []).slice(0, 3).map(f => `<span class="feature-pill">${f}</span>`).join('')}
-          </div>
-        </div>
-        <button type="button" class="btn-select-space">
-          ${isSelected ? 'فضا انتخاب شد ✓' : 'انتخاب فضا'}
-        </button>
+    daysHtml += `
+      <div class="${classes.join(' ')}" data-day="${d}">
+        <span class="day-num">${toPersianDigits(d)}</span>
       </div>
     `;
-  }).join('');
-
-  // Show/Hide desk quantity box
-  const deskBox = document.getElementById('desk-quantity-box');
-  if (deskBox) {
-    deskBox.classList.toggle('hidden', state.selectedSpaceKey !== 'SHARED_DESK');
   }
+
+  matrix.innerHTML = daysHtml;
+
+  matrix.querySelectorAll('.cal-day-cell:not(.disabled-cell):not(.past-cell)').forEach(cell => {
+    cell.addEventListener('click', () => {
+      matrix.querySelectorAll('.cal-day-cell').forEach(c => c.classList.remove('active-day-cell'));
+      cell.classList.add('active-day-cell');
+
+      const dayNum = Number(cell.dataset.day);
+      const formattedDateStr = `1405-05-${dayNum < 10 ? '0' + dayNum : dayNum}`;
+      state.selectedCalendarDate = formattedDateStr;
+      state.selectedCalendarLabel = `${toPersianDigits(dayNum)} مرداد ۱۴۰۵`;
+
+      const labelEl = document.getElementById('selected-jalali-date-text');
+      if (labelEl) labelEl.innerText = state.selectedCalendarLabel;
+
+      const customInput = document.getElementById('custom-single-date');
+      if (customInput) customInput.value = formattedDateStr;
+
+      showToast(`تاریخ فعال: ${state.selectedCalendarLabel}`);
+    });
+  });
 }
 
-window.selectSpace = function(key) {
-  state.selectedSpaceKey = key;
-  renderSpacesShowcase();
-  toggleHallFields();
-  updatePriceBreakdown();
-};
-
-function toggleHallFields() {
-  const hallBox = document.getElementById('hall-extra-fields');
-  if (!hallBox) return;
-  hallBox.classList.toggle('hidden', state.selectedSpaceKey !== 'CONFERENCE_HALL');
-}
-
-function setupRateToggle() {
-  const btnHourly = document.getElementById('rate-view-hourly');
-  const btnDaily = document.getElementById('rate-view-daily');
-  const selectType = document.getElementById('booking-type');
-  const dailyBox = document.getElementById('daily-duration-box');
+// 8. Smart Scheduling Engine (Daily Range/Custom & Hourly Multi-Slots - Reza Sr's UX)
+function setupSchedulingEngine() {
+  // Mode Switcher (Hourly vs Daily)
+  const btnHourly = document.getElementById('btn-mode-hourly');
+  const btnDaily = document.getElementById('btn-mode-daily');
+  const hourlySection = document.getElementById('hourly-scheduler-section');
+  const dailySection = document.getElementById('daily-scheduler-section');
 
   btnHourly?.addEventListener('click', () => {
+    state.bookingType = 'HOURLY';
     btnHourly.classList.add('active');
     btnDaily?.classList.remove('active');
-    state.rateMode = 'HOURLY';
-    if (selectType) selectType.value = 'HOURLY';
-    dailyBox?.classList.add('hidden');
-    renderSpacesShowcase();
+    hourlySection?.classList.remove('hidden');
+    dailySection?.classList.add('hidden');
     updatePriceBreakdown();
   });
 
   btnDaily?.addEventListener('click', () => {
+    state.bookingType = 'DAILY';
     btnDaily.classList.add('active');
     btnHourly?.classList.remove('active');
-    state.rateMode = 'DAILY';
-    if (selectType) selectType.value = 'DAILY';
-    dailyBox?.classList.remove('hidden');
-    renderSpacesShowcase();
+    dailySection?.classList.remove('hidden');
+    hourlySection?.classList.add('hidden');
     updatePriceBreakdown();
   });
 
-  selectType?.addEventListener('change', (e) => {
-    state.rateMode = e.target.value;
-    if (state.rateMode === 'DAILY') {
-      btnDaily?.classList.add('active');
-      btnHourly?.classList.remove('active');
-      dailyBox?.classList.remove('hidden');
-    } else {
-      btnHourly?.classList.add('active');
-      btnDaily?.classList.remove('active');
-      dailyBox?.classList.add('hidden');
+  // Populate Start and End Time Selects
+  const startSelect = document.getElementById('time-start-select');
+  const endSelect = document.getElementById('time-end-select');
+
+  if (startSelect && endSelect) {
+    const hours = [];
+    for (let h = 8; h <= 23; h++) {
+      const hStr = h < 10 ? `0${h}:00` : `${h}:00`;
+      hours.push(hStr);
     }
-    renderSpacesShowcase();
+
+    startSelect.innerHTML = hours.slice(0, -1).map(h => `<option value="${h}">${toPersianDigits(h)}</option>`).join('');
+    endSelect.innerHTML = hours.slice(1).map(h => `<option value="${h}">${toPersianDigits(h)}</option>`).join('');
+
+    startSelect.value = '13:00';
+    endSelect.value = '18:00';
+  }
+
+  // Add Time Slot to Basket
+  const btnAddSlot = document.getElementById('btn-add-time-slot');
+  btnAddSlot?.addEventListener('click', () => {
+    const startTimeInput = document.getElementById('time-start-select')?.value || '13:00';
+    const endTimeInput = document.getElementById('time-end-select')?.value || '18:00';
+    const dateStr = state.selectedCalendarDate || new Date().toISOString().slice(0, 10);
+    const dateLabel = state.selectedCalendarLabel || formatPersianDate(dateStr);
+
+    const startH = Number(startTimeInput.split(':')[0]);
+    const endH = Number(endTimeInput.split(':')[0]);
+
+    if (endH <= startH) {
+      showToast('ساعت پایان باید بعد از ساعت شروع باشد.', 'error');
+      return;
+    }
+
+    const hours = endH - startH;
+    const label = `${dateLabel} | ساعت ${toPersianDigits(startTimeInput)} الی ${toPersianDigits(endTimeInput)} (${toPersianDigits(hours)} ساعت)`;
+
+    const startDT = new Date();
+    startDT.setHours(startH, 0, 0, 0);
+    const endDT = new Date();
+    endDT.setHours(endH, 0, 0, 0);
+
+    const slotObj = {
+      id: `slot-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      date: dateStr,
+      dateLabel,
+      startTime: startDT.toISOString(),
+      endTime: endDT.toISOString(),
+      startTimeStr: startTimeInput,
+      endTimeStr: endTimeInput,
+      hours,
+      label
+    };
+
+    state.hourlySlots.push(slotObj);
+    renderSelectedSlots();
     updatePriceBreakdown();
+    showToast(`بازه زمانی (${toPersianDigits(hours)} ساعت) به سبد اضافه شد.`);
+  });
+
+  // Daily Submode Switcher
+  const rangeRadio = document.getElementById('daily-submode-range');
+  const customRadio = document.getElementById('daily-submode-custom');
+  const rangeBox = document.getElementById('daily-range-box');
+  const customBox = document.getElementById('daily-custom-box');
+
+  rangeRadio?.addEventListener('change', () => {
+    if (rangeRadio.checked) {
+      state.dailyMode = 'RANGE';
+      rangeBox?.classList.remove('hidden');
+      customBox?.classList.add('hidden');
+      updatePriceBreakdown();
+    }
+  });
+
+  customRadio?.addEventListener('change', () => {
+    if (customRadio.checked) {
+      state.dailyMode = 'CUSTOM';
+      customBox?.classList.remove('hidden');
+      rangeBox?.classList.add('hidden');
+      updatePriceBreakdown();
+    }
+  });
+
+  // Daily Range Inputs
+  const startRangeInput = document.getElementById('daily-start-date');
+  const endRangeInput = document.getElementById('daily-end-date');
+
+  const onRangeChange = () => {
+    state.dailyStartDate = startRangeInput?.value || '';
+    state.dailyEndDate = endRangeInput?.value || '';
+    if (state.dailyStartDate && state.dailyEndDate) {
+      const s = new Date(state.dailyStartDate);
+      const e = new Date(state.dailyEndDate);
+      const diff = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+      const days = Math.max(1, diff);
+      const counterEl = document.getElementById('daily-range-days-count');
+      if (counterEl) counterEl.innerText = `${toPersianDigits(days)} روز`;
+    }
+    updatePriceBreakdown();
+  };
+
+  startRangeInput?.addEventListener('change', onRangeChange);
+  endRangeInput?.addEventListener('change', onRangeChange);
+
+  // Custom Days Adder
+  const btnAddCustomDate = document.getElementById('btn-add-custom-date');
+  btnAddCustomDate?.addEventListener('click', () => {
+    const singleDateInput = document.getElementById('custom-single-date');
+    const val = singleDateInput?.value;
+    if (!val) {
+      showToast('لطفاً یک تاریخ از تقویم انتخاب کنید.', 'error');
+      return;
+    }
+    if (state.customDailyDates.includes(val)) {
+      showToast('این تاریخ قبلاً به لیست اضافه شده است.', 'error');
+      return;
+    }
+
+    state.customDailyDates.push(val);
+    state.customDailyDates.sort();
+    renderCustomDateChips();
+    updatePriceBreakdown();
+    showToast(`روز ${formatPersianDate(val)} به لیست افزوده شد.`);
   });
 }
 
-// 7. Catering & Café Showcase
+// Preset button handler
+window.setSlotPreset = function(start, end) {
+  const startEl = document.getElementById('time-start-select');
+  const endEl = document.getElementById('time-end-select');
+  if (startEl) startEl.value = start;
+  if (endEl) endEl.value = end;
+  showToast(`بازه زمانی روی ${toPersianDigits(start)} تا ${toPersianDigits(end)} تنظیم شد.`);
+};
+
+// Render Selected Hourly Slots List
+function renderSelectedSlots() {
+  const container = document.getElementById('selected-slots-list');
+  const totalBadge = document.getElementById('slots-total-badge');
+  if (!container) return;
+
+  const totalHours = state.hourlySlots.reduce((sum, s) => sum + s.hours, 0);
+  if (totalBadge) totalBadge.innerText = `${toPersianDigits(totalHours)} ساعت (${toPersianDigits(state.hourlySlots.length)} بازه)`;
+
+  if (state.hourlySlots.length === 0) {
+    container.innerHTML = `<div class="empty-slot-msg">هنوز هیچ بازه ساعتی اضافه نشده است. لطفاً تاریخ و ساعت را انتخاب کرده و دکمه «افزودن این بازه» را بزنید.</div>`;
+    return;
+  }
+
+  container.innerHTML = state.hourlySlots.map(s => `
+    <div class="selected-slot-item">
+      <div class="slot-item-info">
+        <span class="slot-item-date">📅 ${s.dateLabel || formatPersianDate(s.date)}</span>
+        <span class="slot-item-time">⏰ ${toPersianDigits(s.startTimeStr)} الی ${toPersianDigits(s.endTimeStr)}</span>
+        <span class="slot-item-hours">${toPersianDigits(s.hours)} ساعت</span>
+      </div>
+      <button type="button" class="btn-delete-slot" onclick="removeHourlySlot('${s.id}')" title="حذف این بازه">🗑️</button>
+    </div>
+  `).join('');
+}
+
+window.removeHourlySlot = function(slotId) {
+  state.hourlySlots = state.hourlySlots.filter(s => s.id !== slotId);
+  renderSelectedSlots();
+  updatePriceBreakdown();
+};
+
+// Render Custom Daily Date Chips
+function renderCustomDateChips() {
+  const container = document.getElementById('custom-dates-chips');
+  const badge = document.getElementById('custom-days-badge');
+  if (!container) return;
+
+  if (badge) badge.innerText = `${toPersianDigits(state.customDailyDates.length)} روز`;
+
+  if (state.customDailyDates.length === 0) {
+    container.innerHTML = `<span class="empty-slot-msg">هنوز روزی اضافه نشده است.</span>`;
+    return;
+  }
+
+  container.innerHTML = state.customDailyDates.map(d => `
+    <div class="date-chip">
+      <span>📅 ${formatPersianDate(d)}</span>
+      <button type="button" class="date-chip-delete" onclick="removeCustomDate('${d}')" title="حذف">✕</button>
+    </div>
+  `).join('');
+}
+
+window.removeCustomDate = function(dateStr) {
+  state.customDailyDates = state.customDailyDates.filter(d => d !== dateStr);
+  renderCustomDateChips();
+  updatePriceBreakdown();
+};
+
+// 9. Collapsible Catering Section & Filters
+function setupCateringAddonToggle() {
+  const header = document.getElementById('catering-toggle-header');
+  const body = document.getElementById('catering-booking-body');
+  const icon = document.getElementById('catering-toggle-icon');
+
+  header?.addEventListener('click', () => {
+    state.cateringAddonOpen = !state.cateringAddonOpen;
+    if (state.cateringAddonOpen) {
+      body?.classList.remove('hidden');
+      icon?.classList.remove('rotated');
+    } else {
+      body?.classList.add('hidden');
+      icon?.classList.add('rotated');
+    }
+  });
+}
+
 async function loadCateringMenu() {
   try {
     const data = await apiRequest('/api/catering/menu');
-    state.cateringMenu = data.menu || FALLBACK_CATERING;
+    state.cateringMenu = data.menu || [];
+    renderCateringBookingSelector();
+    renderCateringCatalogGrid();
+    setupCateringFilters();
   } catch (err) {
-    state.cateringMenu = FALLBACK_CATERING;
+    showToast('خطا در دریافت منوی پذیرایی', 'error');
   }
-  renderCateringBookingList();
-  renderCateringCatalogGrid();
-  setupCateringFilters();
 }
 
-function renderCateringBookingList() {
+function setupCateringFilters() {
+  const filterBtns = document.querySelectorAll('.filter-pill-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.selectedCategoryFilter = btn.dataset.filter;
+      renderCateringCatalogGrid();
+    });
+  });
+}
+
+function renderCateringBookingSelector() {
   const container = document.getElementById('catering-booking-list');
   if (!container) return;
 
@@ -908,8 +1149,8 @@ function renderCateringBookingList() {
     const qty = state.cateringOrders[item.id] || 0;
     const cat = CATEGORY_META[item.category] || { icon: '☕', label: item.category };
     return `
-      <div class="catering-row-item">
-        <div class="cat-details">
+      <div class="catering-select-card">
+        <div class="cat-card-info">
           <strong>${cat.icon} ${item.name}</strong>
           <span>قیمت واحد: ${formatCurrency(item.price)}</span>
         </div>
@@ -936,25 +1177,13 @@ window.changeCateringQty = function(itemId, delta) {
   updatePriceBreakdown();
 };
 
-function setupCateringFilters() {
-  const filterBtns = document.querySelectorAll('.filter-pill-btn');
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.selectedCateringFilter = btn.dataset.filter;
-      renderCateringCatalogGrid();
-    });
-  });
-}
-
 function renderCateringCatalogGrid() {
   const container = document.getElementById('catering-catalog-grid');
   if (!container) return;
 
-  const filtered = state.selectedCateringFilter === 'ALL'
+  const filtered = state.selectedCategoryFilter === 'ALL'
     ? state.cateringMenu
-    : state.cateringMenu.filter(i => i.category === state.selectedCateringFilter);
+    : state.cateringMenu.filter(i => i.category === state.selectedCategoryFilter);
 
   container.innerHTML = filtered.map(item => {
     const cat = CATEGORY_META[item.category] || { icon: '☕', label: item.category };
@@ -981,22 +1210,58 @@ window.addCateringFromCatalog = function(itemId) {
   showToast('آیتم به سفارش جاری اضافه شد.');
 };
 
-// 8. Live Price Calculation with Custom Hours & Desk Units
+// 10. Live Pricing Calculation Engine
 function updatePriceBreakdown() {
-  const space = state.spaces.find(s => s.key === state.selectedSpaceKey) || FALLBACK_SPACES[0];
-  const isDaily = state.rateMode === 'DAILY';
-  const duration = isDaily ? state.dailyDays : state.timeRange.calculatedHours;
+  const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
+  const bookingType = state.bookingType;
   const units = state.selectedSpaceKey === 'SHARED_DESK' ? state.deskCount : 1;
 
-  const rate = isDaily ? space.dailyRate : space.hourlyRate;
-  const spaceSubtotal = rate * duration * units;
+  let duration = 1;
+  let scheduleSummaryText = '';
 
+  if (bookingType === 'HOURLY') {
+    const totalHours = state.hourlySlots.reduce((sum, s) => sum + s.hours, 0);
+    duration = totalHours > 0 ? totalHours : 2;
+    scheduleSummaryText = totalHours > 0
+      ? `${toPersianDigits(totalHours)} ساعت (${toPersianDigits(state.hourlySlots.length)} بازه زمانی)`
+      : `تنظیم بازه‌های ساعتی`;
+  } else {
+    // DAILY
+    if (state.dailyMode === 'RANGE') {
+      const s = state.dailyStartDate ? new Date(state.dailyStartDate) : null;
+      const e = state.dailyEndDate ? new Date(state.dailyEndDate) : null;
+      if (s && e && !isNaN(s) && !isNaN(e)) {
+        const diff = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        duration = Math.max(1, diff);
+        scheduleSummaryText = `${toPersianDigits(duration)} روز پیوسته (${formatPersianDate(state.dailyStartDate)} تا ${formatPersianDate(state.dailyEndDate)})`;
+      } else {
+        duration = 1;
+        scheduleSummaryText = `۱ روز پیوسته`;
+      }
+    } else {
+      // CUSTOM DAYS
+      duration = Math.max(1, state.customDailyDates.length);
+      scheduleSummaryText = state.customDailyDates.length > 0
+        ? `${toPersianDigits(state.customDailyDates.length)} روز انتخابی`
+        : `انتخاب روزهای دلخواه`;
+    }
+  }
+
+  // Space Base Calculation
+  let spaceSubtotal = 0;
+  if (space) {
+    const rate = bookingType === 'DAILY' ? space.dailyRate : space.hourlyRate;
+    spaceSubtotal = rate * duration * units;
+  }
+
+  // Equipment Fees
   let equipFee = 0;
   if (state.selectedSpaceKey === 'CONFERENCE_HALL') {
     if (document.getElementById('equip-recording')?.checked) equipFee += 300000;
     if (document.getElementById('equip-sound')?.checked) equipFee += 200000;
   }
 
+  // Catering Subtotal
   let cateringSubtotal = 0;
   for (const [itemId, count] of Object.entries(state.cateringOrders)) {
     const item = state.cateringMenu.find(i => i.id === itemId);
@@ -1007,6 +1272,7 @@ function updatePriceBreakdown() {
 
   const subtotal = spaceSubtotal + equipFee + cateringSubtotal;
 
+  // Promo Code Calculation
   let discountAmount = 0;
   if (state.appliedPromo && state.appliedPromo.valid) {
     if (state.appliedPromo.discountType === 'PERCENTAGE') {
@@ -1021,61 +1287,59 @@ function updatePriceBreakdown() {
 
   const finalTotal = Math.max(0, subtotal - discountAmount);
 
-  // Update Desktop Card
-  const spaceNameEl = document.getElementById('summary-space-name');
+  // Update DOM elements
+  const summarySpaceName = document.getElementById('summary-space-name');
+  if (summarySpaceName && space) {
+    summarySpaceName.innerText = `رزرو ${space.name} ${units > 1 ? `(${toPersianDigits(units)} صندلی)` : ''} (${scheduleSummaryText}):`;
+  }
+
   const spaceFeeEl = document.getElementById('summary-space-fee');
   const equipFeeEl = document.getElementById('summary-equip-fee');
   const cateringFeeEl = document.getElementById('summary-catering-fee');
-  const discRow = document.getElementById('summary-discount-row');
-  const discAmountEl = document.getElementById('summary-discount-amount');
-  const finalTotalEl = document.getElementById('summary-final-total');
+  const totalEl = document.getElementById('summary-final-total');
+  const mobileTotalEl = document.getElementById('mobile-bottom-total-price');
 
-  const unitText = units > 1 ? ` (${toPersianDigits(units)} صندلی)` : '';
-  const durText = isDaily ? `${toPersianDigits(duration)} روز` : `${toPersianDigits(duration)} ساعت (${toPersianDigits(state.timeRange.start)} الی ${toPersianDigits(state.timeRange.end)})`;
-
-  if (spaceNameEl && space) spaceNameEl.innerText = `رزرو ${space.name}${unitText} [${durText}]:`;
   if (spaceFeeEl) spaceFeeEl.innerText = formatCurrency(spaceSubtotal);
   if (equipFeeEl) equipFeeEl.innerText = formatCurrency(equipFee);
   if (cateringFeeEl) cateringFeeEl.innerText = formatCurrency(cateringSubtotal);
-
-  if (discRow && discAmountEl) {
-    if (discountAmount > 0) {
-      discRow.classList.remove('hidden');
-      discAmountEl.innerText = `- ${formatCurrency(discountAmount)}`;
-    } else {
-      discRow.classList.add('hidden');
-    }
-  }
-
-  if (finalTotalEl) finalTotalEl.innerText = formatCurrency(finalTotal);
-
-  // Update Mobile Floating Bar
-  const mobileTotalEl = document.getElementById('mobile-bottom-total-price');
+  if (totalEl) totalEl.innerText = formatCurrency(finalTotal);
   if (mobileTotalEl) mobileTotalEl.innerText = formatCurrency(finalTotal);
+  
+  const discRow = document.getElementById('summary-discount-row');
+  if (discountAmount > 0) {
+    discRow?.classList.remove('hidden');
+    const discAmtEl = document.getElementById('summary-discount-amount');
+    if (discAmtEl) discAmtEl.innerText = `- ${formatCurrency(discountAmount)}`;
+  } else {
+    discRow?.classList.add('hidden');
+  }
 }
 
-// 9. Promo Engine
+// 11. Promo Engine
 function setupPromoEngine() {
   const btnApply = document.getElementById('btn-apply-promo');
   const promoInput = document.getElementById('promo-input');
   const feedback = document.getElementById('promo-feedback');
 
   btnApply?.addEventListener('click', async () => {
-    const code = promoInput?.value.trim();
+    const code = promoInput.value.trim();
     if (!code) {
-      if (feedback) {
-        feedback.innerText = 'لطفاً کد تخفیف را وارد فرمایید.';
-        feedback.className = 'promo-feedback-msg text-danger';
-      }
+      feedback.innerText = 'لطفاً کد تخفیف را وارد کنید.';
+      feedback.className = 'promo-feedback-msg text-danger';
       return;
     }
 
     try {
-      const space = state.spaces.find(s => s.key === state.selectedSpaceKey) || FALLBACK_SPACES[0];
-      const isDaily = state.rateMode === 'DAILY';
-      const duration = isDaily ? state.dailyDays : state.timeRange.calculatedHours;
+      const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
+      const baseRate = state.bookingType === 'DAILY' ? (space?.dailyRate || 0) : (space?.hourlyRate || 0);
+      let duration = 1;
+      if (state.bookingType === 'HOURLY') {
+        duration = state.hourlySlots.reduce((sum, s) => sum + s.hours, 0) || 1;
+      } else if (state.dailyMode === 'CUSTOM') {
+        duration = Math.max(1, state.customDailyDates.length);
+      }
+      
       const units = state.selectedSpaceKey === 'SHARED_DESK' ? state.deskCount : 1;
-      const baseRate = isDaily ? space.dailyRate : space.hourlyRate;
       let subtotal = baseRate * duration * units;
       for (const [itemId, count] of Object.entries(state.cateringOrders)) {
         const item = state.cateringMenu.find(i => i.id === itemId);
@@ -1090,126 +1354,183 @@ function setupPromoEngine() {
 
       if (result.valid) {
         state.appliedPromo = result;
-        if (feedback) {
-          feedback.innerText = `✅ کد تخفیف "${code}" با موفقیت اعمال شد.`;
-          feedback.className = 'promo-feedback-msg text-success';
-        }
+        feedback.innerText = `✅ کد تخفیف "${code}" با مبلغ ${formatCurrency(result.discountAmount)} اعمال شد.`;
+        feedback.className = 'promo-feedback-msg text-emerald';
         updatePriceBreakdown();
       } else {
         state.appliedPromo = null;
-        if (feedback) {
-          feedback.innerText = `❌ ${result.reason || 'کد نامعتبر است'}`;
-          feedback.className = 'promo-feedback-msg text-danger';
-        }
+        feedback.innerText = `❌ ${result.reason || 'کد تخفیف نامعتبر است'}`;
+        feedback.className = 'promo-feedback-msg text-danger';
         updatePriceBreakdown();
       }
     } catch (err) {
       state.appliedPromo = null;
-      if (feedback) {
-        feedback.innerText = `❌ ${err.message}`;
-        feedback.className = 'promo-feedback-msg text-danger';
-      }
+      feedback.innerText = `❌ ${err.message}`;
+      feedback.className = 'promo-feedback-msg text-danger';
       updatePriceBreakdown();
     }
   });
 }
 
-// 10. Booking Submission & Official Invoice Modal
+// 12. Booking Submission & Detailed Receipt Modal
 function setupBookingSubmission() {
-  const submitDesktop = document.getElementById('btn-submit-booking');
-  const submitMobile = document.getElementById('btn-mobile-checkout-action');
+  const submitBtn = document.getElementById('btn-submit-booking');
+  const mobileSubmitBtn = document.getElementById('btn-mobile-checkout-action');
 
-  const handleBooking = async () => {
+  const handleSubmit = async () => {
     const custName = document.getElementById('cust-name')?.value.trim();
     const custPhone = document.getElementById('cust-phone')?.value.trim();
     const custEmail = document.getElementById('cust-email')?.value.trim();
-    const isDaily = state.rateMode === 'DAILY';
-    const duration = isDaily ? state.dailyDays : state.timeRange.calculatedHours;
-
-    updateSyncDateTimes();
-    const startTime = document.getElementById('start-datetime')?.value;
-    const endTime = document.getElementById('end-datetime')?.value;
+    const bookingType = state.bookingType;
 
     if (!custName || !custPhone) {
-      showToast('لطفاً نام و شماره همراه متقاضی را در مرحله ۴ وارد فرمایید.', 'error');
-      document.getElementById('cust-name')?.scrollIntoView({ behavior: 'smooth' });
+      showToast('لطفاً نام و شماره همراه متقاضی را وارد کنید.', 'error');
       return;
     }
 
-    const equipment = [];
-    if (document.getElementById('equip-recording')?.checked) equipment.push('recording');
-    if (document.getElementById('equip-sound')?.checked) equipment.push('sound_system');
-
-    const cateringOrders = Object.entries(state.cateringOrders).map(([itemId, quantity]) => ({
-      itemId,
-      quantity
-    }));
-
-    const payload = {
+    let payload = {
       spaceKey: state.selectedSpaceKey,
-      deskCount: state.selectedSpaceKey === 'SHARED_DESK' ? state.deskCount : 1,
-      bookingType: state.rateMode,
-      duration,
-      startTime: new Date(startTime).toISOString(),
-      endTime: new Date(endTime).toISOString(),
+      bookingType,
       customerName: custName,
       customerPhone: custPhone,
       customerEmail: custEmail,
       eventTopic: document.getElementById('event-topic')?.value.trim() || undefined,
       targetAudienceCount: Number(document.getElementById('audience-count')?.value) || undefined,
-      equipment,
-      cateringOrders,
+      equipment: [],
+      cateringOrders: Object.entries(state.cateringOrders).map(([itemId, quantity]) => ({ itemId, quantity })),
       promoCode: state.appliedPromo?.code
     };
 
-    if (submitDesktop) submitDesktop.disabled = true;
-    if (submitMobile) submitMobile.disabled = true;
+    if (document.getElementById('equip-recording')?.checked) payload.equipment.push('recording');
+    if (document.getElementById('equip-sound')?.checked) payload.equipment.push('sound_system');
+
+    // Build Scheduling parameters
+    if (bookingType === 'HOURLY') {
+      if (state.hourlySlots.length === 0) {
+        showToast('لطفاً حداقل یک بازه زمانی ساعتی به سبد اضافه کنید.', 'error');
+        return;
+      }
+      payload.timeSlots = state.hourlySlots;
+      payload.duration = state.hourlySlots.reduce((sum, s) => sum + s.hours, 0);
+      payload.startTime = state.hourlySlots[0].startTime;
+      payload.endTime = state.hourlySlots[state.hourlySlots.length - 1].endTime;
+    } else {
+      // DAILY
+      if (state.dailyMode === 'RANGE') {
+        if (!state.dailyStartDate || !state.dailyEndDate) {
+          showToast('لطفاً تاریخ شروع و پایان بازه روزانه را مشخص فرمایید.', 'error');
+          return;
+        }
+        const s = new Date(state.dailyStartDate);
+        const e = new Date(state.dailyEndDate);
+        if (e < s) {
+          showToast('تاریخ پایان بازه نمی‌تواند قبل از تاریخ شروع باشد.', 'error');
+          return;
+        }
+        const days = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        payload.dailySchedule = {
+          mode: 'RANGE',
+          startDate: state.dailyStartDate,
+          endDate: state.dailyEndDate,
+          daysCount: days
+        };
+        payload.duration = days;
+        payload.startTime = `${state.dailyStartDate}T08:00:00.000Z`;
+        payload.endTime = `${state.dailyEndDate}T22:00:00.000Z`;
+      } else {
+        // CUSTOM DAYS
+        if (state.customDailyDates.length === 0) {
+          showToast('لطفاً حداقل یک روز دلخواه به لیست روزانه اضافه فرمایید.', 'error');
+          return;
+        }
+        payload.dailySchedule = {
+          mode: 'CUSTOM_DAYS',
+          dates: state.customDailyDates,
+          daysCount: state.customDailyDates.length
+        };
+        payload.duration = state.customDailyDates.length;
+        payload.startTime = `${state.customDailyDates[0]}T08:00:00.000Z`;
+        payload.endTime = `${state.customDailyDates[state.customDailyDates.length - 1]}T22:00:00.000Z`;
+      }
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>⏳ در حال بررسی تداخل و ثبت سفارش...</span>';
+    }
 
     try {
       const response = await apiRequest('/api/reservations', 'POST', payload);
-      showToast('رزرو با موفقیت ثبت شد!');
+      showToast('رزرو شما با موفقیت ثبت گردید!');
       displayInvoiceModal(response.invoice, response.reservation);
       state.cateringOrders = {};
       state.appliedPromo = null;
-      renderCateringBookingList();
+      renderCateringBookingSelector();
       updatePriceBreakdown();
     } catch (err) {
-      showToast(`خطا: ${err.message}`, 'error');
+      showToast(`خطا در ثبت رزرو: ${err.message}`, 'error');
     } finally {
-      if (submitDesktop) submitDesktop.disabled = false;
-      if (submitMobile) submitMobile.disabled = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>💳</span><span>ثبت نهایی و صدور فاکتور رسمی</span>';
+      }
     }
   };
 
-  submitDesktop?.addEventListener('click', handleBooking);
-  submitMobile?.addEventListener('click', handleBooking);
+  submitBtn?.addEventListener('click', handleSubmit);
+  mobileSubmitBtn?.addEventListener('click', handleSubmit);
 }
 
 function displayInvoiceModal(invoice, reservation) {
   const modal = document.getElementById('invoice-modal');
   const content = document.getElementById('invoice-content');
-  if (!modal || !content) return;
 
-  const { selectedYear, selectedMonth, selectedDay } = state.calendar;
+  // Format schedule slots
+  let scheduleDetailsHtml = '';
+  if (reservation.timeSlots && reservation.timeSlots.length > 0) {
+    scheduleDetailsHtml = `
+      <div style="background:var(--bg-surface-elevated); padding:0.65rem 0.85rem; border-radius:var(--radius-xs); margin:0.65rem 0; border:1px solid var(--border-subtle);">
+        <strong style="display:block; margin-bottom:0.35rem; font-size:0.84rem;">⏰ بازه‌های زمانی رزرو شده:</strong>
+        <ul style="padding-right:1.2rem; font-size:0.8rem; line-height:1.7;">
+          ${reservation.timeSlots.map(s => `<li>${s.dateLabel || formatPersianDate(s.date)} | ساعت ${toPersianDigits(s.startTimeStr || 'ساعت رزرو')} (${toPersianDigits(s.hours)} ساعت)</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  } else if (reservation.dailySchedule?.dates) {
+    scheduleDetailsHtml = `
+      <div style="background:var(--bg-surface-elevated); padding:0.65rem 0.85rem; border-radius:var(--radius-xs); margin:0.65rem 0; border:1px solid var(--border-subtle);">
+        <strong style="display:block; margin-bottom:0.35rem; font-size:0.84rem;">📅 روزهای انتخابی رزرو شده:</strong>
+        <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.35rem;">
+          ${reservation.dailySchedule.dates.map(d => `<span class="date-chip">📅 ${formatPersianDate(d)}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }
 
   content.innerHTML = `
-    <div style="display:flex; flex-direction:column; gap:0.75rem;">
-      <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+    <div class="receipt-box-styled">
+      <div class="receipt-row-meta">
         <div><strong>شماره فاکتور:</strong> <code>${invoice.invoiceNumber}</code></div>
-        <div><strong>شناسه پیگیری:</strong> <code>${invoice.reservationId}</code></div>
+        <div><strong>شماره رزرو:</strong> <code>${invoice.reservationId}</code></div>
       </div>
-      <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
-        <div><strong>متقاضی:</strong> ${invoice.customer.name}</div>
-        <div><strong>تلفن:</strong> ${toPersianDigits(invoice.customer.phone)}</div>
+      <div class="receipt-row-meta">
+        <div><strong>نام متقاضی:</strong> ${invoice.customer.name}</div>
+        <div><strong>شماره همراه:</strong> ${invoice.customer.phone}</div>
       </div>
-      <div style="font-size:0.82rem;">
-        <strong>تاریخ و بازه استفاده:</strong> ${toPersianDigits(selectedDay)} ${PERSIAN_MONTH_NAMES[selectedMonth - 1]} ${toPersianDigits(selectedYear)} (ساعت ${toPersianDigits(state.timeRange.start)} الی ${toPersianDigits(state.timeRange.end)})
+      <div class="receipt-row-meta">
+        <div><strong>وضعیت فاکتور:</strong> 
+          <span class="badge ${reservation.status === 'CONFIRMED' ? 'badge-success' : 'badge-warning'}">
+            ${reservation.status === 'CONFIRMED' ? 'تأیید شده' : 'در انتظار تایید اپراتور سالن'}
+          </span>
+        </div>
       </div>
 
-      <table class="styled-table" style="margin:0.5rem 0;">
+      ${scheduleDetailsHtml}
+
+      <table class="receipt-items-table">
         <thead>
           <tr>
-            <th>شرح خدمت</th>
+            <th>شرح خدمات و فضا</th>
             <th>مبلغ</th>
           </tr>
         </thead>
@@ -1217,26 +1538,26 @@ function displayInvoiceModal(invoice, reservation) {
           ${invoice.items.map(it => `
             <tr>
               <td>${it.title}</td>
-              <td><strong>${formatCurrency(it.amount)}</strong></td>
+              <td>${formatCurrency(it.amount)}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
 
-      <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+      <div class="summary-line" style="display:flex; justify-content:space-between; margin-top:0.65rem;">
         <span>جمع کل ناخالص:</span>
         <strong>${formatCurrency(invoice.subtotal)}</strong>
       </div>
       ${invoice.discountAmount > 0 ? `
-        <div style="display:flex; justify-content:space-between; font-size:0.88rem; color:var(--emerald);">
-          <span>تخفیف ویژه:</span>
+        <div class="summary-line text-emerald" style="display:flex; justify-content:space-between;">
+          <span>تخفیف کسر شده:</span>
           <strong>- ${formatCurrency(invoice.discountAmount)}</strong>
         </div>
       ` : ''}
       <div class="invoice-divider-line"></div>
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:1rem; font-weight:800;">مبلغ نهایی پرداخت:</span>
-        <strong class="final-total-amount" style="font-size:1.3rem;">${formatCurrency(invoice.finalTotal)}</strong>
+      <div class="invoice-total-row" style="display:flex; justify-content:space-between; margin-top:0.5rem;">
+        <span class="total-label">مبلغ نهایی پرداخت شده:</span>
+        <strong class="final-total-amount" style="font-size:1.15rem;">${formatCurrency(invoice.finalTotal)}</strong>
       </div>
     </div>
   `;
@@ -1246,52 +1567,56 @@ function displayInvoiceModal(invoice, reservation) {
   document.getElementById('btn-done-invoice').onclick = () => modal.classList.add('hidden');
 }
 
-// 11. Customer: My Orders Tab
+// 13. Customer: My Bookings
 async function loadMyBookings() {
   const tbody = document.getElementById('my-reservations-tbody');
   if (!tbody) return;
 
   try {
-    const data = await apiRequest('/api/my-reservations');
+    const phone = state.currentUser.phone;
+    const data = await apiRequest(`/api/my-reservations?phone=${phone}`);
     const list = data.reservations || [];
 
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.25rem; color:var(--text-dim);">هنوز سفارشی ثبت نکرده‌اید.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--text-dim);">شما در حال حاضر رزروی ثبت نکرده‌اید.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = list.map(r => `
-      <tr>
-        <td><strong>${r.id}</strong></td>
-        <td>${r.spaceName}</td>
-        <td>${new Date(r.startTime).toLocaleDateString('fa-IR')} (${toPersianDigits(r.duration)} ${r.bookingType === 'DAILY' ? 'روز' : 'ساعت'})</td>
-        <td><strong>${formatCurrency(r.pricing?.finalTotal)}</strong></td>
-        <td>
-          <span class="capacity-tag">
-            ${r.status === 'PENDING_REVIEW' ? 'در انتظار تایید' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
-          </span>
-        </td>
-        <td>
-          <button class="btn-sm-action" onclick="viewExistingInvoice('${r.id}')">🧾 رسید</button>
-        </td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = list.map(r => {
+      const scheduleLabel = r.scheduleDescription || `${toPersianDigits(r.duration)} ${r.bookingType === 'DAILY' ? 'روز' : 'ساعت'}`;
+      return `
+        <tr>
+          <td><strong>${r.id}</strong></td>
+          <td>${r.spaceName}</td>
+          <td>${scheduleLabel}</td>
+          <td><strong>${formatCurrency(r.pricing?.finalTotal)}</strong></td>
+          <td>
+            <span class="badge ${r.status === 'CONFIRMED' ? 'badge-success' : (r.status === 'PENDING_REVIEW' ? 'badge-warning' : 'badge-danger')}">
+              ${r.status === 'PENDING_REVIEW' ? 'در انتظار بررسی' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
+            </span>
+          </td>
+          <td>
+            <button class="btn-sm-action" onclick="viewExistingInvoice('${r.id}')">🧾 مشاهده رسید</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
 
-window.viewExistingInvoice = async function(id) {
+window.viewExistingInvoice = async function(reservationId) {
   try {
-    const data = await apiRequest('/api/my-reservations');
-    const r = (data.reservations || []).find(x => x.id === id);
+    const data = await apiRequest(`/api/my-reservations`);
+    const r = (data.reservations || []).find(x => x.id === reservationId);
     if (r) {
       displayInvoiceModal({
         invoiceNumber: r.invoiceNumber,
         reservationId: r.id,
         customer: r.customer,
         items: [
-          { title: `رزرو ${r.spaceName}`, amount: r.pricing.spaceSubtotal },
+          { title: `رزرو ${r.spaceName} (${r.scheduleDescription || ''})`, amount: r.pricing.spaceSubtotal },
           ...r.equipment.map(e => ({ title: e.name, amount: e.fee })),
           ...r.catering.map(c => ({ title: `${c.name} (${toPersianDigits(c.quantity)} عدد)`, amount: c.subtotal }))
         ],
@@ -1305,23 +1630,23 @@ window.viewExistingInvoice = async function(id) {
   }
 };
 
-// 12. Admin CMS Panel
+// 14. Admin & Operator Panel
 async function loadAdminData() {
   try {
     const data = await apiRequest('/api/admin/reservations');
     state.reservations = data.reservations || [];
-    renderAdminTable();
+    renderReservationsTable();
   } catch (err) {
     showToast(err.message, 'error');
   }
 }
 
-function renderAdminTable() {
+function renderReservationsTable() {
   const tbody = document.getElementById('reservations-tbody');
   if (!tbody) return;
 
   if (state.reservations.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.25rem; color:var(--text-dim);">هنوز سفارشی در این بخش وجود ندارد.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:var(--text-dim);">هنوز رزروی در این بخش ثبت نشده است.</td></tr>`;
     return;
   }
 
@@ -1331,22 +1656,26 @@ function renderAdminTable() {
     const isHall = r.spaceKey === 'CONFERENCE_HALL';
     const isPending = r.status === 'PENDING_REVIEW';
     const canApprove = (role === 'SUPER_ADMIN' || role === 'CAFE_OPERATOR') && isPending && isHall;
+    const scheduleLabel = r.scheduleDescription || `${toPersianDigits(r.duration)} ${r.bookingType === 'DAILY' ? 'روز' : 'ساعت'}`;
 
     return `
       <tr>
         <td><strong>${r.id}</strong></td>
         <td>${r.spaceName}</td>
-        <td>${r.customer.name}<br><small style="color:var(--text-dim);">${toPersianDigits(r.customer.phone)}</small></td>
-        <td>${isHall ? (r.eventDetails?.topic || 'همایش') : `${toPersianDigits(r.duration)} ${r.bookingType === 'DAILY' ? 'روز' : 'ساعت'}`}</td>
+        <td>${r.customer.name}<br><small>${r.customer.phone}</small></td>
+        <td>${isHall ? (r.eventDetails?.topic || 'همایش') : scheduleLabel}</td>
         <td><strong>${formatCurrency(r.pricing?.finalTotal)}</strong></td>
         <td>
-          <span class="capacity-tag">
-            ${r.status === 'PENDING_REVIEW' ? 'در انتظار تایید' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
+          <span class="badge ${r.status === 'CONFIRMED' ? 'badge-success' : (r.status === 'PENDING_REVIEW' ? 'badge-warning' : 'badge-danger')}">
+            ${r.status === 'PENDING_REVIEW' ? 'در انتظار تأیید' : (r.status === 'CONFIRMED' ? 'تأیید شده' : r.status)}
           </span>
         </td>
         <td>
           ${canApprove ? `
-            <button class="btn-sm-action" style="background:var(--emerald); color:white;" onclick="approveReservation('${r.id}')">تأیید</button>
+            <button class="btn-sm-action" style="color:var(--emerald);" onclick="approveReservation('${r.id}')">تأیید رویداد</button>
+          ` : ''}
+          ${r.status !== 'CANCELLED' ? `
+            <button class="btn-sm-action" style="color:var(--rose);" onclick="cancelReservation('${r.id}')">لغو</button>
           ` : ''}
         </td>
       </tr>
@@ -1357,7 +1686,19 @@ function renderAdminTable() {
 window.approveReservation = async function(id) {
   try {
     await apiRequest(`/api/admin/reservations/${id}/approve`, 'POST');
-    showToast(`رویداد سالن همایش (${id}) تأیید گردید.`);
+    showToast(`رویداد سالن همایش (${id}) با موفقیت تأیید شد.`);
+    loadAdminData();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+};
+
+window.cancelReservation = async function(id) {
+  const reason = prompt('لطفاً دلیل لغو رزرو را وارد کنید:');
+  if (reason === null) return;
+  try {
+    await apiRequest(`/api/admin/reservations/${id}/cancel`, 'POST', { reason });
+    showToast(`رزرو ${id} لغو گردید.`);
     loadAdminData();
   } catch (err) {
     showToast(err.message, 'error');
@@ -1375,7 +1716,7 @@ function setupAdminForms() {
 
     try {
       await apiRequest('/api/admin/catering/items', 'POST', { name, category, price });
-      showToast('آیتم جدید به منوی کافه اضافه شد.');
+      showToast('آیتم جدید با موفقیت به منوی کافه اضافه شد.');
       e.target.reset();
       loadCateringMenu();
     } catch (err) {
@@ -1388,9 +1729,10 @@ function setupAdminForms() {
     const code = document.getElementById('new-promo-code').value.trim();
     const type = document.getElementById('new-promo-type').value;
     const value = Number(document.getElementById('new-promo-val').value);
+    const maxDiscount = Number(document.getElementById('new-promo-max').value) || undefined;
 
     try {
-      await apiRequest('/api/admin/promos', 'POST', { code, type, value });
+      await apiRequest('/api/admin/promos', 'POST', { code, type, value, maxDiscount });
       showToast(`کد تخفیف ${code} ایجاد شد.`);
       e.target.reset();
     } catch (err) {
@@ -1399,7 +1741,7 @@ function setupAdminForms() {
   });
 }
 
-// 13. Financial Dashboard
+// 15. Financial Analytics & Revenue Share (Super Admin)
 async function loadAnalyticsData() {
   try {
     const data = await apiRequest('/api/admin/analytics');
@@ -1419,7 +1761,7 @@ async function loadAnalyticsData() {
     const breakdownEl = document.getElementById('space-revenue-breakdown');
     if (breakdownEl && f.breakdownBySpace) {
       breakdownEl.innerHTML = Object.entries(f.breakdownBySpace).map(([key, item]) => {
-        const space = state.spaces.find(s => s.key === key) || FALLBACK_SPACES.find(s => s.key === key);
+        const space = state.spaces.find(s => s.key === key);
         return `
           <div class="breakdown-row-item">
             <span><strong>${space?.name || key}</strong> (${toPersianDigits(item.count)} رزرو)</span>
@@ -1447,16 +1789,38 @@ async function loadAnalyticsData() {
 // Bootstrap
 document.addEventListener('DOMContentLoaded', async () => {
   setupThemeEngine();
-  setupUserMenu();
+  setupAuthSystem();
   setupNavigation();
+  setupServiceFlowSwitcher();
   setupRateToggle();
   setupJalaliCalendar();
+  setupSchedulingEngine();
+  setupCateringAddonToggle();
+
   await loadSpaces();
   await loadCateringMenu();
+
+  // Add initial smart default slot (13:00 to 18:00 on today)
+  state.hourlySlots = [
+    {
+      id: `slot-default-1`,
+      date: state.selectedCalendarDate,
+      dateLabel: '۲۸ مرداد ۱۴۰۵',
+      startTime: new Date(`${new Date().toISOString().slice(0, 10)}T13:00:00`).toISOString(),
+      endTime: new Date(`${new Date().toISOString().slice(0, 10)}T18:00:00`).toISOString(),
+      startTimeStr: '13:00',
+      endTimeStr: '18:00',
+      hours: 5,
+      label: `۲۸ مرداد ۱۴۰۵ | ساعت ۱۳:۰۰ الی ۱۸:۰۰ (۵ ساعت)`
+    }
+  ];
+  renderSelectedSlots();
+
   setupPromoEngine();
   setupBookingSubmission();
   setupAdminForms();
   toggleHallFields();
+  toggleDeskQuantity();
   updatePriceBreakdown();
 
   document.getElementById('equip-recording')?.addEventListener('change', updatePriceBreakdown);

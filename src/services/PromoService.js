@@ -1,106 +1,63 @@
-/**
- * Promo Code & Discount Service
- */
+import { PromoRepository } from '../repositories/PromoRepository.js';
 
 export class PromoService {
-  constructor() {
-    this.promoCodes = new Map([
-      ['TECHON2026', {
-        code: 'TECHON2026',
-        type: 'PERCENTAGE',
-        value: 20, // 20%
-        maxDiscount: 500000, // Max 500,000 Tomans
-        usageLimit: 100,
-        usedCount: 12,
-        expiresAt: '2026-12-31T23:59:59Z',
-        applicableTo: ['ALL']
-      }],
-      ['EVENT50', {
-        code: 'EVENT50',
-        type: 'FIXED',
-        value: 500000, // 500,000 Tomans
-        maxDiscount: 500000,
-        usageLimit: 50,
-        usedCount: 5,
-        expiresAt: '2026-12-31T23:59:59Z',
-        applicableTo: ['CONFERENCE_HALL']
-      }],
-      ['STARTUP', {
-        code: 'STARTUP',
-        type: 'PERCENTAGE',
-        value: 15,
-        maxDiscount: 300000,
-        usageLimit: 200,
-        usedCount: 45,
-        expiresAt: '2026-12-31T23:59:59Z',
-        applicableTo: ['ALL']
-      }]
-    ]);
+  constructor(repository = new PromoRepository()) {
+    this.repository = repository;
   }
 
-  createPromoCode(data) {
-    const code = data.code.toUpperCase().trim();
-    if (this.promoCodes.has(code)) {
-      throw new Error('کد تخفیف با این نام قبلاً ایجاد شده است');
+  validateAndCalculateDiscount(code, subtotal, spaceKey) {
+    if (!code) {
+      return { valid: false, discountAmount: 0, reason: 'کد تخفیف وارد نشده است' };
     }
-    const promo = {
-      code,
-      type: data.type || 'PERCENTAGE', // PERCENTAGE or FIXED
-      value: Number(data.value),
-      maxDiscount: Number(data.maxDiscount) || Infinity,
-      usageLimit: Number(data.usageLimit) || 100,
-      usedCount: 0,
-      expiresAt: data.expiresAt || '2026-12-31T23:59:59Z',
-      applicableTo: data.applicableTo || ['ALL']
-    };
-    this.promoCodes.set(code, promo);
-    return promo;
-  }
 
-  validateAndCalculateDiscount(rawCode, subtotal, spaceType = 'ALL') {
-    if (!rawCode) return { discountAmount: 0, valid: false, reason: 'کد وارد نشده است' };
-    const code = rawCode.toUpperCase().trim();
-    const promo = this.promoCodes.get(code);
-
+    const promo = this.repository.findByCode(code.toUpperCase().trim());
     if (!promo) {
-      return { discountAmount: 0, valid: false, reason: 'کد تخفیف معتبر نیست' };
+      return { valid: false, discountAmount: 0, reason: 'کد تخفیف نامعتبر یا منقضی شده است' };
     }
 
-    if (new Date() > new Date(promo.expiresAt)) {
-      return { discountAmount: 0, valid: false, reason: 'مهلت استفاده از این کد تخفیف به پایان رسیده است' };
+    if (promo.validSpaces && !promo.validSpaces.includes(spaceKey)) {
+      return { valid: false, discountAmount: 0, reason: 'این کد تخفیف برای این نوع فضا قابل استفاده نیست' };
     }
 
-    if (promo.usedCount >= promo.usageLimit) {
-      return { discountAmount: 0, valid: false, reason: 'سقف استفاده از این کد تخفیف تکمیل شده است' };
+    if (promo.max_uses && promo.used_count >= promo.max_uses) {
+      return { valid: false, discountAmount: 0, reason: 'ظرفیت استفاده از این کد تخفیف به پایان رسیده است' };
     }
 
-    if (!promo.applicableTo.includes('ALL') && !promo.applicableTo.includes(spaceType)) {
-      return { discountAmount: 0, valid: false, reason: 'این کد تخفیف برای این نوع فضا قابل اعمال نیست' };
-    }
-
-    let calculatedDiscount = 0;
-    if (promo.type === 'PERCENTAGE') {
-      calculatedDiscount = (subtotal * promo.value) / 100;
-      if (promo.maxDiscount && calculatedDiscount > promo.maxDiscount) {
-        calculatedDiscount = promo.maxDiscount;
+    let discountAmount = 0;
+    if (promo.discountType === 'PERCENTAGE') {
+      discountAmount = Math.round((subtotal * promo.discountValue) / 100);
+      if (promo.maxDiscount && discountAmount > promo.maxDiscount) {
+        discountAmount = promo.maxDiscount;
       }
-    } else if (promo.type === 'FIXED') {
-      calculatedDiscount = Math.min(promo.value, subtotal);
+    } else if (promo.discountType === 'FIXED') {
+      discountAmount = Math.min(subtotal, promo.discountValue);
     }
 
     return {
       valid: true,
       code: promo.code,
-      discountAmount: Math.round(calculatedDiscount),
-      discountType: promo.type,
-      discountValue: promo.value
+      discountType: promo.discountType,
+      discountValue: promo.discountValue,
+      discountAmount,
+      maxDiscount: promo.maxDiscount
     };
   }
 
   recordUsage(code) {
-    const promo = this.promoCodes.get(code.toUpperCase().trim());
-    if (promo) {
-      promo.usedCount += 1;
+    this.repository.incrementUsage(code.toUpperCase().trim());
+  }
+
+  createPromo(promoData) {
+    if (!promoData.code || !promoData.value) {
+      throw new Error('کد و درصد/مقدار تخفیف الزامی است.');
     }
+    return this.repository.createPromo({
+      code: promoData.code.toUpperCase().trim(),
+      discountType: promoData.type || 'PERCENTAGE',
+      discountValue: Number(promoData.value),
+      maxDiscount: promoData.maxDiscount ? Number(promoData.maxDiscount) : null,
+      validSpaces: promoData.validSpaces || null,
+      maxUses: promoData.maxUses ? Number(promoData.maxUses) : 100
+    });
   }
 }

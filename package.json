@@ -21,5 +21,8 @@
     "rbac"
   ],
   "author": "Reza Niamanesh",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^12.11.1"
+  }
 }

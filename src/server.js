@@ -2,364 +2,267 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-import { SpaceTypes, UserRoles, ReservationStatus, DemoUsers } from './core/models.js';
-import { SecurityGuard, Permissions } from './security/rbac.js';
-import { Sanitizer } from './security/sanitizer.js';
+import { Config } from './config/config.js';
+import { getDatabase } from './db/database.js';
+import { SpaceRepository } from './repositories/SpaceRepository.js';
+import { ReservationRepository } from './repositories/ReservationRepository.js';
+import { CateringRepository } from './repositories/CateringRepository.js';
+import { PromoRepository } from './repositories/PromoRepository.js';
+import { UserRepository } from './repositories/UserRepository.js';
+import { AuditRepository } from './repositories/AuditRepository.js';
 import { CateringService } from './services/CateringService.js';
 import { PromoService } from './services/PromoService.js';
 import { ReservationService } from './services/ReservationService.js';
-import { AnalyticsService } from './services/AnalyticsService.js';
+import { SpaceController } from './controllers/SpaceController.js';
+import { ReservationController } from './controllers/ReservationController.js';
+import { CateringController } from './controllers/CateringController.js';
+import { PromoController } from './controllers/PromoController.js';
+import { AdminController } from './controllers/AdminController.js';
+import { AuthController } from './controllers/AuthController.js';
+import { UserRoles } from './core/models.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PUBLIC_DIR = path.join(__dirname, 'public');
 
-// Initialize Services
-export const cateringService = new CateringService();
-export const promoService = new PromoService();
-export const reservationService = new ReservationService(cateringService, promoService);
-export const analyticsService = new AnalyticsService(reservationService);
+export function createServer(options = {}) {
+  const db = options.db || getDatabase(options.dbPath || Config.DB_PATH);
 
-// Helper for JSON responses
-function sendJSON(res, statusCode, data) {
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-User-Role'
-  });
-  res.end(JSON.stringify(data));
-}
+  // Initialize Repositories
+  const spaceRepo = new SpaceRepository(db);
+  const cateringRepo = new CateringRepository(db);
+  const promoRepo = new PromoRepository(db);
+  const userRepo = new UserRepository(db);
+  const auditRepo = new AuditRepository(db);
+  const resRepo = new ReservationRepository(db);
 
-// Parse JSON body
-function parseBody(req) {
-  return new Promise((resolve, reject) => {
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-      if (body.length > 1e6) {
-        req.connection.destroy();
-        reject(new Error('Payload too large'));
-      }
-    });
-    req.on('end', () => {
-      if (!body) return resolve({});
-      try {
-        resolve(JSON.parse(body));
-      } catch (err) {
-        resolve({});
-      }
-    });
-  });
-}
+  // Initialize Services
+  const cateringService = new CateringService(cateringRepo);
+  const promoService = new PromoService(promoRepo);
+  const resService = new ReservationService(cateringService, promoService, spaceRepo, resRepo, auditRepo);
 
-// MIME types for static files
-const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon',
-  '.woff2': 'font/woff2'
-};
+  // Initialize Controllers
+  const spaceController = new SpaceController(spaceRepo);
+  const resController = new ReservationController(resService);
+  const cateringController = new CateringController(cateringService);
+  const promoController = new PromoController(promoService);
+  const adminController = new AdminController(resService);
+  const authController = new AuthController();
 
-function serveStatic(req, res, pathname) {
-  let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
-  
-  if (!filePath.startsWith(PUBLIC_DIR)) {
-    res.writeHead(403);
-    res.end('Access Denied');
-    return;
-  }
+  const MIME_TYPES = {
+    '.html': 'text/html; charset=UTF-8',
+    '.css': 'text/css; charset=UTF-8',
+    '.js': 'application/javascript; charset=UTF-8',
+    '.json': 'application/json; charset=UTF-8',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon'
+  };
 
-  fs.stat(filePath, (err, stats) => {
-    if (err || !stats.isFile()) {
-      // Fallback to index.html for SPA if not found
-      filePath = path.join(PUBLIC_DIR, 'index.html');
-    }
+  const server = http.createServer(async (req, res) => {
+    // Security & CORS Headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-User-Role, Authorization');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
 
-    const ext = path.extname(filePath).toLowerCase();
-    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-
-    fs.readFile(filePath, (readErr, content) => {
-      if (readErr) {
-        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('404 Not Found');
-      } else {
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content);
-      }
-    });
-  });
-}
-
-export function createServer() {
-  return http.createServer(async (req, res) => {
-    const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-    const pathname = parsedUrl.pathname;
-    const method = req.method;
-
-    // Handle CORS preflight
-    if (method === 'OPTIONS') {
-      res.writeHead(204, {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-User-Role'
-      });
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
       res.end();
       return;
     }
 
-    // Role detection from header
+    const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    const pathname = url.pathname;
     const userRole = req.headers['x-user-role'] || UserRoles.CUSTOMER;
 
+    // Helper to send JSON responses
+    const sendJson = (status, payload) => {
+      res.writeHead(status, { 'Content-Type': 'application/json; charset=UTF-8' });
+      res.end(JSON.stringify(payload));
+    };
+
+    // Helper to read JSON request body
+    const parseBody = () => {
+      return new Promise((resolve, reject) => {
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+          if (body.length > 2 * 1024 * 1024) { // 2MB Limit
+            reject(new Error('حجم درخواست بیش از حد مجاز است.'));
+          }
+        });
+        req.on('end', () => {
+          if (!body) return resolve({});
+          try {
+            resolve(JSON.parse(body));
+          } catch (e) {
+            reject(new Error('فرمت JSON درخواست نامعتبر است.'));
+          }
+        });
+        req.on('error', reject);
+      });
+    };
+
     try {
-      // 1. Healthcheck
-      if (pathname === '/api/health' && method === 'GET') {
-        return sendJSON(res, 200, {
+      // -------------------------------------------------------------
+      // API ROUTES
+      // -------------------------------------------------------------
+
+      // 1. Health check
+      if (pathname === '/api/health' && req.method === 'GET') {
+        const stats = db.prepare('SELECT COUNT(*) as c FROM reservations').get();
+        return sendJson(200, {
           status: 'UP',
           platform: 'TechOn',
+          env: Config.ENV,
+          database: 'SQLite (WAL Mode)',
           timestamp: new Date().toISOString(),
-          version: '1.0.0',
-          totalReservations: reservationService.reservations.length
+          version: '2.0.0-production',
+          totalReservations: stats.c
         });
       }
 
-      // 1.1 Auth Login
-      if (pathname === '/api/auth/login' && method === 'POST') {
-        const body = await parseBody(req);
-        const { username, password } = body;
-        const user = DemoUsers.find(u => u.username === (username || '').trim().toLowerCase());
-        if (!user || user.password !== password) {
-          return sendJSON(res, 401, {
-            success: false,
-            error: 'INVALID_CREDENTIALS',
-            message: 'نام کاربری یا کلمه عبور وارد شده نادرست است.'
-          });
-        }
-        const { password: _, ...userSafe } = user;
-        return sendJSON(res, 200, {
-          success: true,
-          user: userSafe,
-          token: `techon-token-${user.id}-${Date.now()}`
-        });
+      // 2. Spaces catalog
+      if (pathname === '/api/spaces' && req.method === 'GET') {
+        return sendJson(200, spaceController.getAllSpaces());
       }
 
-      // 1.2 Auth Users List (for fast demo switching)
-      if (pathname === '/api/auth/users' && method === 'GET') {
-        return sendJSON(res, 200, {
-          success: true,
-          users: DemoUsers.map(({ password, ...safe }) => safe)
-        });
+      // 3. Catering menu
+      if (pathname === '/api/catering/menu' && req.method === 'GET') {
+        return sendJson(200, cateringController.getMenu());
       }
 
-      // 1.3 Customer: My Bookings
-      if (pathname === '/api/my-reservations' && method === 'GET') {
-        const phone = parsedUrl.searchParams.get('phone');
-        const list = phone
-          ? reservationService.reservations.filter(r => r.customer?.phone === phone)
-          : reservationService.reservations;
-        return sendJSON(res, 200, {
-          success: true,
-          reservations: list
-        });
+      // 4. Promo validation
+      if (pathname === '/api/promo/validate' && req.method === 'POST') {
+        const body = await parseBody();
+        const result = promoController.validatePromo(body);
+        return sendJson(200, result);
       }
 
-      // 2. Spaces Catalog
-      if (pathname === '/api/spaces' && method === 'GET') {
-        return sendJSON(res, 200, {
-          success: true,
-          spaces: Object.entries(SpaceTypes).map(([key, space]) => ({
-            key,
-            ...space
-          }))
-        });
-      }
-
-      // 3. Catering Menu
-      if (pathname === '/api/catering/menu' && method === 'GET') {
-        return sendJSON(res, 200, {
-          success: true,
-          menu: cateringService.getMenu()
-        });
-      }
-
-      // 4. Validate Promo Code
-      if (pathname === '/api/promo/validate' && method === 'POST') {
-        const body = await parseBody(req);
-        const { code, subtotal, spaceKey } = body;
-        const result = promoService.validateAndCalculateDiscount(code, Number(subtotal) || 0, spaceKey);
-        return sendJSON(res, result.valid ? 200 : 400, result);
-      }
-
-      // 5. Create Reservation
-      if (pathname === '/api/reservations' && method === 'POST') {
-        const body = await parseBody(req);
+      // 5. Auth Login
+      if (pathname === '/api/auth/login' && req.method === 'POST') {
+        const body = await parseBody();
         try {
-          const result = reservationService.createReservation(body);
-          return sendJSON(res, 201, {
-            success: true,
-            reservation: result.reservation,
-            invoice: result.invoice
-          });
-        } catch (err) {
-          return sendJSON(res, 400, {
-            success: false,
-            error: err.message
-          });
+          const authResult = authController.login(body);
+          return sendJson(200, authResult);
+        } catch (authErr) {
+          return sendJson(401, { success: false, error: authErr.message });
         }
       }
 
-      // 6. Admin / Operator: List Reservations with Role-Based Scoping
-      if (pathname === '/api/admin/reservations' && method === 'GET') {
-        if (!SecurityGuard.hasPermission(userRole, Permissions.VIEW_ALL_RESERVATIONS)) {
-          return sendJSON(res, 403, {
-            success: false,
-            error: 'ACCESS_DENIED',
-            message: 'دسترسی مشاهده تمام رزروها برای این نقش مجاز نیست.'
-          });
-        }
+      // 6. Create Reservation
+      if (pathname === '/api/reservations' && req.method === 'POST') {
+        const body = await parseBody();
+        const result = resController.createReservation(body);
+        return sendJson(201, { success: true, ...result });
+      }
 
-        let filtered = reservationService.reservations;
-        if (userRole === UserRoles.COWORKING_OPERATOR) {
-          // Coworking operator only manages desks & private rooms
-          filtered = filtered.filter(r => r.spaceKey !== 'CONFERENCE_HALL');
-        } else if (userRole === UserRoles.CAFE_OPERATOR) {
-          // Cafe & Hall operator only manages halls and catering
-          filtered = filtered.filter(r => r.spaceKey === 'CONFERENCE_HALL' || (r.catering && r.catering.length > 0));
-        }
+      // 7. Customer My Reservations
+      if (pathname === '/api/my-reservations' && req.method === 'GET') {
+        const phone = url.searchParams.get('phone');
+        return sendJson(200, resController.getMyReservations(phone));
+      }
 
-        return sendJSON(res, 200, {
-          success: true,
-          reservations: filtered,
-          invoices: reservationService.invoices
+      // 8. Admin: List All Reservations
+      if (pathname === '/api/admin/reservations' && req.method === 'GET') {
+        if (userRole === UserRoles.CUSTOMER) {
+          return sendJson(403, { success: false, error: 'دسترسی غیرمجاز (نیازمند نقش اپراتور یا سوپرادمین)' });
+        }
+        return sendJson(200, adminController.getAllReservations(userRole));
+      }
+
+      // 9. Admin: Approve Hall Reservation
+      const approveMatch = pathname.match(/^\/api\/admin\/reservations\/([A-Za-z0-9_-]+)\/approve$/);
+      if (approveMatch && req.method === 'POST') {
+        const resId = approveMatch[1];
+        if (userRole !== UserRoles.SUPER_ADMIN && userRole !== UserRoles.CAFE_OPERATOR) {
+          return sendJson(403, { success: false, error: 'عدم دسترسی به تأیید رویدادهای سالن' });
+        }
+        const result = adminController.approveHall(resId, userRole, req.headers['x-user-name']);
+        return sendJson(200, result);
+      }
+
+      // 10. Admin: Cancel Reservation
+      const cancelMatch = pathname.match(/^\/api\/admin\/reservations\/([A-Za-z0-9_-]+)\/cancel$/);
+      if (cancelMatch && req.method === 'POST') {
+        const resId = cancelMatch[1];
+        const body = await parseBody();
+        const result = adminController.cancel(resId, body, userRole, req.headers['x-user-name']);
+        return sendJson(200, result);
+      }
+
+      // 11. Admin: Add Catering Item
+      if (pathname === '/api/admin/catering/items' && req.method === 'POST') {
+        if (userRole !== UserRoles.SUPER_ADMIN && userRole !== UserRoles.CAFE_OPERATOR) {
+          return sendJson(403, { success: false, error: 'عدم دسترسی به ویرایش منوی کافه' });
+        }
+        const body = await parseBody();
+        return sendJson(201, cateringController.addItem(body));
+      }
+
+      // 12. Admin: Add Promo Code
+      if (pathname === '/api/admin/promos' && req.method === 'POST') {
+        if (userRole !== UserRoles.SUPER_ADMIN) {
+          return sendJson(403, { success: false, error: 'فقط سوپرادمین مجاز به ساخت کدهای تخفیف است.' });
+        }
+        const body = await parseBody();
+        return sendJson(201, promoController.createPromo(body));
+      }
+
+      // 13. Admin: Analytics & Revenue Share
+      if (pathname === '/api/admin/analytics' && req.method === 'GET') {
+        if (userRole !== UserRoles.SUPER_ADMIN) {
+          return sendJson(403, { success: false, error: 'مشاهده گزارشات مالی و سهم درآمد تنها مخصوص سوپرادمین است.' });
+        }
+        return sendJson(200, adminController.getAnalytics(userRole));
+      }
+
+      // -------------------------------------------------------------
+      // STATIC FILE SERVING
+      // -------------------------------------------------------------
+      let safePath = pathname === '/' ? '/index.html' : pathname;
+      safePath = path.normalize(safePath).replace(/^(\.\.[\/\\])+/, '');
+      const filePath = path.join(Config.PUBLIC_DIR, safePath);
+
+      if (!filePath.startsWith(Config.PUBLIC_DIR)) {
+        return sendJson(403, { error: 'دسترسی به فایل خارج از روت مجاز نیست' });
+      }
+
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        const ext = path.extname(filePath).toLowerCase();
+        const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+        res.writeHead(200, {
+          'Content-Type': contentType,
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
         });
+        fs.createReadStream(filePath).pipe(res);
+        return;
       }
 
-      // 7. Admin / Operator: Approve Conference Hall Event
-      if (pathname.startsWith('/api/admin/reservations/') && pathname.endsWith('/approve') && method === 'POST') {
-        if (!SecurityGuard.hasPermission(userRole, Permissions.APPROVE_REJECT_HALL_RESERVATION)) {
-          return sendJSON(res, 403, {
-            success: false,
-            error: 'ACCESS_DENIED',
-            message: 'تنها اپراتور سالن و ادمین امکان تأیید رویدادهای همایش را دارند.'
-          });
-        }
-        const idMatch = pathname.match(/\/api\/admin\/reservations\/([^/]+)\/approve/);
-        const resId = idMatch ? idMatch[1] : null;
-        try {
-          const updated = reservationService.approveHallEvent(resId, userRole);
-          return sendJSON(res, 200, { success: true, reservation: updated });
-        } catch (err) {
-          return sendJSON(res, 400, { success: false, error: err.message });
-        }
-      }
+      // 404 Fallback
+      return sendJson(404, { error: 'مسیر یا صفحه درخواستی یافت نشد.' });
 
-      // 8. Admin / Operator: Cancel Reservation
-      if (pathname.startsWith('/api/admin/reservations/') && pathname.endsWith('/cancel') && method === 'POST') {
-        const idMatch = pathname.match(/\/api\/admin\/reservations\/([^/]+)\/cancel/);
-        const resId = idMatch ? idMatch[1] : null;
-        const body = await parseBody(req);
-        try {
-          const updated = reservationService.cancelReservation(resId, body.reason, userRole);
-          return sendJSON(res, 200, { success: true, reservation: updated });
-        } catch (err) {
-          return sendJSON(res, 400, { success: false, error: err.message });
-        }
-      }
-
-      // 9. Admin / Operator: Add or update Catering Menu Item
-      if (pathname === '/api/admin/catering/items' && method === 'POST') {
-        if (!SecurityGuard.hasPermission(userRole, Permissions.MANAGE_CATERING_MENU)) {
-          return sendJSON(res, 403, {
-            success: false,
-            error: 'ACCESS_DENIED',
-            message: 'دسترسی مدیریت منوی کافه برای این نقش مجاز نیست.'
-          });
-        }
-        const body = await parseBody(req);
-        try {
-          const item = body.id 
-            ? cateringService.updateItem(body.id, body)
-            : cateringService.addItem(body);
-          return sendJSON(res, 200, { success: true, item });
-        } catch (err) {
-          return sendJSON(res, 400, { success: false, error: err.message });
-        }
-      }
-
-      // 10. Super Admin: Create Promo Code
-      if (pathname === '/api/admin/promos' && method === 'POST') {
-        if (!SecurityGuard.hasPermission(userRole, Permissions.MANAGE_PROMO_CODES)) {
-          return sendJSON(res, 403, {
-            success: false,
-            error: 'ACCESS_DENIED',
-            message: 'فقط سوپرادمین امکان ایجاد کدهای تخفیف را دارد.'
-          });
-        }
-        const body = await parseBody(req);
-        try {
-          const promo = promoService.createPromoCode(body);
-          return sendJSON(res, 201, { success: true, promo });
-        } catch (err) {
-          return sendJSON(res, 400, { success: false, error: err.message });
-        }
-      }
-
-      // 11. Super Admin / Financial Analytics & Revenue Share Report
-      if (pathname === '/api/admin/analytics' && method === 'GET') {
-        if (!SecurityGuard.hasPermission(userRole, Permissions.VIEW_FINANCIAL_REPORTS)) {
-          return sendJSON(res, 403, {
-            success: false,
-            error: 'ACCESS_DENIED',
-            message: 'دسترسی مشاهده گزارشات مالی مجاز نمی‌باشد.'
-          });
-        }
-        const summary = analyticsService.getFinancialSummary();
-        // Calculate Revenue Share (10% and 15%)
-        const contractorShare10 = Math.round(summary.totalRevenue * 0.10);
-        const contractorShare15 = Math.round(summary.totalRevenue * 0.15);
-        return sendJSON(res, 200, {
-          success: true,
-          financials: summary,
-          revenueShare: {
-            rateMinPercentage: 10,
-            rateMaxPercentage: 15,
-            contractorShare10,
-            contractorShare15,
-            clientShare85: summary.totalRevenue - contractorShare15,
-            clientShare90: summary.totalRevenue - contractorShare10
-          },
-          auditLogs: reservationService.auditLogs.slice(-20)
-        });
-      }
-
-      // Serve static frontend files if not an API route
-      if (!pathname.startsWith('/api/')) {
-        return serveStatic(req, res, pathname);
-      }
-
-      // 404 for unknown API routes
-      return sendJSON(res, 404, { success: false, error: 'API route not found' });
-
-    } catch (fatalErr) {
-      console.error('[Server Error]:', fatalErr);
-      return sendJSON(res, 500, { success: false, error: 'Internal Server Error' });
+    } catch (err) {
+      console.error('Server Internal Error:', err);
+      return sendJson(500, { success: false, error: err.message || 'خطای داخلی سرور' });
     }
   });
+
+  return server;
 }
 
-// Start server when run directly
+// Auto-start when executed directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const PORT = process.env.PORT || 3000;
   const server = createServer();
-  server.listen(PORT, () => {
-    console.log(`🚀 TechOn Platform Server running at http://localhost:${PORT}`);
-    console.log(`📡 Healthcheck available at http://localhost:${PORT}/api/health`);
+  server.listen(Config.PORT, Config.HOST, () => {
+    console.log(`
+======================================================
+🚀 TECHON PRODUCTION PLATFORM STARTED
+📡 HTTP Server: http://${Config.HOST}:${Config.PORT}
+🗄️ Database: SQLite (WAL Mode) at ${Config.DB_PATH}
+======================================================
+    `);
   });
 }

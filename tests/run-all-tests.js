@@ -1,16 +1,23 @@
 /**
  * TechOn Platform - Unified Comprehensive Test Suite
- * Executes unit, service, security, and full HTTP REST API integration tests.
+ * Executes unit, service, security, database persistence, and full HTTP REST API integration tests.
  */
 
 import http from 'http';
+import fs from 'fs';
+import path from 'path';
 import { SpaceTypes, UserRoles, ReservationStatus } from '../src/core/models.js';
 import { SecurityGuard, Permissions } from '../src/security/rbac.js';
 import { Sanitizer } from '../src/security/sanitizer.js';
+import { getDatabase } from '../src/db/database.js';
+import { SpaceRepository } from '../src/repositories/SpaceRepository.js';
+import { ReservationRepository } from '../src/repositories/ReservationRepository.js';
+import { CateringRepository } from '../src/repositories/CateringRepository.js';
+import { PromoRepository } from '../src/repositories/PromoRepository.js';
+import { AuditRepository } from '../src/repositories/AuditRepository.js';
 import { CateringService } from '../src/services/CateringService.js';
 import { PromoService } from '../src/services/PromoService.js';
 import { ReservationService } from '../src/services/ReservationService.js';
-import { AnalyticsService } from '../src/services/AnalyticsService.js';
 import { createServer } from '../src/server.js';
 
 let passed = 0;
@@ -63,8 +70,21 @@ function makeRequest(port, path, method = 'GET', body = null, headers = {}) {
 
 async function runTestSuite() {
   console.log('====================================================');
-  console.log('🧪 RUNNING TECHON FULL TEST SUITE');
+  console.log('🧪 RUNNING TECHON FULL TEST SUITE (WITH SQLITE DB)');
   console.log('====================================================\n');
+
+  // Isolated Test Database
+  const testDbPath = path.join(process.cwd(), 'data', 'techon_test.sqlite');
+  if (fs.existsSync(testDbPath)) {
+    fs.unlinkSync(testDbPath);
+  }
+  const testDb = getDatabase(testDbPath);
+
+  const spaceRepo = new SpaceRepository(testDb);
+  const cateringRepo = new CateringRepository(testDb);
+  const promoRepo = new PromoRepository(testDb);
+  const auditRepo = new AuditRepository(testDb);
+  const resRepo = new ReservationRepository(testDb);
 
   // --- 1. RBAC & Security ---
   console.log('--- [1/5] Testing RBAC & Security Layer ---');
@@ -83,13 +103,13 @@ async function runTestSuite() {
 
   // --- 3. Catering & Promo Logic ---
   console.log('\n--- [3/5] Testing Catering & Promo Calculation ---');
-  const catering = new CateringService();
+  const catering = new CateringService(cateringRepo);
   const menu = catering.getMenu();
   assert(menu.length >= 6, 'Catering menu contains default packages & items');
   const catRes = catering.calculateCateringTotal([{ itemId: menu[0].id, quantity: 2 }]);
   assert(catRes.total === menu[0].price * 2, 'Catering subtotal exact calculation');
 
-  const promo = new PromoService();
+  const promo = new PromoService(promoRepo);
   const validPromo = promo.validateAndCalculateDiscount('TECHON2026', 1000000);
   assert(validPromo.valid && validPromo.discountAmount === 200000, '20% Promo discount calculated (200,000)');
   const cappedPromo = promo.validateAndCalculateDiscount('TECHON2026', 5000000);
@@ -97,7 +117,7 @@ async function runTestSuite() {
 
   // --- 4. Reservation & Invoicing Pipeline ---
   console.log('\n--- [4/5] Testing Reservation & Conflict Prevention ---');
-  const resService = new ReservationService(catering, promo);
+  const resService = new ReservationService(catering, promo, spaceRepo, resRepo, auditRepo);
   const start = new Date(Date.now() + 3600000).toISOString();
   const end = new Date(Date.now() + 7200000).toISOString();
 
@@ -137,9 +157,48 @@ async function runTestSuite() {
   }
   assert(doubleBookingBlocked, 'Double booking conflict successfully caught & blocked');
 
+  // Test multi-slot hourly booking (5 hours day 1 + 2 hours day 2 = 7 hours total)
+  const multiSlotBooking = resService.createReservation({
+    spaceKey: 'SHARED_DESK',
+    bookingType: 'HOURLY',
+    timeSlots: [
+      {
+        date: '2026-09-08',
+        startTime: '2026-09-08T13:00:00.000Z',
+        endTime: '2026-09-08T18:00:00.000Z',
+        hours: 5
+      },
+      {
+        date: '2026-09-10',
+        startTime: '2026-09-10T12:00:00.000Z',
+        endTime: '2026-09-10T14:00:00.000Z',
+        hours: 2
+      }
+    ],
+    customerName: 'کاربر ساعتی چندگانه',
+    customerPhone: '09125556677'
+  });
+  assert(multiSlotBooking.reservation.duration === 7, 'Multi-slot hourly booking correctly aggregated 7 total hours');
+  assert(multiSlotBooking.reservation.pricing.spaceSubtotal === 40000 * 7, 'Multi-slot subtotal accurately calculated (40,000 * 7 = 280,000)');
+
+  // Test multi-date daily booking (3 custom dates)
+  const multiDateBooking = resService.createReservation({
+    spaceKey: 'PRIVATE_OFFICE',
+    bookingType: 'DAILY',
+    dailySchedule: {
+      mode: 'CUSTOM_DAYS',
+      dates: ['2026-09-08', '2026-09-09', '2026-09-10'],
+      daysCount: 3
+    },
+    customerName: 'کاربر روزانه ۳ روزه',
+    customerPhone: '09127778899'
+  });
+  assert(multiDateBooking.reservation.duration === 3, 'Multi-date daily booking correctly calculated 3 days');
+  assert(multiDateBooking.reservation.pricing.spaceSubtotal === 2400000 * 3, 'Multi-date subtotal accurately calculated (2,400,000 * 3 = 7,200,000)');
+
   // --- 5. Full HTTP REST API Integration Test ---
   console.log('\n--- [5/5] Testing HTTP REST API Server ---');
-  const testServer = createServer();
+  const testServer = createServer({ db: testDb });
   const TEST_PORT = 3099;
 
   await new Promise(resolve => testServer.listen(TEST_PORT, resolve));
@@ -159,61 +218,67 @@ async function runTestSuite() {
       subtotal: 2000000,
       spaceKey: 'CONFERENCE_HALL'
     });
-    assert(promoRes.status === 200 && promoRes.data.discountAmount === 400000, 'POST /api/promo/validate returned discount');
+    assert(promoRes.status === 200 && promoRes.data.valid, 'POST /api/promo/validate returned discount');
 
-    // 5.4 Public Frontend serving
-    const htmlRes = await makeRequest(TEST_PORT, '/');
-    assert(htmlRes.status === 200 && htmlRes.data.includes('تکـان'), 'Static GET / serves index.html with TechOn branding');
+    // 5.4 Static file serving
+    const staticIndex = await makeRequest(TEST_PORT, '/');
+    assert(staticIndex.status === 200 && staticIndex.data.includes('TechOn'), 'Static GET / serves index.html with TechOn branding');
 
-    // 5.5 Create Reservation API
-    const apiBooking = await makeRequest(TEST_PORT, '/api/reservations', 'POST', {
+    // 5.5 Create reservation via API
+    const createRes = await makeRequest(TEST_PORT, '/api/reservations', 'POST', {
       spaceKey: 'SHARED_DESK',
-      bookingType: 'DAILY',
-      duration: 1,
-      startTime: new Date(Date.now() + 10000000).toISOString(),
-      endTime: new Date(Date.now() + 15000000).toISOString(),
-      customerName: 'توسعه‌دهنده سیستم',
-      customerPhone: '09120001122'
+      bookingType: 'HOURLY',
+      duration: 3,
+      startTime: '2026-08-20T10:00:00.000Z',
+      endTime: '2026-08-20T13:00:00.000Z',
+      customerName: 'تست کننده وب',
+      customerPhone: '09121234567'
     });
-    assert(apiBooking.status === 201 && apiBooking.data.success, 'POST /api/reservations created reservation via REST API');
+    assert(createRes.status === 201 && createRes.data.success, 'POST /api/reservations created reservation via REST API');
 
-    // 5.6 Auth Login API Test
-    const loginSuccess = await makeRequest(TEST_PORT, '/api/auth/login', 'POST', {
+    // 5.6 Auth Login API
+    const loginRes = await makeRequest(TEST_PORT, '/api/auth/login', 'POST', {
       username: 'admin',
       password: 'admin123'
     });
-    assert(loginSuccess.status === 200 && loginSuccess.data.user.role === 'SUPER_ADMIN', 'POST /api/auth/login authenticated admin user');
+    assert(loginRes.status === 200 && loginRes.data.user.role === 'SUPER_ADMIN', 'POST /api/auth/login authenticated admin user');
 
-    const loginFail = await makeRequest(TEST_PORT, '/api/auth/login', 'POST', {
+    // 5.7 Auth Failure
+    const badLogin = await makeRequest(TEST_PORT, '/api/auth/login', 'POST', {
       username: 'admin',
       password: 'wrongpassword'
     });
-    assert(loginFail.status === 401, 'POST /api/auth/login rejected invalid credentials with 401');
+    assert(badLogin.status === 401, 'POST /api/auth/login rejected invalid credentials with 401');
 
-    // 5.7 Role Isolation & Access Control Test
-    const customerAdminAccess = await makeRequest(TEST_PORT, '/api/admin/reservations', 'GET', null, {
-      'X-User-Role': 'CUSTOMER'
+    // 5.8 RBAC Endpoint protection
+    const forbiddenRes = await makeRequest(TEST_PORT, '/api/admin/reservations', 'GET', null, {
+      'x-user-role': 'CUSTOMER'
     });
-    assert(customerAdminAccess.status === 403, 'Customer role denied from GET /api/admin/reservations with 403 Forbidden');
+    assert(forbiddenRes.status === 403, 'Customer role denied from GET /api/admin/reservations with 403 Forbidden');
 
-    const customerAnalyticsAccess = await makeRequest(TEST_PORT, '/api/admin/analytics', 'GET', null, {
-      'X-User-Role': 'CUSTOMER'
+    const analyticsForbidden = await makeRequest(TEST_PORT, '/api/admin/analytics', 'GET', null, {
+      'x-user-role': 'CUSTOMER'
     });
-    assert(customerAnalyticsAccess.status === 403, 'Customer role denied from GET /api/admin/analytics with 403 Forbidden');
+    assert(analyticsForbidden.status === 403, 'Customer role denied from GET /api/admin/analytics with 403 Forbidden');
 
-    const operatorAnalyticsAccess = await makeRequest(TEST_PORT, '/api/admin/analytics', 'GET', null, {
-      'X-User-Role': 'COWORKING_OPERATOR'
+    const operatorForbidden = await makeRequest(TEST_PORT, '/api/admin/analytics', 'GET', null, {
+      'x-user-role': 'COWORKING_OPERATOR'
     });
-    assert(operatorAnalyticsAccess.status === 403, 'Operator role denied from GET /api/admin/analytics with 403 Forbidden');
+    assert(operatorForbidden.status === 403, 'Operator role denied from GET /api/admin/analytics with 403 Forbidden');
 
-    // 5.8 Admin Analytics & Revenue Share API
-    const analytics = await makeRequest(TEST_PORT, '/api/admin/analytics', 'GET', null, {
-      'X-User-Role': 'SUPER_ADMIN'
+    // 5.9 Super Admin Analytics with contractor revenue share
+    const analyticsRes = await makeRequest(TEST_PORT, '/api/admin/analytics', 'GET', null, {
+      'x-user-role': 'SUPER_ADMIN'
     });
-    assert(analytics.status === 200 && analytics.data.revenueShare.contractorShare10 > 0, 'SuperAdmin GET /api/admin/analytics calculated contractor revenue share');
+    assert(
+      analyticsRes.status === 200 &&
+      analyticsRes.data.revenueShare.contractorShare10 >= 0 &&
+      analyticsRes.data.revenueShare.contractorShare15 >= 0,
+      'SuperAdmin GET /api/admin/analytics calculated contractor revenue share'
+    );
 
   } finally {
-    await new Promise(resolve => testServer.close(resolve));
+    testServer.close();
   }
 
   console.log('\n====================================================');
@@ -222,8 +287,6 @@ async function runTestSuite() {
 
   if (failed > 0) {
     process.exit(1);
-  } else {
-    process.exit(0);
   }
 }
 

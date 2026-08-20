@@ -1,45 +1,75 @@
-import { SpaceTypes, ReservationStatus, PaymentStatus } from '../core/models.js';
+import { ReservationStatus, PaymentStatus } from '../core/models.js';
 import { Sanitizer } from '../security/sanitizer.js';
+import { SpaceRepository } from '../repositories/SpaceRepository.js';
+import { ReservationRepository } from '../repositories/ReservationRepository.js';
+import { AuditRepository } from '../repositories/AuditRepository.js';
 
 export class ReservationService {
-  constructor(cateringService, promoService) {
+  constructor(
+    cateringService,
+    promoService,
+    spaceRepo = new SpaceRepository(),
+    resRepo = new ReservationRepository(),
+    auditRepo = new AuditRepository()
+  ) {
     this.cateringService = cateringService;
     this.promoService = promoService;
-    this.reservations = [];
-    this.invoices = [];
-    this.auditLogs = [];
+    this.spaceRepo = spaceRepo;
+    this.resRepo = resRepo;
+    this.auditRepo = auditRepo;
   }
 
   logAudit(userId, action, resource, details = {}) {
-    const log = {
-      id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      timestamp: new Date().toISOString(),
-      userId: userId || 'anonymous',
-      action,
-      resource,
-      details
-    };
-    this.auditLogs.push(log);
-    return log;
+    return this.auditRepo.log(userId, action, resource, details);
   }
 
-  checkAvailability(spaceKey, startTime, endTime) {
-    const start = new Date(startTime).getTime();
-    const end = new Date(endTime).getTime();
+  checkAvailability(spaceKey, startTimeOrIntervals, possibleEndTime) {
+    let intervals = [];
 
-    if (isNaN(start) || isNaN(end) || start >= end) {
-      throw new Error('بازه زمانی مشخص‌شده نامعتبر است');
+    if (Array.isArray(startTimeOrIntervals)) {
+      intervals = startTimeOrIntervals.map(i => ({
+        start: new Date(i.startTime).getTime(),
+        end: new Date(i.endTime).getTime()
+      }));
+    } else if (startTimeOrIntervals && possibleEndTime) {
+      intervals = [{
+        start: new Date(startTimeOrIntervals).getTime(),
+        end: new Date(possibleEndTime).getTime()
+      }];
+    } else if (startTimeOrIntervals && typeof startTimeOrIntervals === 'object' && startTimeOrIntervals.startTime) {
+      intervals = [{
+        start: new Date(startTimeOrIntervals.startTime).getTime(),
+        end: new Date(startTimeOrIntervals.endTime).getTime()
+      }];
     }
 
-    const space = SpaceTypes[spaceKey];
+    if (intervals.length === 0) return true;
+
+    for (const inv of intervals) {
+      if (isNaN(inv.start) || isNaN(inv.end) || inv.start >= inv.end) {
+        throw new Error('بازه زمانی مشخص‌شده نامعتبر است');
+      }
+    }
+
+    const space = this.spaceRepo.findByKey(spaceKey);
     const maxCapacity = space?.count || 1;
 
-    const conflicts = this.reservations.filter(r => {
-      if (r.spaceKey !== spaceKey) return false;
-      if (r.status === ReservationStatus.CANCELLED) return false;
-      const rStart = new Date(r.startTime).getTime();
-      const rEnd = new Date(r.endTime).getTime();
-      return (start < rEnd && end > rStart);
+    // Query active reservations for this space from the SQLite database
+    const existingReservations = this.resRepo.findActiveBySpace(spaceKey);
+
+    const conflicts = existingReservations.filter(r => {
+      const rIntervals = (r.timeSlots && r.timeSlots.length > 0)
+        ? r.timeSlots.map(s => ({ start: new Date(s.startTime).getTime(), end: new Date(s.endTime).getTime() }))
+        : (r.startTime && r.endTime ? [{ start: new Date(r.startTime).getTime(), end: new Date(r.endTime).getTime() }] : []);
+
+      if (rIntervals.length === 0) return false;
+
+      // Check if any interval in new request overlaps with any existing interval
+      return intervals.some(newInv => {
+        return rIntervals.some(existInv => {
+          return (newInv.start < existInv.end && newInv.end > existInv.start);
+        });
+      });
     });
 
     return conflicts.length < maxCapacity;
@@ -50,9 +80,11 @@ export class ReservationService {
     const {
       spaceKey,
       bookingType = 'HOURLY', // 'HOURLY' or 'DAILY'
-      duration = 1, // hours or days
-      startTime,
-      endTime,
+      duration: rawDuration,
+      startTime: rawStartTime,
+      endTime: rawEndTime,
+      timeSlots = [],
+      dailySchedule = null,
       customerName,
       customerPhone,
       customerEmail,
@@ -67,19 +99,62 @@ export class ReservationService {
       throw new Error('شماره همراه وارد شده نامعتبر است (فرمت صحیح: ۰۹۱۲۳۴۵۶۷۸۹)');
     }
 
-    const space = SpaceTypes[spaceKey];
+    const space = this.spaceRepo.findByKey(spaceKey);
     if (!space) {
       throw new Error('نوع فضای انتخاب شده نامعتبر است');
     }
 
-    // Availability validation
-    if (!this.checkAvailability(spaceKey, startTime, endTime)) {
-      throw new Error('این فضا در بازه زمانی انتخاب شده قبلاً رزرو شده است');
+    // Determine normalized intervals and duration
+    let duration = Number(rawDuration) || 1;
+    let startTime = rawStartTime;
+    let endTime = rawEndTime;
+    let intervalsToCheck = [];
+    let processedSlots = [];
+    let processedDailyDates = [];
+
+    if (bookingType === 'HOURLY' && Array.isArray(timeSlots) && timeSlots.length > 0) {
+      intervalsToCheck = timeSlots.map(s => ({
+        startTime: s.startTime,
+        endTime: s.endTime
+      }));
+      duration = timeSlots.reduce((acc, s) => {
+        const diffHours = (new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) / 3600000;
+        return acc + Math.max(0.5, Number(s.hours) || diffHours);
+      }, 0);
+      startTime = timeSlots[0].startTime;
+      endTime = timeSlots[timeSlots.length - 1].endTime;
+      processedSlots = timeSlots;
+    } else if (bookingType === 'DAILY' && dailySchedule) {
+      if (Array.isArray(dailySchedule.dates) && dailySchedule.dates.length > 0) {
+        duration = dailySchedule.dates.length;
+        intervalsToCheck = dailySchedule.dates.map(d => ({
+          startTime: `${d}T08:00:00.000Z`,
+          endTime: `${d}T22:00:00.000Z`
+        }));
+        startTime = `${dailySchedule.dates[0]}T08:00:00.000Z`;
+        endTime = `${dailySchedule.dates[dailySchedule.dates.length - 1]}T22:00:00.000Z`;
+        processedDailyDates = dailySchedule.dates;
+      } else if (dailySchedule.startDate && dailySchedule.endDate) {
+        const startD = new Date(dailySchedule.startDate);
+        const endD = new Date(dailySchedule.endDate);
+        const days = Math.round((endD - startD) / (1000 * 60 * 60 * 24)) + 1;
+        duration = Math.max(1, days);
+        startTime = `${dailySchedule.startDate}T08:00:00.000Z`;
+        endTime = `${dailySchedule.endDate}T22:00:00.000Z`;
+        intervalsToCheck = [{ startTime, endTime }];
+      }
+    } else {
+      intervalsToCheck = [{ startTime, endTime }];
+    }
+
+    // Availability validation across all requested intervals against SQLite
+    if (!this.checkAvailability(spaceKey, intervalsToCheck)) {
+      throw new Error('این فضا در بازه زمانی یا روزهای انتخاب شده قبلاً رزرو شده است و امکان ثبت رزرو وجود ندارد.');
     }
 
     // 1. Calculate Space Base Price
     const baseRate = bookingType === 'DAILY' ? space.dailyRate : space.hourlyRate;
-    const spaceSubtotal = baseRate * Number(duration);
+    const spaceSubtotal = Math.round(baseRate * duration);
 
     // 2. Equipment Fees
     let equipmentFee = 0;
@@ -113,20 +188,28 @@ export class ReservationService {
 
     const finalTotal = Math.max(0, subtotal - discountAmount);
 
-    const reservationId = `RES-${Date.now().toString().slice(-6)}`;
-    const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+    const reservationId = `RES-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     // Status logic: Conference hall requires review, others auto-confirm
     const initialStatus = spaceKey === 'CONFERENCE_HALL' 
       ? ReservationStatus.PENDING_REVIEW 
       : ReservationStatus.CONFIRMED;
 
-    const reservation = {
+    let scheduleDescription = `${duration} ${bookingType === 'DAILY' ? 'روز' : 'ساعت'}`;
+    if (bookingType === 'HOURLY' && processedSlots.length > 1) {
+      scheduleDescription = `${duration} ساعت در ${processedSlots.length} بازه زمانی`;
+    } else if (bookingType === 'DAILY' && processedDailyDates.length > 1) {
+      scheduleDescription = `${duration} روز انتخابی (${processedDailyDates.join(', ')})`;
+    }
+
+    const reservationToPersist = {
       id: reservationId,
       spaceKey,
       spaceName: space.name,
       bookingType,
       duration,
+      scheduleDescription,
       startTime,
       endTime,
       status: initialStatus,
@@ -155,47 +238,67 @@ export class ReservationService {
       createdAt: new Date().toISOString()
     };
 
+    // Save to Persistent SQLite Database
+    const savedReservation = this.resRepo.create(reservationToPersist, processedSlots, processedDailyDates);
+
     const invoice = {
       invoiceNumber,
       reservationId,
-      customer: reservation.customer,
+      customer: savedReservation.customer,
+      scheduleDescription,
       items: [
-        { title: `رزرو ${space.name} (${duration} ${bookingType === 'DAILY' ? 'روز' : 'ساعت'})`, amount: spaceSubtotal },
+        { title: `رزرو ${space.name} (${scheduleDescription})`, amount: spaceSubtotal },
         ...selectedEquipment.map(e => ({ title: e.name, amount: e.fee })),
         ...cateringResult.detailedItems.map(c => ({ title: `${c.name} (تعداد: ${c.quantity})`, amount: c.subtotal }))
       ],
       subtotal,
       discountAmount,
       finalTotal,
-      paymentStatus: PaymentStatus.PAID, // Simulated gateway success
+      paymentStatus: PaymentStatus.PAID,
       paidAt: new Date().toISOString()
     };
 
-    this.reservations.push(reservation);
-    this.invoices.push(invoice);
-
     this.logAudit(customerPhone, 'CREATE_RESERVATION', reservationId, { spaceKey, finalTotal });
 
-    return { reservation, invoice };
+    return { reservation: savedReservation, invoice };
+  }
+
+  getReservations(filterPhone = null) {
+    if (filterPhone) {
+      return this.resRepo.findByPhone(filterPhone);
+    }
+    return this.resRepo.findAll();
+  }
+
+  getReservationById(id) {
+    return this.resRepo.findById(id);
   }
 
   approveHallEvent(reservationId, approvedBy) {
-    const reservation = this.reservations.find(r => r.id === reservationId);
+    const reservation = this.resRepo.findById(reservationId);
     if (!reservation) throw new Error('رزرو یافت نشد');
     if (reservation.spaceKey !== 'CONFERENCE_HALL') throw new Error('این رزرو مربوط به سالن همایش نیست');
     
-    reservation.status = ReservationStatus.CONFIRMED;
-    if (reservation.eventDetails) reservation.eventDetails.approved = true;
+    const updated = this.resRepo.updateStatus(reservationId, ReservationStatus.CONFIRMED);
     this.logAudit(approvedBy, 'APPROVE_HALL_EVENT', reservationId);
-    return reservation;
+    return updated;
   }
 
   cancelReservation(reservationId, reason, cancelledBy) {
-    const reservation = this.reservations.find(r => r.id === reservationId);
+    const reservation = this.resRepo.findById(reservationId);
     if (!reservation) throw new Error('رزرو یافت نشد');
-    reservation.status = ReservationStatus.CANCELLED;
-    reservation.cancellationReason = reason || 'لغو توسط کاربر/اپراتور';
+    
+    const updated = this.resRepo.updateStatus(reservationId, ReservationStatus.CANCELLED, reason || 'لغو توسط کاربر/اپراتور');
     this.logAudit(cancelledBy, 'CANCEL_RESERVATION', reservationId, { reason });
-    return reservation;
+    return updated;
+  }
+
+  getFinancialAnalytics() {
+    const summary = this.resRepo.getFinancialSummary();
+    const recentLogs = this.auditRepo.getRecentLogs(30);
+    return {
+      ...summary,
+      auditLogs: recentLogs
+    };
   }
 }
