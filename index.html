@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=2.0.0">
 </head>
 <body>
 
@@ -101,12 +101,33 @@
          TAB 1: BOOKING STUDIO
          ========================================================================= -->
     <section id="tab-booking" class="view-panel active">
-      <!-- 4 Spaces Showcase -->
+      <!-- Service Flow Switcher (Coworking vs Hall Separation - Big Papa's UX) -->
+      <div class="service-flow-selector">
+        <button type="button" class="service-flow-btn active" id="btn-flow-cowork" data-flow="COWORKING">
+          <span class="flow-icon">🏢</span>
+          <div class="flow-text">
+            <strong>فضای کار اشتراکی و صندلی‌ها</strong>
+            <small>صندلی کار اشتراکی، صندلی اختصاصی، اتاق جلسه و اتاق کار تیمی</small>
+          </div>
+          <span class="flow-tag">سرویس اصلی</span>
+        </button>
+
+        <button type="button" class="service-flow-btn" id="btn-flow-hall" data-flow="HALL">
+          <span class="flow-icon">🎤</span>
+          <div class="flow-text">
+            <strong>سالن همایش و رویدادهای تکـان</strong>
+            <small>ظرفیت ۷۰ نفر با استیج، ضبط استودیویی و تجهیزات حرفه‌ای</small>
+          </div>
+          <span class="flow-tag flow-tag-special">B2B / رویداد</span>
+        </button>
+      </div>
+
+      <!-- Spaces Showcase -->
       <div class="spaces-section">
         <div class="section-header-flex">
           <div>
-            <h2 class="section-heading">انتخاب فضای مورد نظر</h2>
-            <p class="section-subheading">موجودی تکان: ۶۰ صندلی کار اشتراکی، ۴ اتاق اختصاصی، ۱ اتاق جلسه و ۱ سالن همایش</p>
+            <h2 class="section-heading" id="space-section-heading">انتخاب فضای مورد نظر</h2>
+            <p class="section-subheading" id="space-section-subheading">موجودی تکان: ۶۰ صندلی کار اشتراکی، ۴ اتاق اختصاصی و ۱ اتاق جلسه</p>
           </div>
           <div class="rate-toggle-container">
             <button type="button" class="rate-btn active" id="rate-view-hourly">ساعتی</button>
@@ -115,7 +136,7 @@
         </div>
 
         <div class="spaces-scroll-wrapper" id="spaces-cards-grid">
-          <!-- Dynamically populated 4 spaces -->
+          <!-- Dynamically populated spaces -->
         </div>
       </div>
 
@@ -124,17 +145,30 @@
         <!-- Main Configuration Column -->
         <div class="studio-main-column">
 
-          <!-- Step 1: Jalali Calendar & Exact Time Range Picker -->
+          <!-- Step 1: Smart Scheduling Engine (Daily Range/Custom & Hourly Multi-Slots) -->
           <div class="config-card">
             <div class="config-card-header">
               <span class="step-num">۱</span>
               <div>
-                <h3>انتخاب روز و ساعت دقیق حضور (شروع و پایان)</h3>
-                <small>روز را از تقویم انتخاب کرده و ساعت ورود و خروج دلخواه خود را مشخص کنید</small>
+                <h3>زمان‌بندی و انتخاب بازه‌ها (ساعتی چندگانه / روزانه)</h3>
+                <small>روز را از تقویم انتخاب کرده و بازه‌های ساعتی یا روزانه دلخواه را مشخص فرمایید</small>
               </div>
             </div>
 
             <div class="config-card-body">
+              <!-- Scheduling Mode Selector -->
+              <div class="scheduling-mode-toggle">
+                <label class="mode-label">مدل رزرو و زمان‌بندی:</label>
+                <div class="segmented-control">
+                  <button type="button" class="segment-btn active" id="btn-mode-hourly" data-mode="HOURLY">
+                    <span>⏰ رزرو ساعتی (تک یا چند بازه)</span>
+                  </button>
+                  <button type="button" class="segment-btn" id="btn-mode-daily" data-mode="DAILY">
+                    <span>📅 رزرو روزانه (پیوسته / پراکنده)</span>
+                  </button>
+                </div>
+              </div>
+
               <!-- Jalali Calendar Widget -->
               <div class="jalali-calendar-widget" id="jalali-calendar-widget">
                 <div class="calendar-header-nav">
@@ -158,61 +192,120 @@
                 </div>
 
                 <div class="selected-date-callout">
-                  <span>تاریخ انتخابی:</span>
+                  <span>تاریخ فعال در تقویم:</span>
                   <strong id="selected-jalali-date-text">سه‌شنبه ۲۸ مرداد ۱۴۰۵</strong>
                 </div>
               </div>
 
-              <!-- Time Range Controls -->
-              <div class="time-range-picker-box">
-                <div class="form-row-2">
-                  <div class="input-group">
-                    <label for="time-start-select">⏰ ساعت ورود (شروع):</label>
-                    <select id="time-start-select" class="form-control">
-                      <!-- Generated 08:00 to 22:00 -->
-                    </select>
+              <!-- HOURLY MULTI-SLOT SCHEDULER -->
+              <div id="hourly-scheduler-section" class="scheduler-box">
+                <div class="time-range-picker-box">
+                  <div class="form-row-2">
+                    <div class="input-group">
+                      <label for="time-start-select">⏰ ساعت شروع بازه:</label>
+                      <select id="time-start-select" class="form-control">
+                        <!-- Generated 08:00 to 22:00 -->
+                      </select>
+                    </div>
+
+                    <div class="input-group">
+                      <label for="time-end-select">🏁 ساعت پایان بازه:</label>
+                      <select id="time-end-select" class="form-control">
+                        <!-- Generated 09:00 to 23:00 -->
+                      </select>
+                    </div>
                   </div>
 
-                  <div class="input-group">
-                    <label for="time-end-select">🏁 ساعت خروج (پایان):</label>
-                    <select id="time-end-select" class="form-control">
-                      <!-- Generated 09:00 to 23:00 -->
-                    </select>
+                  <!-- Quick Presets -->
+                  <div class="quick-preset-row">
+                    <span class="preset-label">پیشنهادی:</span>
+                    <button type="button" class="btn-preset" onclick="setSlotPreset('09:00', '13:00')">🌅 صبح (۹ تا ۱۳)</button>
+                    <button type="button" class="btn-preset" onclick="setSlotPreset('13:00', '18:00')">☀️ عصر (۱۳ تا ۱۸)</button>
+                    <button type="button" class="btn-preset" onclick="setSlotPreset('18:00', '21:00')">🌙 شب (۱۸ تا ۲۱)</button>
+                    <button type="button" class="btn-preset" onclick="setSlotPreset('09:00', '21:00')">⚡ تمام‌وقت (۹ تا ۲۱)</button>
+                  </div>
+
+                  <button type="button" id="btn-add-time-slot" class="btn btn-secondary btn-block" style="margin: 0.5rem 0;">
+                    <span>➕ افزودن این بازه زمانی به سبد رزرو</span>
+                  </button>
+
+                  <!-- Selected Slots Basket -->
+                  <div class="selected-slots-container">
+                    <div class="slots-header">
+                      <strong>📋 بازه‌های زمانی انتخابی شما:</strong>
+                      <span class="badge badge-primary" id="slots-total-badge">۰ ساعت</span>
+                    </div>
+                    <div id="selected-slots-list" class="selected-slots-list">
+                      <!-- Injected slot items -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DAILY SCHEDULER SECTION -->
+              <div id="daily-scheduler-section" class="scheduler-box hidden">
+                <div class="daily-submode-toggle">
+                  <label class="radio-inline">
+                    <input type="radio" name="daily-submode" id="daily-submode-range" value="RANGE" checked>
+                    <span>📆 انتخاب بازه پیوسته (تاریخ شروع و پایان)</span>
+                  </label>
+                  <label class="radio-inline">
+                    <input type="radio" name="daily-submode" id="daily-submode-custom" value="CUSTOM">
+                    <span>📌 انتخاب چند روز دلخواه (پراکنده / ناپیوسته)</span>
+                  </label>
+                </div>
+
+                <!-- Submode A: Continuous Range -->
+                <div id="daily-range-box" class="daily-picker-box">
+                  <div class="form-row-2">
+                    <div class="input-group">
+                      <label for="daily-start-date">تاریخ شروع:</label>
+                      <input type="date" id="daily-start-date" class="form-control">
+                    </div>
+                    <div class="input-group">
+                      <label for="daily-end-date">تاریخ پایان:</label>
+                      <input type="date" id="daily-end-date" class="form-control">
+                    </div>
+                  </div>
+                  <div class="range-summary-chip" id="range-summary-chip">
+                    <span>مدت زمان محاسبه‌شده: <strong id="daily-range-days-count">۱ روز</strong></span>
                   </div>
                 </div>
 
-                <!-- Calculated Duration Banner -->
-                <div class="calculated-duration-banner">
-                  <div class="dur-info">
-                    <span>مدت زمان محاسبه‌شده:</span>
-                    <strong id="calculated-duration-display">۲ ساعت</strong>
+                <!-- Submode B: Custom Multiple Days -->
+                <div id="daily-custom-box" class="daily-picker-box hidden">
+                  <div class="custom-day-input-row">
+                    <div class="input-group" style="flex:1;">
+                      <label for="custom-single-date">افزودن تاریخ انتخابی از تقویم:</label>
+                      <input type="date" id="custom-single-date" class="form-control">
+                    </div>
+                    <button type="button" id="btn-add-custom-date" class="btn btn-secondary">
+                      <span>➕ افزودن روز</span>
+                    </button>
                   </div>
-                  <div class="dur-type-select">
-                    <label for="booking-type">نوع محاسبه:</label>
-                    <select id="booking-type" class="form-control form-control-sm">
-                      <option value="HOURLY">تعرفه ساعتی</option>
-                      <option value="DAILY">تعرفه روزانه کامل</option>
-                    </select>
+
+                  <div class="custom-dates-list-wrap">
+                    <div class="slots-header">
+                      <strong>روزهای انتخابی:</strong>
+                      <span class="badge badge-primary" id="custom-days-badge">۰ روز</span>
+                    </div>
+                    <div id="custom-dates-chips" class="custom-dates-chips">
+                      <span class="empty-slot-msg">هنوز روزی اضافه نشده است.</span>
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                <!-- Desk Quantity (Only if Shared Desk is selected) -->
-                <div id="desk-quantity-box" class="desk-quantity-row hidden">
-                  <div>
-                    <label>تعداد صندلی مورد نیاز (از ۶۰ صندلی موجود):</label>
-                    <small>در صورت رزرو تیمی صندلی‌های کنار هم</small>
-                  </div>
-                  <div class="cat-stepper">
-                    <button type="button" class="btn-step" id="btn-desk-minus">−</button>
-                    <span class="step-value" id="desk-count-display">۱</span>
-                    <button type="button" class="btn-step" id="btn-desk-plus">+</button>
-                  </div>
+              <!-- Desk Quantity (Only if Shared Desk is selected) -->
+              <div id="desk-quantity-box" class="desk-quantity-row hidden">
+                <div>
+                  <label>تعداد صندلی مورد نیاز (از ۶۰ صندلی موجود):</label>
+                  <small>در صورت رزرو تیمی صندلی‌های کنار هم</small>
                 </div>
-
-                <!-- Daily Days Count (If Daily Mode is Active) -->
-                <div id="daily-duration-box" class="input-group hidden" style="margin-top:0.75rem;">
-                  <label for="daily-days-input">تعداد روزهای رزرو (۱ الی ۳۰ روز):</label>
-                  <input type="number" id="daily-days-input" class="form-control" min="1" max="30" value="1">
+                <div class="cat-stepper">
+                  <button type="button" class="btn-step" id="btn-desk-minus">−</button>
+                  <span class="step-value" id="desk-count-display">۱</span>
+                  <button type="button" class="btn-step" id="btn-desk-plus">+</button>
                 </div>
               </div>
             </div>
@@ -265,17 +358,20 @@
             </div>
           </div>
 
-          <!-- Step 3: Catering & Coffee Selection -->
-          <div class="config-card">
-            <div class="config-card-header">
-              <span class="step-num">۳</span>
-              <div>
-                <h3>تشریفات و پذیرایی کافه</h3>
-                <small>پکیج‌های جلسات و نوشیدنی‌های تخصصی باریستا</small>
+          <!-- Step 3: Catering & Coffee Selection (Add-on Mode) -->
+          <div class="config-card" id="catering-addon-box">
+            <div class="config-card-header catering-collapsible-header" id="catering-toggle-header" role="button" tabindex="0">
+              <div style="display:flex; align-items:center; gap:0.65rem;">
+                <span class="step-num">۳</span>
+                <div>
+                  <h3>تشریفات و پذیرایی کافه <span class="addon-badge">ارزش افزوده / اختیاری</span></h3>
+                  <small>پکیج‌های جلسات و نوشیدنی‌های تخصصی باریستا با تحویل اختصاصی</small>
+                </div>
               </div>
+              <span class="accordion-arrow" id="catering-toggle-icon">▼</span>
             </div>
 
-            <div class="config-card-body">
+            <div class="config-card-body" id="catering-booking-body">
               <div class="catering-select-list" id="catering-booking-list">
                 <!-- Populated dynamically -->
               </div>
@@ -662,6 +758,6 @@
   <!-- Toast Notification Stack -->
   <div id="toast-container" class="toast-stack-container"></div>
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=2.0.0"></script>
 </body>
 </html>
