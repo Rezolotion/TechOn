@@ -8,7 +8,10 @@ export class AnalyticsService {
   }
 
   getFinancialSummary() {
-    const reservations = this.reservationService.reservations.filter(r => r.status !== 'CANCELLED');
+    const rawList = this.reservationService.getReservations 
+      ? this.reservationService.getReservations() 
+      : (this.reservationService.reservations || []);
+    const reservations = (rawList || []).filter(r => r.status !== 'CANCELLED');
     
     let totalRevenue = 0;
     let spaceRevenue = 0;

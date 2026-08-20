@@ -263,6 +263,14 @@ export class ReservationService {
     return { reservation: savedReservation, invoice };
   }
 
+  get reservations() {
+    return this.resRepo ? this.resRepo.findAll() : [];
+  }
+
+  get auditLogs() {
+    return this.auditRepo ? this.auditRepo.getRecentLogs(100) : [];
+  }
+
   getReservations(filterPhone = null) {
     if (filterPhone) {
       return this.resRepo.findByPhone(filterPhone);
