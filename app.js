@@ -922,6 +922,27 @@ function setupSchedulingEngine() {
     endSelect.value = '18:00';
   }
 
+  // Time Chips Logic
+  const timeChips = document.querySelectorAll('.time-chip');
+  const customTimeBox = document.getElementById('custom-time-selectors');
+  timeChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      timeChips.forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      
+      const start = chip.dataset.start;
+      const end = chip.dataset.end;
+      
+      if (start === 'custom') {
+        customTimeBox.style.display = 'block';
+      } else {
+        customTimeBox.style.display = 'none';
+        if (startSelect) startSelect.value = start;
+        if (endSelect) endSelect.value = end;
+      }
+    });
+  });
+
   // Add Time Slot to Basket
   const btnAddSlot = document.getElementById('btn-add-time-slot');
   btnAddSlot?.addEventListener('click', () => {
@@ -969,12 +990,16 @@ function setupSchedulingEngine() {
   const customRadio = document.getElementById('daily-submode-custom');
   const rangeBox = document.getElementById('daily-range-box');
   const customBox = document.getElementById('daily-custom-box');
+  const lblRange = document.getElementById('lbl-range');
+  const lblCustom = document.getElementById('lbl-custom');
 
   rangeRadio?.addEventListener('change', () => {
     if (rangeRadio.checked) {
       state.dailyMode = 'RANGE';
       rangeBox?.classList.remove('hidden');
       customBox?.classList.add('hidden');
+      lblRange?.classList.add('active');
+      lblCustom?.classList.remove('active');
       updatePriceBreakdown();
     }
   });
@@ -984,6 +1009,8 @@ function setupSchedulingEngine() {
       state.dailyMode = 'CUSTOM';
       customBox?.classList.remove('hidden');
       rangeBox?.classList.add('hidden');
+      lblCustom?.classList.add('active');
+      lblRange?.classList.remove('active');
       updatePriceBreakdown();
     }
   });
