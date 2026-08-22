@@ -3,412 +3,779 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>TechOn | سامانه رزرواسیون فضاهای کاری</title>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=3.0.0">
+  <title>TechOn | سامانه هوشمند رزرواسیون فضاهای کاری، سالن همایش و کافه</title>
+  <meta name="description" content="رزرواسیون آنلاین ۶۰ صندلی اشتراکی، ۴ اتاق کار تیمی، ۱ اتاق جلسه و ۱ سالن همایش ۷۰ نفره همراه با تشریفات باریستا تکان">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=4.0.0">
 </head>
 <body>
-  <!-- Header -->
+
+  <!-- Ambient Background Lighting -->
+  <div class="ambient-glow glow-primary"></div>
+  <div class="ambient-glow glow-accent"></div>
+
+  <!-- Header Navigation -->
   <header class="app-header">
     <div class="header-container">
       <div class="brand-box">
-        <div class="brand-icon-wrap">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#brandGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <defs>
-              <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#6C63FF" />
-                <stop offset="100%" stop-color="#00C9A7" />
-              </linearGradient>
-            </defs>
+        <div class="brand-logo-badge">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             <polyline points="9 22 9 12 15 12 15 22"></polyline>
           </svg>
         </div>
-        <div class="brand-title">تکـان <span class="brand-pill">BETA</span></div>
+        <div class="brand-text">
+          <span class="brand-title">تکـان <span class="brand-badge">TechOn</span></span>
+          <span class="brand-sub">سامانه هوشمند فضا و رویداد</span>
+        </div>
       </div>
 
-      <nav class="desktop-nav-tabs" style="display:none;"></nav> <!-- Hidden on mobile, controlled by JS -->
+      <!-- Desktop Nav Tabs -->
+      <nav class="desktop-nav-tabs" id="desktop-nav-tabs">
+        <button type="button" class="nav-tab-btn active" data-tab="booking" id="d-tab-booking">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          <span>رزرواسیون فضا</span>
+        </button>
+        <button type="button" class="nav-tab-btn" data-tab="catering" id="d-tab-catering">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line></svg>
+          <span>منوی کافه</span>
+        </button>
+        <button type="button" class="nav-tab-btn" data-tab="my-bookings" id="d-tab-my-bookings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <span>سفارش‌های من</span>
+        </button>
+        <button type="button" class="nav-tab-btn hidden" data-tab="admin" id="d-tab-admin">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span id="d-tab-admin-title">پنل مدیریت</span>
+        </button>
+        <button type="button" class="nav-tab-btn hidden" data-tab="analytics" id="d-tab-analytics">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span>داشبورد مالی</span>
+        </button>
+      </nav>
 
+      <!-- Header Actions -->
       <div class="header-actions">
-        <button class="icon-action-btn" id="theme-toggle" title="تغییر تم">
+        <button type="button" class="theme-toggle-btn" id="theme-toggle" title="تغییر حالت شب و روز">
           <span id="theme-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           </span>
         </button>
-        <button class="user-profile-btn" id="btn-open-user-menu">
-          <div class="user-avatar" id="current-user-avatar">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+
+        <button type="button" class="user-profile-pill" id="btn-open-user-menu" title="تغییر نقش کاربری">
+          <div class="user-avatar-badge" id="current-user-avatar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           </div>
-          <div class="user-details">
+          <div class="user-text-info">
             <span class="user-name" id="current-user-name">مریم رضایی</span>
-            <span class="user-badge" id="current-user-role-badge">مشتری</span>
+            <span class="user-role-tag" id="current-user-role-badge">مشتری</span>
           </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Role Banner -->
+  <!-- Role Context Notice (Shown for Admin/Operator) -->
   <div class="role-alert-banner hidden" id="role-perspective-banner">
-    <div class="alert-text" id="role-context-text"></div>
+    <div class="alert-content">
+      <span class="role-icon">🛡️</span>
+      <span id="role-context-text">در حال بارگذاری نقش...</span>
+    </div>
   </div>
 
+  <!-- Main Viewport -->
   <main class="app-main">
-    
-    <!-- ================= TAB 1: BOOKING ================= -->
+
+    <!-- =========================================================================
+         TAB 1: BOOKING STUDIO
+         ========================================================================= -->
     <section id="tab-booking" class="view-panel active">
       
-      <!-- Flow Switcher (Coworking / Hall) as Pills -->
-      <div class="service-flow-selector">
-        <button type="button" class="service-flow-btn active" id="btn-flow-cowork" data-flow="COWORKING">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M9 4v16"/><path d="M15 4v16"/></svg>
-          <div class="flow-text">صندلی و اتاق</div>
-        </button>
-        <button type="button" class="service-flow-btn" id="btn-flow-hall" data-flow="HALL">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-          <div class="flow-text">سالن همایش</div>
-        </button>
+      <!-- Hero Headline & Service Flow Switcher (Coworking vs Hall) -->
+      <div class="booking-hero-section">
+        <div class="hero-titles">
+          <h1 class="hero-main-title">رزرو آنلاین فضاهای نوآوری و رویداد <span class="gradient-text">تکـان</span></h1>
+          <p class="hero-subtitle">۶۰ صندلی کار اشتراکی، ۴ اتاق کار تیمی، ۱ اتاق جلسه و ۱ سالن همایش با تشریفات باریستا</p>
+        </div>
+
+        <!-- Flow Selector Segmented Tabs -->
+        <div class="service-flow-selector">
+          <button type="button" class="service-flow-btn active" id="btn-flow-cowork" data-flow="COWORKING">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>فضای کار اشتراکی و جلسات</span>
+            <span class="flow-pill-tag">سرویس اصلی</span>
+          </button>
+
+          <button type="button" class="service-flow-btn" id="btn-flow-hall" data-flow="HALL">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            <span>سالن همایش و رویدادها</span>
+            <span class="flow-pill-tag tag-b2b">ظرفیت ۷۰ نفر</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Spaces -->
+      <!-- Spaces Showcase Grid -->
       <div class="spaces-section">
         <div class="section-header-flex">
           <div>
-            <h2 id="space-section-heading">انتخاب فضا</h2>
-            <p id="space-section-subheading" style="color:var(--text-muted); font-size:14px; margin-top:4px;">فضای مورد نظر خود را انتخاب کنید</p>
+            <h2 class="section-heading" id="space-section-heading">انتخاب فضای مورد نظر</h2>
+            <p class="section-subheading" id="space-section-subheading">برای مشاهده جزئیات و نرخ، روی کارت فضا کلیک فرمایید</p>
           </div>
-          <div class="rate-toggle-container">
-            <button type="button" class="rate-btn active" id="rate-view-hourly">ساعتی</button>
-            <button type="button" class="rate-btn" id="rate-view-daily">روزانه</button>
+          
+          <div class="rate-toggle-pill">
+            <button type="button" class="rate-btn active" id="rate-view-hourly">نرخ ساعتی</button>
+            <button type="button" class="rate-btn" id="rate-view-daily">نرخ روزانه</button>
           </div>
         </div>
 
-        <div class="spaces-scroll-wrapper" id="spaces-cards-grid">
-          <!-- Injected by JS -->
+        <!-- Space Cards Grid (Populated dynamically with photo visuals) -->
+        <div class="spaces-cards-grid" id="spaces-cards-grid">
+          <!-- Injected by JavaScript -->
         </div>
       </div>
 
+      <!-- Two-Column Interactive Booking Wizard -->
       <div class="studio-two-column-grid">
+        
+        <!-- Left: Configuration Form -->
         <div class="studio-main-column">
-          
-          <!-- Scheduling -->
+
+          <!-- Step 1: Scheduling Engine (Hourly Multi-Slot / Daily) -->
           <div class="config-card">
             <div class="config-card-header">
-              <h3>زمان‌بندی رزرو</h3>
+              <div class="step-badge">۱</div>
+              <div>
+                <h3>زمان‌بندی و انتخاب بازه‌های زمانی</h3>
+                <small>روز را از تقویم جلالی مشخص کرده و بازه‌های دلخواه را به سبد رزرو اضافه فرمایید</small>
+              </div>
             </div>
-            
+
             <div class="config-card-body">
+              
               <!-- Scheduling Mode Selector -->
-              <div class="rate-toggle-container" style="margin-bottom:24px; width:fit-content;">
-                <button type="button" class="rate-btn active" id="btn-mode-hourly" data-mode="HOURLY">ساعتی</button>
-                <button type="button" class="rate-btn" id="btn-mode-daily" data-mode="DAILY">روزانه</button>
+              <div class="scheduling-mode-tabs">
+                <button type="button" class="mode-tab-btn active" id="btn-mode-hourly" data-mode="HOURLY">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>رزرو ساعتی (تک یا چند بازه زمانی)</span>
+                </button>
+                <button type="button" class="mode-tab-btn" id="btn-mode-daily" data-mode="DAILY">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>رزرو روزانه (پیوسته / پراکنده)</span>
+                </button>
               </div>
 
-              <!-- Jalali Calendar Widget -->
-              <div class="jalali-calendar-widget" id="jalali-calendar-widget">
+              <!-- Interactive Jalali Calendar -->
+              <div class="jalali-calendar-box" id="jalali-calendar-widget">
                 <div class="calendar-header-nav">
                   <button type="button" class="cal-nav-btn" id="btn-cal-prev">‹ ماه قبل</button>
                   <strong class="cal-month-title" id="cal-month-title">مرداد ۱۴۰۵</strong>
                   <button type="button" class="cal-nav-btn" id="btn-cal-next">ماه بعد ›</button>
                 </div>
+
                 <div class="calendar-weekdays-row">
                   <span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span>
                 </div>
-                <div class="calendar-days-matrix" id="cal-days-matrix"></div>
-                <div class="selected-date-callout" style="display:none;">
+
+                <div class="calendar-days-matrix" id="cal-days-matrix">
+                  <!-- Generated day cells -->
+                </div>
+
+                <div class="selected-date-callout">
+                  <span class="date-pin-icon">📌</span>
+                  <span>تاریخ انتخاب‌شده در تقویم:</span>
                   <strong id="selected-jalali-date-text">سه‌شنبه ۲۸ مرداد ۱۴۰۵</strong>
                 </div>
               </div>
 
-              <!-- HOURLY MULTI-SLOT SCHEDULER (REDESIGNED) -->
+              <!-- HOURLY MULTI-SLOT SCHEDULER -->
               <div id="hourly-scheduler-section" class="scheduler-box">
-                <label style="font-size:14px; font-weight:600;">انتخاب بازه زمانی:</label>
-                
-                <div class="time-chips-row" id="time-chips-container">
-                  <!-- These will be styled chips acting as quick selectors -->
-                  <button type="button" class="time-chip" data-start="09:00" data-end="13:00">صبح ۹-۱۳</button>
-                  <button type="button" class="time-chip" data-start="13:00" data-end="18:00">عصر ۱۳-۱۸</button>
-                  <button type="button" class="time-chip" data-start="18:00" data-end="21:00">شب ۱۸-۲۱</button>
-                  <button type="button" class="time-chip" data-start="09:00" data-end="21:00">تمام‌وقت ۹-۲۱</button>
-                  <button type="button" class="time-chip" data-start="custom" id="btn-custom-time">سفارشی ⚙️</button>
-                </div>
+                <div class="time-picker-panel">
+                  <div class="time-chips-header">
+                    <label>بازه زمانی پیشنهادی یا دلخواه:</label>
+                  </div>
+                  
+                  <div class="time-chips-row" id="time-chips-container">
+                    <button type="button" class="time-chip" data-start="09:00" data-end="13:00">🌅 صبح (۹ تا ۱۳)</button>
+                    <button type="button" class="time-chip selected" data-start="13:00" data-end="18:00">☀️ عصر (۱۳ تا ۱۸)</button>
+                    <button type="button" class="time-chip" data-start="18:00" data-end="21:00">🌙 شب (۱۸ تا ۲۱)</button>
+                    <button type="button" class="time-chip" data-start="09:00" data-end="21:00">⚡ تمام‌وقت (۹ تا ۲۱)</button>
+                    <button type="button" class="time-chip" data-start="custom" id="btn-custom-time">⚙️ ساعت سفارشی</button>
+                  </div>
 
-                <!-- Hidden native selects to maintain JS compatibility -->
-                <div id="custom-time-selectors" style="display:none; margin-top:16px;">
-                  <div class="form-row-2">
-                    <div class="input-group">
-                      <label for="time-start-select">ساعت شروع:</label>
-                      <select id="time-start-select" class="form-control"></select>
-                    </div>
-                    <div class="input-group">
-                      <label for="time-end-select">ساعت پایان:</label>
-                      <select id="time-end-select" class="form-control"></select>
+                  <!-- Custom Hour Selectors -->
+                  <div id="custom-time-selectors" class="custom-time-box" style="display:none;">
+                    <div class="form-row-2">
+                      <div class="input-group">
+                        <label for="time-start-select">⏰ ساعت شروع:</label>
+                        <select id="time-start-select" class="form-control"></select>
+                      </div>
+                      <div class="input-group">
+                        <label for="time-end-select">🏁 ساعت پایان:</label>
+                        <select id="time-end-select" class="form-control"></select>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <button type="button" id="btn-add-time-slot" class="btn-checkout-primary" style="padding:10px; font-size:14px; margin-top:16px;">
-                  + افزودن این زمان به سبد رزرو
-                </button>
+                  <button type="button" id="btn-add-time-slot" class="btn-add-slot-action">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>افزودن این بازه زمانی به سبد رزرو</span>
+                  </button>
 
-                <div class="selected-slots-container" style="margin-top:24px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <strong style="font-size:14px;">بازه‌های انتخابی:</strong>
-                    <span id="slots-total-badge" class="badge-primary" style="font-size:12px; font-weight:700;">۰ ساعت</span>
+                  <!-- Selected Slots Basket -->
+                  <div class="selected-slots-container">
+                    <div class="slots-basket-header">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                        <strong>بازه‌های زمانی انتخابی شما:</strong>
+                      </div>
+                      <span class="badge-total-hours" id="slots-total-badge">۰ ساعت</span>
+                    </div>
+                    <div id="selected-slots-list" class="selected-slots-list">
+                      <!-- Injected slots -->
+                    </div>
                   </div>
-                  <div id="selected-slots-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+
                 </div>
               </div>
 
               <!-- DAILY SCHEDULER SECTION -->
               <div id="daily-scheduler-section" class="scheduler-box hidden">
-                <div class="rate-toggle-container" style="margin-bottom:16px; width:fit-content;">
-                  <label><input type="radio" name="daily-submode" id="daily-submode-range" value="RANGE" checked style="display:none;"> <span class="rate-btn active" id="lbl-range">پیوسته</span></label>
-                  <label><input type="radio" name="daily-submode" id="daily-submode-custom" value="CUSTOM" style="display:none;"> <span class="rate-btn" id="lbl-custom">پراکنده</span></label>
+                <div class="daily-mode-radios">
+                  <label class="radio-card">
+                    <input type="radio" name="daily-submode" id="daily-submode-range" value="RANGE" checked>
+                    <div class="radio-card-content">
+                      <strong>📆 بازه پیوسته</strong>
+                      <small>انتخاب تاریخ شروع و پایان</small>
+                    </div>
+                  </label>
+                  <label class="radio-card">
+                    <input type="radio" name="daily-submode" id="daily-submode-custom" value="CUSTOM">
+                    <div class="radio-card-content">
+                      <strong>📌 روزهای پراکنده</strong>
+                      <small>انتخاب چند روز دلخواه از تقویم</small>
+                    </div>
+                  </label>
                 </div>
 
-                <div id="daily-range-box">
+                <!-- Submode A: Range -->
+                <div id="daily-range-box" class="daily-picker-panel">
                   <div class="form-row-2">
                     <div class="input-group">
-                      <label for="daily-start-date">از تاریخ:</label>
+                      <label for="daily-start-date">تاریخ شروع:</label>
                       <input type="date" id="daily-start-date" class="form-control">
                     </div>
                     <div class="input-group">
-                      <label for="daily-end-date">تا تاریخ:</label>
+                      <label for="daily-end-date">تاریخ پایان:</label>
                       <input type="date" id="daily-end-date" class="form-control">
                     </div>
                   </div>
-                  <div style="font-size:14px; font-weight:600; margin-top:8px;" id="daily-range-days-count">۱ روز</div>
+                  <div class="range-summary-box">
+                    <span>مدت زمان محاسبه‌شده: <strong id="daily-range-days-count">۱ روز</strong></span>
+                  </div>
                 </div>
 
-                <div id="daily-custom-box" class="hidden">
-                  <div class="form-row-2">
-                    <div class="input-group">
-                      <label for="custom-single-date">انتخاب روز:</label>
+                <!-- Submode B: Custom Days -->
+                <div id="daily-custom-box" class="daily-picker-panel hidden">
+                  <div class="custom-day-input-row">
+                    <div class="input-group" style="flex:1;">
+                      <label for="custom-single-date">افزودن تاریخ از تقویم:</label>
                       <input type="date" id="custom-single-date" class="form-control">
                     </div>
-                    <div class="input-group" style="justify-content:flex-end;">
-                      <button type="button" id="btn-add-custom-date" class="btn-checkout-primary" style="padding:12px; margin:0;">+ افزودن روز</button>
-                    </div>
+                    <button type="button" id="btn-add-custom-date" class="btn-add-day">
+                      <span>➕ افزودن روز</span>
+                    </button>
                   </div>
-                  <div style="margin-top:16px;">
-                    <strong style="font-size:14px;">روزهای انتخابی: <span id="custom-days-badge">۰ روز</span></strong>
-                    <div id="custom-dates-chips" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;"></div>
+
+                  <div class="custom-dates-list-wrap">
+                    <div class="slots-basket-header">
+                      <strong>روزهای انتخابی:</strong>
+                      <span class="badge-total-hours" id="custom-days-badge">۰ روز</span>
+                    </div>
+                    <div id="custom-dates-chips" class="custom-dates-chips">
+                      <span class="empty-slot-msg">هنوز تاریخی اضافه نشده است.</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Desk Quantity -->
-              <div id="desk-quantity-box" class="hidden" style="margin-top:24px; display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:12px; border-radius:var(--radius-sm);">
-                <label style="font-size:14px; font-weight:600;">تعداد صندلی:</label>
-                <div class="cat-stepper">
+              <!-- Desk Quantity (Only for Shared Desk) -->
+              <div id="desk-quantity-box" class="desk-stepper-card hidden">
+                <div class="desk-stepper-info">
+                  <strong>تعداد صندلی مورد نیاز (از ۶۰ صندلی موجود):</strong>
+                  <small>در صورت رزرو تیمی صندلی‌های مجاور هم</small>
+                </div>
+                <div class="desk-stepper-controls">
                   <button type="button" class="btn-step" id="btn-desk-minus">−</button>
                   <span class="step-value" id="desk-count-display">۱</span>
                   <button type="button" class="btn-step" id="btn-desk-plus">+</button>
                 </div>
               </div>
+
             </div>
           </div>
 
-          <!-- Conference Hall Addons -->
+          <!-- Step 2: Conference Hall Options (Conditional for Hall) -->
           <div id="hall-extra-fields" class="config-card hidden">
-            <div class="config-card-header"><h3>تجهیزات سالن همایش</h3></div>
+            <div class="config-card-header">
+              <div class="step-badge">۲</div>
+              <div>
+                <h3>تجهیزات تخصصی سالن همایش تکـان</h3>
+                <small>استیج، ضبط چنددوربینه و مدیریت صوتی و تصویری رویداد</small>
+              </div>
+            </div>
+
             <div class="config-card-body">
-              <div class="input-group">
-                <label for="event-topic">عنوان رویداد:</label>
-                <input type="text" id="event-topic" class="form-control" placeholder="مثال: کارگاه آموزش سئو">
+              <div class="form-row-2">
+                <div class="input-group">
+                  <label for="event-topic">عنوان و محور رویداد:</label>
+                  <input type="text" id="event-topic" class="form-control" placeholder="مثال: رویداد تخصصی هوش مصنوعی">
+                </div>
+                <div class="input-group">
+                  <label for="audience-count">تعداد شرکت‌کنندگان (حداکثر ۷۰ نفر):</label>
+                  <input type="number" id="audience-count" class="form-control" min="1" max="70" value="45">
+                </div>
               </div>
-              <div class="input-group">
-                <label for="audience-count">تعداد شرکت‌کنندگان:</label>
-                <input type="number" id="audience-count" class="form-control" min="1" max="70" value="45">
-              </div>
-              <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
-                <label style="display:flex; align-items:center; gap:8px; background:var(--bg-color); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-color); cursor:pointer;">
+
+              <div class="addons-grid">
+                <label class="addon-card">
                   <input type="checkbox" id="equip-recording" value="recording">
-                  <div style="flex:1;">
-                    <strong style="font-size:14px; display:block;">ضبط استودیویی چند دوربینه</strong>
-                    <span style="font-size:12px; color:var(--text-muted);">+ ۳۰۰,۰۰۰ تومان</span>
+                  <div class="addon-content">
+                    <div class="addon-title-flex">
+                      <strong>🎥 ضبط استودیویی چند دوربینه</strong>
+                      <span class="addon-price">+ ۳۰۰,۰۰۰ تومان</span>
+                    </div>
+                    <small>فیلم‌برداری با تجهیزات حرفه‌ای و تدوین راش جهت بازنشر</small>
                   </div>
                 </label>
-                <label style="display:flex; align-items:center; gap:8px; background:var(--bg-color); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-color); cursor:pointer;">
+
+                <label class="addon-card">
                   <input type="checkbox" id="equip-sound" value="sound_system">
-                  <div style="flex:1;">
-                    <strong style="font-size:14px; display:block;">سیستم صوتی پیشرفته</strong>
-                    <span style="font-size:12px; color:var(--text-muted);">+ ۲۰۰,۰۰۰ تومان</span>
+                  <div class="addon-content">
+                    <div class="addon-title-flex">
+                      <strong>🔊 سیستم صوتی و میکروفون بیسیم</strong>
+                      <span class="addon-price">+ ۲۰۰,۰۰۰ تومان</span>
+                    </div>
+                    <small>میکروفون‌های یقه‌ای و دستی به همراه مدیریت صوتی استیج</small>
                   </div>
                 </label>
               </div>
             </div>
           </div>
 
-          <!-- Catering -->
+          <!-- Step 3: Catering & Cafe Add-ons -->
           <div class="config-card" id="catering-addon-box">
-            <div class="config-card-header" id="catering-toggle-header" style="cursor:pointer; justify-content:space-between;">
-              <h3>تشریفات و کافه <span style="font-size:10px; background:var(--primary); color:white; padding:2px 6px; border-radius:4px; margin-right:8px;">اختیاری</span></h3>
-              <span id="catering-toggle-icon">▼</span>
+            <div class="config-card-header catering-accordion-header" id="catering-toggle-header" role="button" tabindex="0">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div class="step-badge">۳</div>
+                <div>
+                  <h3>تشریفات و پذیرایی کافه تکان <span class="badge-optional">اختیاری / ارزش افزوده</span></h3>
+                  <small>پکیج‌های جلسات، قهوه تخصصی باریستا، میان‌وعده تازه</small>
+                </div>
+              </div>
+              <span class="accordion-arrow" id="catering-toggle-icon">▼</span>
             </div>
+
             <div class="config-card-body" id="catering-booking-body">
-              <div id="catering-booking-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+              <div class="catering-select-grid" id="catering-booking-list">
+                <!-- Populated dynamically -->
+              </div>
             </div>
           </div>
 
-          <!-- Customer Info -->
+          <!-- Step 4: Customer Information -->
           <div class="config-card">
-            <div class="config-card-header"><h3>مشخصات شما</h3></div>
+            <div class="config-card-header">
+              <div class="step-badge">۴</div>
+              <div>
+                <h3>اطلاعات متقاضی رزرو</h3>
+                <small>پیامک تاییدیه و لینک رسمی فاکتور برای شما ارسال می‌گردد</small>
+              </div>
+            </div>
+
             <div class="config-card-body">
               <div class="form-row-2">
                 <div class="input-group">
                   <label for="cust-name">نام و نام خانوادگی:</label>
-                  <input type="text" id="cust-name" class="form-control" required>
+                  <input type="text" id="cust-name" class="form-control" placeholder="مریم رضایی" required>
                 </div>
                 <div class="input-group">
                   <label for="cust-phone">شماره همراه:</label>
-                  <input type="tel" id="cust-phone" class="form-control" required>
+                  <input type="tel" id="cust-phone" class="form-control" placeholder="۰۹۱۲۴۴۴۴۴۴۴" required>
                 </div>
               </div>
               <div class="input-group">
-                <label for="cust-email">ایمیل (اختیاری):</label>
-                <input type="email" id="cust-email" class="form-control">
+                <label for="cust-email">پست الکترونیک (اختیاری):</label>
+                <input type="email" id="cust-email" class="form-control" placeholder="reza@example.com">
               </div>
             </div>
           </div>
 
         </div>
 
-        <!-- Sidebar / Invoice -->
+        <!-- Right: Floating Glassmorphism Invoice Card -->
         <div class="studio-sidebar-column">
           <div class="glass-invoice-card">
-            <div class="invoice-title-wrap">
-              <span class="receipt-icon">🧾</span>
-              <div>
-                <h3>پیش‌فاکتور شفاف</h3>
-                <span style="font-size:12px; color:var(--text-muted);">محاسبه آنی</span>
+            <div class="invoice-card-header">
+              <div class="invoice-title-flex">
+                <div class="invoice-icon">🧾</div>
+                <div>
+                  <h3>پیش‌فاکتور شفاف</h3>
+                  <small>محاسبه آنی بر اساس ساعت دقیق</small>
+                </div>
               </div>
-            </div>
-            
-            <div class="invoice-row">
-              <span id="summary-space-name">رزرو فضا:</span>
-              <strong id="summary-space-fee">۰ تومان</strong>
-            </div>
-            <div class="invoice-row">
-              <span>تجهیزات جانبی:</span>
-              <strong id="summary-equip-fee">۰ تومان</strong>
-            </div>
-            <div class="invoice-row">
-              <span>کافه و تشریفات:</span>
-              <strong id="summary-catering-fee">۰ تومان</strong>
+              <span class="badge-live-calc">🟢 آنلاین</span>
             </div>
 
-            <div style="margin-top:16px;">
-              <label for="promo-input" style="font-size:12px; font-weight:600; margin-bottom:4px; display:block;">کد تخفیف:</label>
-              <div class="promo-input-row">
-                <input type="text" id="promo-input" class="form-control" style="padding:8px 12px; flex:1;" placeholder="مثال: TECHON">
-                <button type="button" id="btn-apply-promo" class="btn-apply-code">ثبت</button>
+            <div class="invoice-details-list">
+              <div class="invoice-item-row">
+                <span class="item-label" id="summary-space-name">رزرو فضا:</span>
+                <strong class="item-value" id="summary-space-fee">۰ تومان</strong>
               </div>
-              <div id="promo-feedback" style="font-size:12px; margin-top:4px;"></div>
-            </div>
 
-            <div class="invoice-row hidden" id="summary-discount-row" style="margin-top:12px;">
-              <span>تخفیف ویژه:</span>
-              <strong class="text-emerald" id="summary-discount-amount">- ۰ تومان</strong>
-            </div>
+              <div class="invoice-item-row">
+                <span class="item-label">تجهیزات و خدمات جانبی:</span>
+                <strong class="item-value" id="summary-equip-fee">۰ تومان</strong>
+              </div>
 
-            <div class="invoice-divider-line"></div>
-            
-            <div class="invoice-total-row">
-              <span>مبلغ کل قابل پرداخت:</span>
-              <strong class="final-total-amount" id="summary-final-total">۰ تومان</strong>
-            </div>
+              <div class="invoice-item-row">
+                <span class="item-label">پذیرایی کافه و تشریفات:</span>
+                <strong class="item-value" id="summary-catering-fee">۰ تومان</strong>
+              </div>
 
-            <button type="button" id="btn-submit-booking" class="btn-checkout-primary">
-              تایید و ثبت سفارش
-            </button>
+              <!-- Promo Code Input -->
+              <div class="promo-container">
+                <label for="promo-input">🎟️ کد تخفیف سازمانی یا ویژه:</label>
+                <div class="promo-input-flex">
+                  <input type="text" id="promo-input" class="form-control promo-input" placeholder="TECHON2026">
+                  <button type="button" id="btn-apply-promo" class="btn-apply-promo">اعمال کد</button>
+                </div>
+                <div id="promo-feedback" class="promo-feedback-msg"></div>
+              </div>
+
+              <div class="invoice-item-row discount-highlight hidden" id="summary-discount-row">
+                <span class="item-label">تخفیف ویژه:</span>
+                <strong class="item-value text-emerald" id="summary-discount-amount">- ۰ تومان</strong>
+              </div>
+
+              <div class="invoice-divider"></div>
+
+              <div class="invoice-total-highlight">
+                <div>
+                  <span class="total-caption">مبلغ کل قابل پرداخت:</span>
+                  <small class="total-hint">شامل تمام بازه‌ها و خدمات انتخابی</small>
+                </div>
+                <strong class="final-total-price" id="summary-final-total">۰ تومان</strong>
+              </div>
+
+              <button type="button" id="btn-submit-booking" class="btn-submit-booking-action">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                <span>ثبت نهایی و صدور فاکتور رسمی</span>
+              </button>
+
+              <div class="security-guarantee-note">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>مجهز به سیستم هوشمند ضد تداخل زمانی</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =========================================================================
+         TAB 2: CATERING MENU
+         ========================================================================= -->
+    <section id="tab-catering" class="view-panel">
+      <div class="section-banner">
+        <h2>☕ منوی اختصاصی کافه و بار تشریفات تکـان</h2>
+        <p>نوشیدنی‌های ۱۰۰٪ عربیکا، نوشیدنی‌های سرد دم‌آوری تخصصی، کروسان تازه و پکیج‌های جلسات</p>
+      </div>
+
+      <div class="category-pills-bar" id="catering-filter-tabs">
+        <button type="button" class="filter-pill-btn active" data-filter="ALL">همه موارد</button>
+        <button type="button" class="filter-pill-btn" data-filter="PACKAGE">🎁 پکیج‌های همایش</button>
+        <button type="button" class="filter-pill-btn" data-filter="BEVERAGE_HOT">☕ نوشیدنی گرم</button>
+        <button type="button" class="filter-pill-btn" data-filter="BEVERAGE_COLD">🧃 نوشیدنی سرد</button>
+        <button type="button" class="filter-pill-btn" data-filter="SNACK">🥐 اسنک و میان‌وعده</button>
+      </div>
+
+      <div class="catering-catalog-grid" id="catering-catalog-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         TAB 3: MY ORDERS & INVOICES
+         ========================================================================= -->
+    <section id="tab-my-bookings" class="view-panel">
+      <div class="section-banner">
+        <h2>📄 سفارش‌ها و پیگیری رزروهای من</h2>
+        <p>مشاهده وضعیت لحظه‌ای رزروها، دانلود رسید و چاپ فاکتور رسمی</p>
+      </div>
+
+      <div class="data-table-card">
+        <div class="table-scroll">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>شناسه رزرو</th>
+                <th>عنوان فضا</th>
+                <th>زمان‌بندی</th>
+                <th>مبلغ کل</th>
+                <th>وضعیت</th>
+                <th>رسید</th>
+              </tr>
+            </thead>
+            <tbody id="my-reservations-tbody">
+              <!-- Injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         TAB 4: ADMIN CMS & OPERATOR PANEL
+         ========================================================================= -->
+    <section id="tab-admin" class="view-panel">
+      <div class="section-banner">
+        <h2 id="admin-panel-title">🛠️ پنل مدیریت و بررسی رویدادها</h2>
+        <p id="admin-panel-desc">مدیریت ۶۰ صندلی، ۴ اتاق اختصاصی، ۱ اتاق جلسه و ۱ سالن همایش</p>
+      </div>
+
+      <div class="admin-grid-layout">
+        <div class="data-table-card">
+          <div class="card-title-bar">
+            <h3>📋 فهرست رزروها</h3>
+            <button type="button" class="btn-refresh-action" id="btn-refresh-reservations">🔄 به‌روزرسانی</button>
+          </div>
+          <div class="table-scroll">
+            <table class="styled-table">
+              <thead>
+                <tr>
+                  <th>شناسه</th>
+                  <th>فضا</th>
+                  <th>متقاضی</th>
+                  <th>ساعت حضور</th>
+                  <th>مبلغ</th>
+                  <th>وضعیت</th>
+                  <th>عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="reservations-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="admin-side-tools">
+          <div class="tool-box-card" id="admin-catering-box">
+            <h4>☕ افزودن آیتم جدید به کافه</h4>
+            <form id="form-add-catering">
+              <div class="input-group">
+                <label for="new-cat-name">نام آیتم:</label>
+                <input type="text" id="new-cat-name" class="form-control" placeholder="اسپرسو سینگل" required>
+              </div>
+              <div class="form-row-2">
+                <div class="input-group">
+                  <label for="new-cat-cat">دسته:</label>
+                  <select id="new-cat-cat" class="form-control">
+                    <option value="PACKAGE">پکیج پذیرایی</option>
+                    <option value="BEVERAGE_HOT">نوشیدنی گرم</option>
+                    <option value="BEVERAGE_COLD">نوشیدنی سرد</option>
+                    <option value="SNACK">اسنک</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label for="new-cat-price">قیمت (تومان):</label>
+                  <input type="number" id="new-cat-price" class="form-control" min="5000" step="5000" value="55000" required>
+                </div>
+              </div>
+              <button type="submit" class="btn-admin-submit">➕ ثبت در منو</button>
+            </form>
+          </div>
+
+          <div class="tool-box-card" id="admin-promo-box">
+            <h4>🎟️ ایجاد کوپن تخفیف</h4>
+            <form id="form-add-promo">
+              <div class="input-group">
+                <label for="new-promo-code">کد تخفیف:</label>
+                <input type="text" id="new-promo-code" class="form-control" placeholder="SUMMER2026" required>
+              </div>
+              <div class="form-row-2">
+                <div class="input-group">
+                  <label for="new-promo-type">نوع:</label>
+                  <select id="new-promo-type" class="form-control">
+                    <option value="PERCENTAGE">درصدی (%)</option>
+                    <option value="FIXED">مبلغ ثابت</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label for="new-promo-val">مقدار:</label>
+                  <input type="number" id="new-promo-val" class="form-control" min="1" value="20" required>
+                </div>
+              </div>
+              <button type="submit" class="btn-admin-submit">🎟️ ایجاد کد</button>
+            </form>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 2, TAB 3, TAB 4, TAB 5 Content hidden for brevity but IDs preserved -->
-    <section id="tab-catering" class="view-panel"><div class="section-banner"><h2>کافه</h2></div><div class="category-pills-bar" id="catering-filter-tabs"></div><div class="catering-grid" id="catering-catalog-grid"></div></section>
-    
-    <section id="tab-my-bookings" class="view-panel"><div class="section-banner"><h2>سفارش‌های من</h2></div><div class="table-scroll"><table class="styled-table"><thead><tr><th>فضا</th><th>وضعیت</th></tr></thead><tbody id="my-reservations-tbody"></tbody></table></div></section>
-    
-    <section id="tab-admin" class="view-panel">
-      <div class="section-banner"><h2 id="admin-panel-title">مدیریت</h2><p id="admin-panel-desc"></p></div>
-      <button id="btn-refresh-reservations" class="btn-apply-code" style="padding:8px; margin-bottom:16px;">بروزرسانی</button>
-      <div class="table-scroll"><table class="styled-table"><tbody id="reservations-tbody"></tbody></table></div>
-      <div id="admin-catering-box"></div><div id="admin-promo-box"></div>
-    </section>
-    
+    <!-- =========================================================================
+         TAB 5: FINANCIAL & REVENUE SHARE DASHBOARD
+         ========================================================================= -->
     <section id="tab-analytics" class="view-panel">
-      <div class="metrics-cards-grid"><div class="stat-card"><strong id="metric-total-rev">۰</strong></div><div class="stat-card"><strong id="metric-contractor-share">۰</strong></div><div class="stat-card"><strong id="metric-catering-rev">۰</strong></div><div class="stat-card"><strong id="metric-discounts">۰</strong></div></div>
-      <div id="space-revenue-breakdown"></div><div id="audit-log-list"></div>
+      <div class="section-banner">
+        <h2>📊 داشبورد شاخص‌های مالی و سهم درآمد</h2>
+        <p>محاسبه شفاف سهم درآمد پیمانکار (۱۰٪ الی ۱۵٪ از کل فروش آنلاین سیستم)</p>
+      </div>
+
+      <div class="metrics-cards-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrap">💰</div>
+          <div class="stat-content">
+            <span>کل فروش ناخالص</span>
+            <strong id="metric-total-rev">۰ تومان</strong>
+          </div>
+        </div>
+
+        <div class="stat-card highlight-card">
+          <div class="stat-icon-wrap">🤝</div>
+          <div class="stat-content">
+            <span>سهم درآمد پیمانکار (۱۰٪ - ۱۵٪)</span>
+            <strong class="text-emerald" id="metric-contractor-share">۰ تومان</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrap">☕</div>
+          <div class="stat-content">
+            <span>درآمد کافه و تشریفات</span>
+            <strong id="metric-catering-rev">۰ تومان</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrap">🎟️</div>
+          <div class="stat-content">
+            <span>مجموع تخفیف‌های اعطا شده</span>
+            <strong id="metric-discounts">۰ تومان</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="analytics-split-grid">
+        <div class="data-table-card">
+          <div class="card-title-bar">
+            <h3>📊 تفکیک درآمد بر اساس نوع فضا</h3>
+          </div>
+          <div class="breakdown-list" id="space-revenue-breakdown">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <div class="data-table-card">
+          <div class="card-title-bar">
+            <h3>🛡️ لاگ‌های حسابرسی امنیتی (Audit Trail)</h3>
+          </div>
+          <div class="audit-log-stream" id="audit-log-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
 
-  <!-- Mobile Bottom Nav SVG -->
-  <nav class="mobile-app-bottom-nav">
-    <button class="mobile-nav-item active" data-tab="booking" id="m-tab-booking">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-      <span>رزرو</span>
+  <!-- Mobile Sticky Checkout Bottom Bar -->
+  <div class="mobile-sticky-checkout-bar" id="mobile-checkout-bar">
+    <div class="mobile-checkout-price-info">
+      <span>مبلغ کل فاکتور:</span>
+      <strong id="mobile-bottom-total-price">۰ تومان</strong>
+    </div>
+    <button type="button" class="btn-mobile-checkout" id="btn-mobile-checkout-action">
+      <span>صدور فاکتور</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
     </button>
-    <button class="mobile-nav-item" data-tab="catering" id="m-tab-catering">
-      <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+  </div>
+
+  <!-- Mobile Bottom App Nav Bar -->
+  <nav class="mobile-app-bottom-nav">
+    <button type="button" class="mobile-nav-item active" data-tab="booking" id="m-tab-booking">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <span>رزرو فضا</span>
+    </button>
+    <button type="button" class="mobile-nav-item" data-tab="catering" id="m-tab-catering">
+      <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line></svg>
       <span>کافه</span>
     </button>
-    <button class="mobile-nav-item" data-tab="my-bookings" id="m-tab-my-bookings">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+    <button type="button" class="mobile-nav-item" data-tab="my-bookings" id="m-tab-my-bookings">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
       <span>سفارش‌ها</span>
     </button>
-    <button class="mobile-nav-item hidden" data-tab="admin" id="m-tab-admin">
+    <button type="button" class="mobile-nav-item hidden" data-tab="admin" id="m-tab-admin">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       <span>مدیریت</span>
     </button>
-    <button class="mobile-nav-item hidden" data-tab="analytics" id="m-tab-analytics">
+    <button type="button" class="mobile-nav-item hidden" data-tab="analytics" id="m-tab-analytics">
       <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
       <span>مالی</span>
     </button>
   </nav>
 
-  <!-- Mobile Floating Bar -->
-  <div class="mobile-sticky-checkout-bar" id="mobile-checkout-bar">
-    <div>
-      <span style="font-size:12px; display:block;">مبلغ نهایی:</span>
-      <strong id="mobile-bottom-total-price" style="font-size:18px;">۰ تومان</strong>
-    </div>
-    <button type="button" class="btn-mobile-checkout" id="btn-mobile-checkout-action">
-      صدور فاکتور <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </button>
-  </div>
-
-  <!-- Role Switcher Modal -->
+  <!-- User Role Switcher Bottom Sheet -->
   <div class="modal-overlay hidden" id="user-role-modal">
     <div class="bottom-sheet-card">
+      <div class="sheet-handle"></div>
       <div class="sheet-header">
-        <h3>تغییر نقش کاربری</h3>
-        <button class="btn-sheet-close" id="btn-close-role-modal">✕</button>
+        <div>
+          <h3>تغییر دیدگاه و نقش کاربری</h3>
+          <small>جهت بررسی دسترسی‌ها و تست امکانات هر نقش</small>
+        </div>
+        <button type="button" class="btn-sheet-close" id="btn-close-role-modal">✕</button>
       </div>
-      <div class="roles-selection-list" id="roles-modal-list"></div>
+      <div class="roles-selection-list" id="roles-modal-list">
+        <!-- Injected dynamically -->
+      </div>
     </div>
   </div>
 
-  <!-- Invoice Modal -->
+  <!-- Official Receipt / Invoice Modal -->
   <div class="modal-overlay hidden" id="invoice-modal">
     <div class="receipt-dialog-box">
       <div class="receipt-dialog-header">
-        <h3>رسید رزرواسیون</h3>
-        <button class="btn-dialog-close" id="btn-close-invoice">✕</button>
+        <div class="receipt-title-box">
+          <div class="receipt-brand-icon">🚀</div>
+          <div>
+            <h3>رسید رسمی رزرواسیون تکـان</h3>
+            <small>سامانه هوشمند فضاهای کاری، همایش و تشریفات</small>
+          </div>
+        </div>
+        <button type="button" class="btn-dialog-close" id="btn-close-invoice">✕</button>
       </div>
-      <div id="invoice-content" style="margin-bottom:24px;"></div>
-      <div style="display:flex; gap:16px;">
-        <button onclick="window.print()" class="btn-checkout-primary" style="background:var(--bg-color); color:var(--text-color); border:1px solid var(--border-color); flex:1;">چاپ</button>
-        <button id="btn-done-invoice" class="btn-checkout-primary" style="flex:2; margin:0;">تأیید و بازگشت</button>
+
+      <div class="receipt-dialog-body" id="invoice-content">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="receipt-dialog-footer">
+        <button type="button" class="btn-print-action" onclick="window.print()">🖨️ چاپ فاکتور</button>
+        <button type="button" class="btn-done-action" id="btn-done-invoice">تأیید و بازگشت</button>
       </div>
     </div>
   </div>
 
+  <!-- Toast Notification Stack -->
   <div id="toast-container" class="toast-stack-container"></div>
-  <script src="./app.js?v=3.0.0"></script>
+
+  <script src="./app.js?v=4.0.0"></script>
 </body>
 </html>
