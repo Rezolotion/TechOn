@@ -64,13 +64,13 @@
           </span>
         </button>
 
-        <!-- Anonymous Visitor: Login Button -->
+        <!-- Visitor Auth Button -->
         <button type="button" class="btn-staff-login" id="btn-open-login-modal">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          <span>ورود همکاران / مدیریت</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span>ورود / ثبت‌نام</span>
         </button>
 
-        <!-- Logged In Staff Profile (Hidden by default) -->
+        <!-- Logged In User Profile (Hidden by default) -->
         <div class="user-profile-pill hidden" id="user-profile-widget">
           <div class="user-avatar-badge" id="current-user-avatar">👑</div>
           <div class="user-text-info">
@@ -179,7 +179,10 @@
               <div class="jalali-calendar-box" id="jalali-calendar-widget">
                 <div class="calendar-header-nav">
                   <button type="button" class="cal-nav-btn" id="btn-cal-prev">‹ ماه قبل</button>
-                  <strong class="cal-month-title" id="cal-month-title">مرداد ۱۴۰۵</strong>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <strong class="cal-month-title" id="cal-month-title">اسفند ۱۴۰۴</strong>
+                    <button type="button" class="cal-nav-btn" id="btn-cal-today" style="padding:4px 10px; font-size:11px; background:rgba(108,99,255,0.15); color:var(--primary); border-color:var(--primary);">📍 امروز</button>
+                  </div>
                   <button type="button" class="cal-nav-btn" id="btn-cal-next">ماه بعد ›</button>
                 </div>
 
@@ -403,8 +406,8 @@
                   <input type="text" id="cust-name" class="form-control" placeholder="مریم رضایی" required>
                 </div>
                 <div class="input-group">
-                  <label for="cust-phone">شماره همراه:</label>
-                  <input type="tel" id="cust-phone" class="form-control" placeholder="۰۹۱۲۴۴۴۴۴۴۴" required>
+                  <label for="cust-phone">شماره همراه (۱۱ رقم):</label>
+                  <input type="tel" id="cust-phone" class="form-control" placeholder="09121111111" maxlength="11" inputmode="numeric" dir="ltr" required>
                 </div>
               </div>
               <div class="input-group">
@@ -475,12 +478,6 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                 <span>ثبت نهایی و صدور فاکتور رسمی</span>
               </button>
-
-              <div class="security-guarantee-note">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                <span>مجهز به سیستم هوشمند ضد تداخل زمانی</span>
-              </div>
-
             </div>
           </div>
         </div>
@@ -738,21 +735,29 @@
     </button>
   </nav>
 
-  <!-- Staff & Admin Login Modal -->
+  <!-- User & Staff Authentication Modal (Login / Register / OTP) -->
   <div class="modal-overlay hidden" id="login-modal">
     <div class="bottom-sheet-card">
       <div class="sheet-header">
         <div>
-          <h3>🔐 ورود به پنل پرسنل و مدیریت تکـان</h3>
-          <small>جهت دسترسی به پنل مدیریت صندلی‌ها، سالن همایش، کافه و آمار مالی</small>
+          <h3>🔐 حساب کاربری تکـان</h3>
+          <small>ورود کاربران، پرسنل، ثبت‌نام و بازیابی رمز عبور</small>
         </div>
         <button type="button" class="btn-sheet-close" id="btn-close-login-modal">✕</button>
       </div>
+
+      <!-- Auth Switcher Tabs -->
+      <div class="scheduling-mode-tabs" style="margin-bottom:16px;">
+        <button type="button" class="mode-tab-btn active" id="auth-tab-login-btn" data-auth="LOGIN" style="min-width:auto; padding:8px 12px; font-size:12px;">ورود به حساب</button>
+        <button type="button" class="mode-tab-btn" id="auth-tab-register-btn" data-auth="REGISTER" style="min-width:auto; padding:8px 12px; font-size:12px;">ثبت‌نام جدید</button>
+        <button type="button" class="mode-tab-btn" id="auth-tab-otp-btn" data-auth="OTP" style="min-width:auto; padding:8px 12px; font-size:12px;">کد یکبار مصرف (OTP)</button>
+      </div>
       
+      <!-- Panel 1: Login Form -->
       <form id="form-staff-login" class="login-form">
         <div class="input-group">
-          <label for="login-username">نام کاربری:</label>
-          <input type="text" id="login-username" class="form-control" placeholder="مثال: admin" required autocomplete="username">
+          <label for="login-username">نام کاربری یا شماره همراه:</label>
+          <input type="text" id="login-username" class="form-control" placeholder="مثال: 09121111111 یا admin" required autocomplete="username">
         </div>
         
         <div class="input-group">
@@ -763,12 +768,12 @@
         <div id="login-error-msg" class="login-error-text" style="display:none;"></div>
 
         <button type="submit" class="btn-submit-login">
-          <span>ورود به سیستم</span>
+          <span>ورود به حساب کاربری</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
 
         <div class="login-hints-box">
-          <small><strong>حساب‌های مجاز سیستم:</strong></small>
+          <small><strong>حساب‌های مجاز سیستم جهت تست:</strong></small>
           <div class="hints-grid">
             <div class="hint-item" onclick="quickFillLogin('admin', 'admin123')">
               <strong>👑 سوپرادمین:</strong> <code>admin</code>
@@ -781,6 +786,57 @@
             </div>
           </div>
         </div>
+      </form>
+
+      <!-- Panel 2: Register Form -->
+      <form id="form-user-register" class="login-form hidden">
+        <div class="input-group">
+          <label for="reg-name">نام و نام خانوادگی:</label>
+          <input type="text" id="reg-name" class="form-control" placeholder="رضا نیامنش" required>
+        </div>
+
+        <div class="input-group">
+          <label for="reg-phone">شماره همراه (۱۱ رقم):</label>
+          <input type="tel" id="reg-phone" class="form-control" placeholder="09121111111" maxlength="11" inputmode="numeric" dir="ltr" required>
+        </div>
+
+        <div class="input-group">
+          <label for="reg-password">کلمه عبور دلخواه:</label>
+          <input type="password" id="reg-password" class="form-control" placeholder="حداقل ۶ کاراکتر" required minlength="6">
+        </div>
+
+        <div id="reg-error-msg" class="login-error-text" style="display:none;"></div>
+
+        <button type="submit" class="btn-submit-login">
+          <span>تکمیل و ایجاد حساب کاربری</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+      </form>
+
+      <!-- Panel 3: OTP Form -->
+      <form id="form-user-otp" class="login-form hidden">
+        <div class="input-group">
+          <label for="otp-phone">شماره همراه شما (۱۱ رقم):</label>
+          <input type="tel" id="otp-phone" class="form-control" placeholder="09121111111" maxlength="11" inputmode="numeric" dir="ltr" required>
+        </div>
+
+        <div class="input-group">
+          <button type="button" id="btn-send-otp" class="btn-refresh-action" style="width:100%; padding:10px; font-weight:700;">
+            <span>📩 ارسال کد تایید یکبار مصرف (SMS)</span>
+          </button>
+        </div>
+
+        <div class="input-group" id="otp-code-group" style="display:none;">
+          <label for="otp-code">کد ۴ رقمی پیامک‌شده:</label>
+          <input type="text" id="otp-code" class="form-control" placeholder="1234" maxlength="4" inputmode="numeric" style="letter-spacing:6px; text-align:center; font-size:18px;">
+          <small id="otp-timer-text" style="color:var(--text-muted); margin-top:4px;">مهلت اعتبار کد: ۶۰ ثانیه</small>
+        </div>
+
+        <div id="otp-error-msg" class="login-error-text" style="display:none;"></div>
+
+        <button type="submit" id="btn-verify-otp" class="btn-submit-login" style="display:none;">
+          <span>تایید کد و ورود به سامانه</span>
+        </button>
       </form>
     </div>
   </div>
