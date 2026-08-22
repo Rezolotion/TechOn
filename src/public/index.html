@@ -19,7 +19,7 @@
   <!-- Header Navigation -->
   <header class="app-header">
     <div class="header-container">
-      <div class="brand-box">
+      <div class="brand-box" id="header-brand-logo" style="cursor: pointer;" title="بازگشت به صفحه اصلی و رزرو">
         <div class="brand-logo-badge">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -70,10 +70,10 @@
           <span>ورود / ثبت‌نام</span>
         </button>
 
-        <!-- Logged In User Profile (Hidden by default) -->
-        <div class="user-profile-pill hidden" id="user-profile-widget">
-          <div class="user-avatar-badge" id="current-user-avatar">👑</div>
-          <div class="user-text-info">
+        <!-- Logged In User Profile -->
+        <div class="user-profile-pill hidden" id="user-profile-widget" title="کلیک جهت ویرایش مشخصات حساب کاربری">
+          <div class="user-avatar-badge" id="current-user-avatar" style="cursor:pointer;">👑</div>
+          <div class="user-text-info" id="user-profile-click-area" style="cursor:pointer;">
             <span class="user-name" id="current-user-name">مهندس نیامنش</span>
             <span class="user-role-tag" id="current-user-role-badge">مدیریت کل</span>
           </div>
@@ -837,6 +837,62 @@
         <button type="submit" id="btn-verify-otp" class="btn-submit-login" style="display:none;">
           <span>تایید کد و ورود به سامانه</span>
         </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- User Profile Edit Modal -->
+  <div class="modal-overlay hidden" id="profile-modal">
+    <div class="bottom-sheet-card" style="max-width: 520px;">
+      <div class="sheet-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:24px;">👤</span>
+          <div>
+            <h3>ویرایش مشخصات حساب کاربری</h3>
+            <small>تنظیم اطلاعات فردی و ارتباطی (نام و شماره همراه اجباری)</small>
+          </div>
+        </div>
+        <button type="button" class="btn-sheet-close" id="btn-close-profile-modal">✕</button>
+      </div>
+
+      <form id="form-edit-profile" class="login-form">
+        <div class="form-row-2">
+          <div class="input-group">
+            <label for="edit-name">نام و نام خانوادگی <span style="color:var(--danger);">*</span>:</label>
+            <input type="text" id="edit-name" class="form-control" placeholder="رضا نیامنش" required>
+          </div>
+          <div class="input-group">
+            <label for="edit-phone">شماره همراه (۱۱ رقم) <span style="color:var(--danger);">*</span>:</label>
+            <input type="tel" id="edit-phone" class="form-control" placeholder="09121111111" maxlength="11" inputmode="numeric" dir="ltr" required>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="input-group">
+            <label for="edit-email">پست الکترونیک (اختیاری):</label>
+            <input type="email" id="edit-email" class="form-control" placeholder="reza@example.com">
+          </div>
+          <div class="input-group">
+            <label for="edit-birthdate">تاریخ تولد (اختیاری):</label>
+            <input type="text" id="edit-birthdate" class="form-control" placeholder="مثال: ۱۳۷۵/۰۶/۱۵" dir="ltr">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="edit-bio">عنوان شغلی / سازمان (اختیاری):</label>
+          <input type="text" id="edit-bio" class="form-control" placeholder="مثال: توسعه‌دهنده هوش مصنوعی / مدیر محصول">
+        </div>
+
+        <div id="profile-edit-msg" class="login-error-text" style="display:none;"></div>
+
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button type="submit" class="btn-submit-login" style="flex:2;">
+            <span>💾 ذخیره تغییرات پروفایل</span>
+          </button>
+          <button type="button" class="btn-print-action" id="btn-cancel-profile-edit" style="flex:1;">
+            <span>انصراف</span>
+          </button>
+        </div>
       </form>
     </div>
   </div>
