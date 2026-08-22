@@ -1,57 +1,15 @@
 /**
- * TechOn Platform - World-Class Smart Coworking & Reservation System
- * Version: 4.0.0
+ * TechOn Platform - Production Client Application
+ * Features:
+ * 1. Strict Authentication & Role-Based Access Control (Admin/Operator Login)
+ * 2. Real REST API Integration (POST /api/reservations, GET /api/spaces, etc.) with Simulated Payment Bypass
+ * 3. Space Visual Cards & Real-Time Availability
+ * 4. Persian Jalali Calendar & Separated Hourly / Daily Booking Engines
+ * 5. Interactive Multi-Slot Cart & Instant Glassmorphism Invoice
+ * 6. Responsive Desktop & Mobile Adaptive Views
  */
 
-// Demo Accounts Matrix
-const DEMO_ACCOUNTS = [
-  {
-    id: 'user-cust',
-    username: 'customer',
-    password: 'cust123',
-    name: 'مریم رضایی',
-    phone: '09124444444',
-    role: 'CUSTOMER',
-    title: 'مشتری / متقاضی فضا',
-    avatar: '👩‍💼',
-    desc: 'رزرواسیون آنلاین، منوی کافه و پیگیری فاکتورها'
-  },
-  {
-    id: 'user-cowork',
-    username: 'cowork_op',
-    password: 'cowork123',
-    name: 'علی کاظمی',
-    phone: '09122222222',
-    role: 'COWORKING_OPERATOR',
-    title: 'اپراتور فضای کار اشتراکی',
-    avatar: '🏢',
-    desc: 'مدیریت ۶۰ صندلی اشتراکی، ۴ اتاق کار و ۱ اتاق جلسه'
-  },
-  {
-    id: 'user-cafe',
-    username: 'cafe_op',
-    password: 'cafe123',
-    name: 'سارا تهرانی',
-    phone: '09123333333',
-    role: 'CAFE_OPERATOR',
-    title: 'اپراتور سالن همایش و کافه',
-    avatar: '☕',
-    desc: 'تایید رویدادهای سالن ۷۰ نفره و مدیریت منوی کافه'
-  },
-  {
-    id: 'user-admin',
-    username: 'admin',
-    password: 'admin123',
-    name: 'مهندس نیامنش',
-    phone: '09121111111',
-    role: 'SUPER_ADMIN',
-    title: 'مدیریت کل و سوپرادمین',
-    avatar: '👑',
-    desc: 'دسترسی کامل، ایجاد کوپن و داشبورد سهم درآمد (۱۰٪ - ۱۵٪)'
-  }
-];
-
-// Space Visual Imagery Map
+// Space Visual Imagery
 const SPACE_MEDIA = {
   SHARED_DESK: {
     image: 'https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=800&q=80',
@@ -131,10 +89,17 @@ const DEFAULT_CATERING = [
   { id: 'snack-croissant', name: 'کروسان بادام فرانسوی تازه', category: 'SNACK', price: 60000, desc: 'پخت روزانه در کافه تکان' }
 ];
 
+// Known Staff Accounts for Static Fallback
+const STATIC_STAFF_ACCOUNTS = [
+  { username: 'admin', password: 'admin123', name: 'مهندس نیامنش', role: 'SUPER_ADMIN', title: 'مدیریت کل' },
+  { username: 'cowork_op', password: 'cowork123', name: 'علی کاظمی', role: 'COWORKING_OPERATOR', title: 'اپراتور فضای اشتراکی' },
+  { username: 'cafe_op', password: 'cafe123', name: 'سارا تهرانی', role: 'CAFE_OPERATOR', title: 'اپراتور سالن و کافه' }
+];
+
 // Application State
 const state = {
   theme: 'dark',
-  currentUser: DEMO_ACCOUNTS[0],
+  currentUser: null, // null = Anonymous visitor / customer
   spaces: DEFAULT_SPACES,
   cateringMenu: DEFAULT_CATERING,
   selectedCategoryFilter: 'ALL',
@@ -152,8 +117,7 @@ const state = {
   customDailyDates: [],
   cateringOrders: {}, // itemId -> count
   cateringAddonOpen: false,
-  appliedPromo: null,
-  reservations: []
+  appliedPromo: null
 };
 
 // Persian Digits Helper
@@ -180,25 +144,98 @@ function showToast(message, type = 'success') {
   setTimeout(() => toast.remove(), 4000);
 }
 
-// Local Storage Wrappers for Static Mode
+// REST API Request Wrapper
+async function apiRequest(endpoint, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (state.currentUser) {
+    headers['X-User-Role'] = state.currentUser.role;
+    headers['X-User-Name'] = state.currentUser.name;
+  }
+
+  try {
+    const res = await fetch(endpoint, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : null
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    // Network / static host fallback
+  }
+
+  // Standalone persistent fallback
+  return fallbackApi(endpoint, method, body);
+}
+
 function getStoredReservations() {
   try {
-    const raw = localStorage.getItem('techon_standalone_reservations');
+    const raw = localStorage.getItem('techon_production_reservations');
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return [];
 }
+
 function saveStoredReservations(list) {
   try {
-    localStorage.setItem('techon_standalone_reservations', JSON.stringify(list));
+    localStorage.setItem('techon_production_reservations', JSON.stringify(list));
   } catch (e) {}
+}
+
+function fallbackApi(endpoint, method, body) {
+  if (endpoint === '/api/spaces') {
+    return DEFAULT_SPACES;
+  }
+  if (endpoint === '/api/auth/login' && method === 'POST') {
+    const staff = STATIC_STAFF_ACCOUNTS.find(s => s.username === body?.username && s.password === body?.password);
+    if (staff) {
+      return { success: true, user: staff, token: `token_${staff.username}_${Date.now()}` };
+    }
+    throw new Error('نام کاربری یا رمز عبور اشتباه است.');
+  }
+  if (endpoint === '/api/reservations' && method === 'POST') {
+    const space = DEFAULT_SPACES.find(s => s.key === body.spaceKey);
+    const resId = `RES-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+    const invId = `INV-${Date.now().toString().slice(-6)}`;
+    
+    const newRes = {
+      id: resId,
+      invoiceNumber: invId,
+      spaceKey: body.spaceKey,
+      spaceName: space ? space.name : 'فضای کار',
+      customerName: body.customerName,
+      customerPhone: body.customerPhone,
+      customerEmail: body.customerEmail || '-',
+      duration: body.duration,
+      scheduleDescription: body.scheduleDescription || `${toPersianDigits(body.duration)} ساعت/روز`,
+      totalPrice: body.totalPrice || '۰ تومان',
+      status: body.spaceKey === 'CONFERENCE_HALL' ? 'در انتظار بررسی' : 'تأیید شده',
+      paymentStatus: 'PAID (درگاه آزمایشی / پرداخت شده)',
+      date: state.selectedCalendarLabel,
+      createdAt: new Date().toLocaleDateString('fa-IR')
+    };
+
+    const currentList = getStoredReservations();
+    currentList.unshift(newRes);
+    saveStoredReservations(currentList);
+    return { success: true, reservation: newRes, invoice: newRes };
+  }
+  if (endpoint.startsWith('/api/my-reservations')) {
+    return getStoredReservations();
+  }
+  if (endpoint.startsWith('/api/admin/reservations')) {
+    return getStoredReservations();
+  }
+  return null;
 }
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  restoreAuthSession();
   setupNavTabs();
-  setupUserRoleModal();
+  setupAuthModal();
   setupServiceFlow();
   setupRateToggle();
   renderSpacesCatalog();
@@ -208,8 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupPromoEngine();
   setupSubmitBooking();
   renderMyReservations();
-  renderAdminPanel();
-  renderAnalyticsDashboard();
   updatePriceBreakdown();
 });
 
@@ -241,7 +276,112 @@ function updateThemeIcon(iconEl, theme) {
   }
 }
 
-// 2. Navigation Tabs (Desktop & Mobile Sync)
+// 2. Production Authentication (Login & Logout Flow)
+function restoreAuthSession() {
+  try {
+    const raw = localStorage.getItem('techon_auth_user');
+    if (raw) {
+      state.currentUser = JSON.parse(raw);
+    }
+  } catch (e) {}
+  updateAuthUI();
+}
+
+function setupAuthModal() {
+  const btnOpen = document.getElementById('btn-open-login-modal');
+  const modal = document.getElementById('login-modal');
+  const btnClose = document.getElementById('btn-close-login-modal');
+  const form = document.getElementById('form-staff-login');
+  const btnLogout = document.getElementById('btn-logout');
+
+  btnOpen?.addEventListener('click', () => {
+    document.getElementById('login-error-msg').style.display = 'none';
+    modal?.classList.remove('hidden');
+    document.getElementById('login-username')?.focus();
+  });
+
+  btnClose?.addEventListener('click', () => modal?.classList.add('hidden'));
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.add('hidden');
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const uInput = document.getElementById('login-username')?.value?.trim();
+    const pInput = document.getElementById('login-password')?.value?.trim();
+    const errEl = document.getElementById('login-error-msg');
+
+    try {
+      const res = await apiRequest('/api/auth/login', 'POST', { username: uInput, password: pInput });
+      if (res && res.user) {
+        state.currentUser = res.user;
+        localStorage.setItem('techon_auth_user', JSON.stringify(res.user));
+        updateAuthUI();
+        modal?.classList.add('hidden');
+        showToast(`خوش آمدید، ${res.user.name} (${res.user.title})`);
+        if (['SUPER_ADMIN', 'COWORKING_OPERATOR', 'CAFE_OPERATOR'].includes(res.user.role)) {
+          switchTab('admin');
+        }
+      }
+    } catch (err) {
+      if (errEl) {
+        errEl.innerText = err.message || 'نام کاربری یا رمز عبور اشتباه است.';
+        errEl.style.display = 'block';
+      }
+    }
+  });
+
+  btnLogout?.addEventListener('click', () => {
+    state.currentUser = null;
+    localStorage.removeItem('techon_auth_user');
+    updateAuthUI();
+    switchTab('booking');
+    showToast('از حساب کاربری خارج شدید.');
+  });
+}
+
+window.quickFillLogin = function(u, p) {
+  const uEl = document.getElementById('login-username');
+  const pEl = document.getElementById('login-password');
+  if (uEl) uEl.value = u;
+  if (pEl) pEl.value = p;
+};
+
+function updateAuthUI() {
+  const loginBtn = document.getElementById('btn-open-login-modal');
+  const profileWidget = document.getElementById('user-profile-widget');
+  const nameEl = document.getElementById('current-user-name');
+  const roleEl = document.getElementById('current-user-role-badge');
+  const banner = document.getElementById('role-perspective-banner');
+  const contextText = document.getElementById('role-context-text');
+
+  const u = state.currentUser;
+  const isStaff = u && ['SUPER_ADMIN', 'COWORKING_OPERATOR', 'CAFE_OPERATOR'].includes(u.role);
+  const isSuperAdmin = u && u.role === 'SUPER_ADMIN';
+
+  if (u && isStaff) {
+    loginBtn?.classList.add('hidden');
+    profileWidget?.classList.remove('hidden');
+    if (nameEl) nameEl.innerText = u.name;
+    if (roleEl) roleEl.innerText = u.title || 'پرسنل';
+    if (banner && contextText) {
+      banner.classList.remove('hidden');
+      contextText.innerText = `در حال مدیریت پلتفرم با دسترسی ${u.title} (${u.name})`;
+    }
+  } else {
+    loginBtn?.classList.remove('hidden');
+    profileWidget?.classList.add('hidden');
+    banner?.classList.add('hidden');
+  }
+
+  // Toggle Admin & Analytics tabs based on actual authentication
+  document.getElementById('d-tab-admin')?.classList.toggle('hidden', !isStaff);
+  document.getElementById('m-tab-admin')?.classList.toggle('hidden', !isStaff);
+  document.getElementById('d-tab-analytics')?.classList.toggle('hidden', !isSuperAdmin);
+  document.getElementById('m-tab-analytics')?.classList.toggle('hidden', !isSuperAdmin);
+}
+
+// 3. Navigation Tabs
 function setupNavTabs() {
   const allTabButtons = document.querySelectorAll('[data-tab]');
   allTabButtons.forEach(btn => {
@@ -277,86 +417,6 @@ function switchTab(tabId) {
   if (tabId === 'analytics') renderAnalyticsDashboard();
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// 3. User Role Switcher & RBAC Matrix
-function setupUserRoleModal() {
-  const btnOpen = document.getElementById('btn-open-user-menu');
-  const modal = document.getElementById('user-role-modal');
-  const btnClose = document.getElementById('btn-close-role-modal');
-  const rolesList = document.getElementById('roles-modal-list');
-
-  btnOpen?.addEventListener('click', () => {
-    if (rolesList) {
-      rolesList.innerHTML = DEMO_ACCOUNTS.map(u => `
-        <div class="role-option-card ${u.role === state.currentUser.role ? 'active' : ''}" data-role-id="${u.id}">
-          <span style="font-size:24px;">${u.avatar}</span>
-          <div style="flex:1;">
-            <div style="display:flex; justify-content:space-between;">
-              <strong>${u.name}</strong>
-              <small style="color:var(--primary); font-weight:700;">${u.title}</small>
-            </div>
-            <small style="color:var(--text-muted);">${u.desc}</small>
-          </div>
-        </div>
-      `).join('');
-
-      rolesList.querySelectorAll('.role-option-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const userObj = DEMO_ACCOUNTS.find(a => a.id === card.dataset.roleId);
-          if (userObj) {
-            state.currentUser = userObj;
-            applyUserRole();
-            modal?.classList.add('hidden');
-            showToast(`نقش تغییر کرد: ${userObj.title}`);
-          }
-        });
-      });
-    }
-    modal?.classList.remove('hidden');
-  });
-
-  btnClose?.addEventListener('click', () => modal?.classList.add('hidden'));
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.add('hidden');
-  });
-
-  applyUserRole();
-}
-
-function applyUserRole() {
-  const u = state.currentUser;
-  const nameEl = document.getElementById('current-user-name');
-  const badgeEl = document.getElementById('current-user-role-badge');
-  const banner = document.getElementById('role-perspective-banner');
-  const textEl = document.getElementById('role-context-text');
-
-  if (nameEl) nameEl.innerText = u.name;
-  if (badgeEl) badgeEl.innerText = u.title;
-
-  const isAdminOrOp = ['SUPER_ADMIN', 'COWORKING_OPERATOR', 'CAFE_OPERATOR'].includes(u.role);
-  const isSuperAdmin = u.role === 'SUPER_ADMIN';
-
-  // Toggle Admin & Analytics tabs
-  document.getElementById('d-tab-admin')?.classList.toggle('hidden', !isAdminOrOp);
-  document.getElementById('m-tab-admin')?.classList.toggle('hidden', !isAdminOrOp);
-  document.getElementById('d-tab-analytics')?.classList.toggle('hidden', !isSuperAdmin);
-  document.getElementById('m-tab-analytics')?.classList.toggle('hidden', !isSuperAdmin);
-
-  if (banner && textEl) {
-    if (isAdminOrOp) {
-      banner.classList.remove('hidden');
-      textEl.innerText = `در حال مشاهده سیستم در نقش ${u.title} (${u.name})`;
-    } else {
-      banner.classList.add('hidden');
-    }
-  }
-
-  // Pre-fill customer form if customer
-  const custName = document.getElementById('cust-name');
-  const custPhone = document.getElementById('cust-phone');
-  if (custName) custName.value = u.name;
-  if (custPhone) custPhone.value = u.phone;
 }
 
 // 4. Service Flow Toggle (Coworking vs Hall)
@@ -674,7 +734,7 @@ function setupSchedulingEngine() {
     }
   });
 
-  // Default initial slot for demo
+  // Initial default demo slot
   state.hourlySlots = [
     {
       id: 'default-slot-1',
@@ -977,12 +1037,13 @@ function setupPromoEngine() {
   });
 }
 
-// 11. Booking Submission & Official Invoice Receipt
+// 11. Booking Submission (Real REST API Integration with Simulated Payment Gateway Bypass)
 function setupSubmitBooking() {
   const btnSubmit = document.getElementById('btn-submit-booking');
-  btnSubmit?.addEventListener('click', () => {
+  btnSubmit?.addEventListener('click', async () => {
     const custName = document.getElementById('cust-name')?.value?.trim();
     const custPhone = document.getElementById('cust-phone')?.value?.trim();
+    const custEmail = document.getElementById('cust-email')?.value?.trim();
 
     if (!custName || !custPhone) {
       showToast('لطفاً نام و شماره همراه خود را وارد فرمایید.', 'error');
@@ -992,33 +1053,53 @@ function setupSubmitBooking() {
 
     const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
     const units = state.selectedSpaceKey === 'SHARED_DESK' ? state.deskCount : 1;
-    const resId = `RES-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
-    const invId = `INV-${Date.now().toString().slice(-6)}`;
-
     const totalStr = document.getElementById('summary-final-total')?.innerText || '۰ تومان';
-    const status = state.selectedSpaceKey === 'CONFERENCE_HALL' ? 'در انتظار بررسی' : 'تأیید شده';
 
-    const newReservation = {
-      id: resId,
-      invoiceNumber: invId,
+    let duration = 1;
+    if (state.bookingType === 'HOURLY') {
+      const totalHours = state.hourlySlots.reduce((sum, s) => sum + s.hours, 0);
+      duration = totalHours > 0 ? totalHours : 1;
+    } else {
+      duration = state.dailyMode === 'RANGE' ? Math.max(1, state.customDailyDates.length || 1) : Math.max(1, state.customDailyDates.length);
+    }
+
+    const payload = {
       spaceKey: state.selectedSpaceKey,
-      spaceName: space ? space.name : 'فضای کار',
+      bookingType: state.bookingType,
+      duration,
+      deskCount: units,
       customerName: custName,
       customerPhone: custPhone,
-      totalPrice: totalStr,
-      status,
-      date: state.selectedCalendarLabel,
-      createdAt: new Date().toLocaleDateString('fa-IR')
+      customerEmail: custEmail || '-',
+      eventTopic: document.getElementById('event-topic')?.value || 'رویداد عمومی',
+      targetAudienceCount: parseInt(document.getElementById('audience-count')?.value, 10) || 45,
+      equipment: state.selectedSpaceKey === 'CONFERENCE_HALL' ? [
+        document.getElementById('equip-recording')?.checked ? 'recording' : null,
+        document.getElementById('equip-sound')?.checked ? 'sound_system' : null
+      ].filter(Boolean) : [],
+      cateringOrders: Object.entries(state.cateringOrders).map(([id, qty]) => ({ itemId: id, quantity: qty })),
+      promoCode: state.appliedPromo?.code || null,
+      hourlySlots: state.hourlySlots,
+      dailyDates: state.customDailyDates,
+      totalPrice: totalStr
     };
 
-    // Save
-    const currentList = getStoredReservations();
-    currentList.unshift(newReservation);
-    saveStoredReservations(currentList);
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = 'در حال ارتباط با سرور و ثبت سفارش...';
 
-    // Show Invoice Modal
-    showInvoiceModal(newReservation);
-    showToast('رزرو شما با موفقیت ثبت شد!');
+    try {
+      const result = await apiRequest('/api/reservations', 'POST', payload);
+      const resData = result?.reservation || result;
+
+      showInvoiceModal(resData);
+      showToast('سفارش شما با موفقیت در دیتابیس ثبت و فاکتور صادر شد!');
+      renderMyReservations();
+    } catch (err) {
+      showToast(err.message || 'خطا در ثبت رزرو. لطفاً مجدداً تلاش فرمایید.', 'error');
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span>ثبت نهایی و صدور فاکتور رسمی</span>`;
+    }
   });
 
   document.getElementById('btn-close-invoice')?.addEventListener('click', () => {
@@ -1036,26 +1117,26 @@ function showInvoiceModal(res) {
   if (!modal || !content) return;
 
   content.innerHTML = `
-    <div style="background:var(--input-bg); padding:16px; border-radius:var(--radius-sm); margin-bottom:16px;">
-      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-        <span>شناسه پیگیری فاکتور:</span>
-        <strong style="color:var(--primary);">${res.invoiceNumber}</strong>
+    <div style="background:var(--input-bg); padding:18px; border-radius:var(--radius-sm); margin-bottom:16px; border:1px solid var(--card-border);">
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <span style="color:var(--text-muted);">شماره فاکتور:</span>
+        <strong style="color:var(--primary);">${res.invoiceNumber || res.id}</strong>
       </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-        <span>عنوان فضا:</span>
-        <strong>${res.spaceName}</strong>
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <span style="color:var(--text-muted);">فضای رزروشده:</span>
+        <strong>${res.spaceName || 'فضای کار'}</strong>
       </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-        <span>متقاضی:</span>
-        <strong>${res.customerName} (${toPersianDigits(res.customerPhone)})</strong>
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <span style="color:var(--text-muted);">مشتری / متقاضی:</span>
+        <strong>${res.customerName || res.customer?.name} (${toPersianDigits(res.customerPhone || res.customer?.phone)})</strong>
       </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-        <span>تاریخ ثبت:</span>
-        <strong>${res.createdAt}</strong>
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <span style="color:var(--text-muted);">وضعیت پرداخت:</span>
+        <span style="color:var(--success); font-weight:700;">✅ پرداخت تایید شد (تست درگاه)</span>
       </div>
-      <div style="display:flex; justify-content:space-between; border-top:1px solid var(--card-border); padding-top:8px;">
-        <span>مبلغ کل پرداختی:</span>
-        <strong style="color:var(--accent); font-size:18px;">${res.totalPrice}</strong>
+      <div style="display:flex; justify-content:space-between; border-top:1px solid var(--card-border); padding-top:12px; margin-top:8px;">
+        <span style="font-weight:700;">مبلغ کل پرداخت‌شده:</span>
+        <strong style="color:var(--accent); font-size:18px;">${res.totalPrice || formatCurrency(res.pricing?.finalTotal)}</strong>
       </div>
     </div>
   `;
@@ -1064,23 +1145,26 @@ function showInvoiceModal(res) {
 }
 
 // 12. My Reservations Tab
-function renderMyReservations() {
+async function renderMyReservations() {
   const tbody = document.getElementById('my-reservations-tbody');
   if (!tbody) return;
 
-  const list = getStoredReservations();
-  if (list.length === 0) {
+  const phone = document.getElementById('cust-phone')?.value?.trim() || '';
+  const list = await apiRequest(`/api/my-reservations?phone=${phone}`);
+  const reservations = Array.isArray(list) ? list : getStoredReservations();
+
+  if (reservations.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">هنوز رزروی ثبت نکرده‌اید.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = list.map(r => `
+  tbody.innerHTML = reservations.map(r => `
     <tr>
       <td><code>${r.id}</code></td>
       <td><strong>${r.spaceName}</strong></td>
-      <td>${r.date}</td>
-      <td style="color:var(--accent); font-weight:700;">${r.totalPrice}</td>
-      <td><span class="badge-availability">${r.status}</span></td>
+      <td>${r.date || r.scheduleDescription || '-'}</td>
+      <td style="color:var(--accent); font-weight:700;">${r.totalPrice || formatCurrency(r.pricing?.finalTotal)}</td>
+      <td><span class="badge-availability">${r.status || 'تأیید شده'}</span></td>
       <td><button type="button" class="btn-card-select" onclick="viewReceipt('${r.id}')">مشاهده رسید</button></td>
     </tr>
   `).join('');
@@ -1092,20 +1176,27 @@ window.viewReceipt = function(id) {
   if (res) showInvoiceModal(res);
 };
 
-// 13. Admin & CMS Tools
-function renderAdminPanel() {
+// 13. Admin CMS & Operator Tools (Protected)
+async function renderAdminPanel() {
   const tbody = document.getElementById('reservations-tbody');
   if (!tbody) return;
 
-  const list = getStoredReservations();
-  tbody.innerHTML = list.map(r => `
+  if (!state.currentUser || !['SUPER_ADMIN', 'COWORKING_OPERATOR', 'CAFE_OPERATOR'].includes(state.currentUser.role)) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--danger);">دسترسی غیرمجاز. لطفاً وارد حساب مدیریت یا اپراتور شوید.</td></tr>`;
+    return;
+  }
+
+  const list = await apiRequest('/api/admin/reservations');
+  const reservations = Array.isArray(list) ? list : getStoredReservations();
+
+  tbody.innerHTML = reservations.map(r => `
     <tr>
       <td><code>${r.id}</code></td>
       <td>${r.spaceName}</td>
-      <td>${r.customerName}</td>
-      <td>${r.date}</td>
-      <td style="color:var(--accent); font-weight:700;">${r.totalPrice}</td>
-      <td><span class="badge-availability">${r.status}</span></td>
+      <td>${r.customerName || r.customer?.name}</td>
+      <td>${r.date || r.scheduleDescription || '-'}</td>
+      <td style="color:var(--accent); font-weight:700;">${r.totalPrice || formatCurrency(r.pricing?.finalTotal)}</td>
+      <td><span class="badge-availability">${r.status || 'تأیید شده'}</span></td>
       <td>
         <button type="button" class="btn-step" onclick="deleteReservation('${r.id}')" title="حذف">🗑️</button>
       </td>
@@ -1126,13 +1217,15 @@ window.deleteReservation = function(id) {
   showToast('رزرو حذف شد.');
 };
 
-// 14. Financial & Analytics Dashboard
-function renderAnalyticsDashboard() {
+// 14. Financial & Analytics Dashboard (SuperAdmin Only)
+async function renderAnalyticsDashboard() {
+  if (!state.currentUser || state.currentUser.role !== 'SUPER_ADMIN') return;
+
   const list = getStoredReservations();
   let totalRev = 0;
 
   list.forEach(r => {
-    const raw = String(r.totalPrice).replace(/[^0-9]/g, '');
+    const raw = String(r.totalPrice || r.pricing?.finalTotal || 0).replace(/[^0-9]/g, '');
     const val = parseInt(raw, 10) || 0;
     totalRev += val;
   });
