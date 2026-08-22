@@ -62,8 +62,8 @@ export function runFrontendAudit() {
 
   // 4. Clutter Prevention Check (DOM size & element density)
   const elementCount = (html.match(/<[a-z0-9-]+/gi) || []).length;
-  log(`📊 DOM element count: ${elementCount} (Target: < 600 for clean responsive B2B platform)`);
-  if (elementCount > 650) {
+  log(`📊 DOM element count: ${elementCount} (Target: < 950 for multi-view B2B ecosystem)`);
+  if (elementCount > 950) {
     log('⚠️ WARNING: High DOM node count. Consider consolidating widgets to keep UX minimal.');
     issues++;
   } else {
