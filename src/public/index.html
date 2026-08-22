@@ -64,16 +64,24 @@
           </span>
         </button>
 
-        <button type="button" class="user-profile-pill" id="btn-open-user-menu" title="تغییر نقش کاربری">
-          <div class="user-avatar-badge" id="current-user-avatar">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          </div>
-          <div class="user-text-info">
-            <span class="user-name" id="current-user-name">مریم رضایی</span>
-            <span class="user-role-tag" id="current-user-role-badge">مشتری</span>
-          </div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <!-- Anonymous Visitor: Login Button -->
+        <button type="button" class="btn-staff-login" id="btn-open-login-modal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span>ورود همکاران / مدیریت</span>
         </button>
+
+        <!-- Logged In Staff Profile (Hidden by default) -->
+        <div class="user-profile-pill hidden" id="user-profile-widget">
+          <div class="user-avatar-badge" id="current-user-avatar">👑</div>
+          <div class="user-text-info">
+            <span class="user-name" id="current-user-name">مهندس نیامنش</span>
+            <span class="user-role-tag" id="current-user-role-badge">مدیریت کل</span>
+          </div>
+          <button type="button" class="btn-logout-action" id="btn-logout" title="خروج از حساب">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>خروج</span>
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -730,20 +738,50 @@
     </button>
   </nav>
 
-  <!-- User Role Switcher Bottom Sheet -->
-  <div class="modal-overlay hidden" id="user-role-modal">
+  <!-- Staff & Admin Login Modal -->
+  <div class="modal-overlay hidden" id="login-modal">
     <div class="bottom-sheet-card">
-      <div class="sheet-handle"></div>
       <div class="sheet-header">
         <div>
-          <h3>تغییر دیدگاه و نقش کاربری</h3>
-          <small>جهت بررسی دسترسی‌ها و تست امکانات هر نقش</small>
+          <h3>🔐 ورود به پنل پرسنل و مدیریت تکـان</h3>
+          <small>جهت دسترسی به پنل مدیریت صندلی‌ها، سالن همایش، کافه و آمار مالی</small>
         </div>
-        <button type="button" class="btn-sheet-close" id="btn-close-role-modal">✕</button>
+        <button type="button" class="btn-sheet-close" id="btn-close-login-modal">✕</button>
       </div>
-      <div class="roles-selection-list" id="roles-modal-list">
-        <!-- Injected dynamically -->
-      </div>
+      
+      <form id="form-staff-login" class="login-form">
+        <div class="input-group">
+          <label for="login-username">نام کاربری:</label>
+          <input type="text" id="login-username" class="form-control" placeholder="مثال: admin" required autocomplete="username">
+        </div>
+        
+        <div class="input-group">
+          <label for="login-password">رمز عبور:</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <div id="login-error-msg" class="login-error-text" style="display:none;"></div>
+
+        <button type="submit" class="btn-submit-login">
+          <span>ورود به سیستم</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+
+        <div class="login-hints-box">
+          <small><strong>حساب‌های مجاز سیستم:</strong></small>
+          <div class="hints-grid">
+            <div class="hint-item" onclick="quickFillLogin('admin', 'admin123')">
+              <strong>👑 سوپرادمین:</strong> <code>admin</code>
+            </div>
+            <div class="hint-item" onclick="quickFillLogin('cowork_op', 'cowork123')">
+              <strong>🏢 اپراتور اشتراکی:</strong> <code>cowork_op</code>
+            </div>
+            <div class="hint-item" onclick="quickFillLogin('cafe_op', 'cafe123')">
+              <strong>☕ اپراتور سالن و کافه:</strong> <code>cafe_op</code>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 

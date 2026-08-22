@@ -75,7 +75,7 @@ export function runFrontendAudit() {
     'tab-booking', 'tab-catering', 'tab-my-bookings', 'tab-admin', 'tab-analytics',
     'btn-mode-hourly', 'btn-mode-daily', 'jalali-calendar-widget', 'cal-days-matrix',
     'hourly-scheduler-section', 'daily-scheduler-section', 'summary-final-total',
-    'btn-submit-booking', 'mobile-checkout-bar', 'theme-toggle', 'user-role-modal'
+    'btn-submit-booking', 'mobile-checkout-bar', 'theme-toggle', 'login-modal'
   ];
 
   for (const id of requiredIds) {
