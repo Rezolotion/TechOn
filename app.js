@@ -465,17 +465,11 @@ function setupRateToggle() {
   const btnDaily = document.getElementById('rate-view-daily');
 
   btnHourly?.addEventListener('click', () => {
-    state.rateViewMode = 'HOURLY';
-    btnHourly.classList.add('active');
-    btnDaily?.classList.remove('active');
-    renderSpacesCatalog();
+    document.getElementById('btn-mode-hourly')?.click();
   });
 
   btnDaily?.addEventListener('click', () => {
-    state.rateViewMode = 'DAILY';
-    btnDaily.classList.add('active');
-    btnHourly?.classList.remove('active');
-    renderSpacesCatalog();
+    document.getElementById('btn-mode-daily')?.click();
   });
 
   // Desk Stepper Controls
@@ -550,24 +544,34 @@ function setupJalaliCalendar() {
 function setupSchedulingEngine() {
   const btnHourly = document.getElementById('btn-mode-hourly');
   const btnDaily = document.getElementById('btn-mode-daily');
+  const rateHourly = document.getElementById('rate-view-hourly');
+  const rateDaily = document.getElementById('rate-view-daily');
   const hourlySection = document.getElementById('hourly-scheduler-section');
   const dailySection = document.getElementById('daily-scheduler-section');
 
   btnHourly?.addEventListener('click', () => {
     state.bookingType = 'HOURLY';
+    state.rateViewMode = 'HOURLY';
     btnHourly.classList.add('active');
     btnDaily?.classList.remove('active');
+    rateHourly?.classList.add('active');
+    rateDaily?.classList.remove('active');
     hourlySection?.classList.remove('hidden');
     dailySection?.classList.add('hidden');
+    renderSpacesCatalog();
     updatePriceBreakdown();
   });
 
   btnDaily?.addEventListener('click', () => {
     state.bookingType = 'DAILY';
+    state.rateViewMode = 'DAILY';
     btnDaily.classList.add('active');
     btnHourly?.classList.remove('active');
+    rateDaily?.classList.add('active');
+    rateHourly?.classList.remove('active');
     dailySection?.classList.remove('hidden');
     hourlySection?.classList.add('hidden');
+    renderSpacesCatalog();
     updatePriceBreakdown();
   });
 
