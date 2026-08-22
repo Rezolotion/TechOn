@@ -254,55 +254,49 @@
                   <label class="radio-card">
                     <input type="radio" name="daily-submode" id="daily-submode-range" value="RANGE" checked>
                     <div class="radio-card-content">
-                      <strong>📆 بازه پیوسته</strong>
-                      <small>انتخاب تاریخ شروع و پایان</small>
+                      <strong>📆 بازه روزهای پیوسته</strong>
+                      <small>تعیین تعداد روز متوالی از تاریخ انتخابی تقویم</small>
                     </div>
                   </label>
                   <label class="radio-card">
                     <input type="radio" name="daily-submode" id="daily-submode-custom" value="CUSTOM">
                     <div class="radio-card-content">
-                      <strong>📌 روزهای پراکنده</strong>
-                      <small>انتخاب چند روز دلخواه از تقویم</small>
+                      <strong>📌 انتخاب روزهای دلخواه</strong>
+                      <small>کلیک مستقیم روی روزهای تقویم جلالی</small>
                     </div>
                   </label>
                 </div>
 
-                <!-- Submode A: Range -->
+                <!-- Submode A: Range with Persian Quick Presets -->
                 <div id="daily-range-box" class="daily-picker-panel">
-                  <div class="form-row-2">
-                    <div class="input-group">
-                      <label for="daily-start-date">تاریخ شروع:</label>
-                      <input type="date" id="daily-start-date" class="form-control">
-                    </div>
-                    <div class="input-group">
-                      <label for="daily-end-date">تاریخ پایان:</label>
-                      <input type="date" id="daily-end-date" class="form-control">
-                    </div>
+                  <div class="time-chips-header">
+                    <label>مدت زمان رزرو پیوسته (شروع از تاریخ فعال تقویم):</label>
+                  </div>
+                  <div class="time-chips-row" id="daily-range-presets">
+                    <button type="button" class="time-chip selected" data-days="1">⚡ ۱ روز کامل</button>
+                    <button type="button" class="time-chip" data-days="2">۲ روز متوالی</button>
+                    <button type="button" class="time-chip" data-days="3">۳ روز متوالی</button>
+                    <button type="button" class="time-chip" data-days="7">۱ هفته (۷ روز)</button>
+                    <button type="button" class="time-chip" data-days="30">۱ ماه (۳۰ روز)</button>
                   </div>
                   <div class="range-summary-box">
-                    <span>مدت زمان محاسبه‌شده: <strong id="daily-range-days-count">۱ روز</strong></span>
+                    <span>تاریخ شروع: <strong id="daily-range-start-text">۲۸ مرداد ۱۴۰۵</strong> | مدت زمان: <strong id="daily-range-days-count" style="color:var(--accent);">۱ روز کامل</strong></span>
                   </div>
                 </div>
 
                 <!-- Submode B: Custom Days -->
                 <div id="daily-custom-box" class="daily-picker-panel hidden">
-                  <div class="custom-day-input-row">
-                    <div class="input-group" style="flex:1;">
-                      <label for="custom-single-date">افزودن تاریخ از تقویم:</label>
-                      <input type="date" id="custom-single-date" class="form-control">
-                    </div>
-                    <button type="button" id="btn-add-custom-date" class="btn-add-day">
-                      <span>➕ افزودن روز</span>
-                    </button>
+                  <div class="custom-day-tip-box" style="padding:10px; background:rgba(0,210,180,0.1); border:1px solid rgba(0,210,180,0.3); border-radius:var(--radius-sm); margin-bottom:14px; font-size:13px;">
+                    <span>💡 <strong>راهنما:</strong> روزهای دلخواه خود را مستقیماً با کلیک روی خانه‌های تقویم بالا انتخاب فرمایید.</span>
                   </div>
 
                   <div class="custom-dates-list-wrap">
                     <div class="slots-basket-header">
-                      <strong>روزهای انتخابی:</strong>
+                      <strong>روزهای انتخابی شما:</strong>
                       <span class="badge-total-hours" id="custom-days-badge">۰ روز</span>
                     </div>
                     <div id="custom-dates-chips" class="custom-dates-chips">
-                      <span class="empty-slot-msg">هنوز تاریخی اضافه نشده است.</span>
+                      <span class="empty-slot-msg">هنوز تاریخی انتخاب نشده است.</span>
                     </div>
                   </div>
                 </div>
@@ -527,7 +521,7 @@
       </div>
 
       <div class="data-table-card">
-        <div class="table-scroll">
+        <div class="table-scroll desktop-only-table">
           <table class="styled-table">
             <thead>
               <tr>
@@ -543,6 +537,9 @@
               <!-- Injected by JS -->
             </tbody>
           </table>
+        </div>
+        <div class="mobile-only-cards" id="my-reservations-mobile-cards">
+          <!-- Injected mobile cards -->
         </div>
       </div>
     </section>
@@ -562,7 +559,7 @@
             <h3>📋 فهرست رزروها</h3>
             <button type="button" class="btn-refresh-action" id="btn-refresh-reservations">🔄 به‌روزرسانی</button>
           </div>
-          <div class="table-scroll">
+          <div class="table-scroll desktop-only-table">
             <table class="styled-table">
               <thead>
                 <tr>
@@ -579,6 +576,9 @@
                 <!-- Dynamically populated -->
               </tbody>
             </table>
+          </div>
+          <div class="mobile-only-cards" id="admin-reservations-mobile-cards">
+            <!-- Injected mobile cards -->
           </div>
         </div>
 
