@@ -1,14 +1,14 @@
 /**
  * TechOn Platform - Production Client Application
- * Version: 4.3.0
+ * Version: 4.4.0
  * Features:
- * 1. Zero Preloaded Slots (Clean Empty Basket on Load & After Booking)
- * 2. Real Live Jalali Calendar with "Today" Snap Button & Past Dates Strict Lock
- * 3. Unified User / Staff Authentication (Login, Registration, OTP with Rate Limiting)
- * 4. Precise Capacity & Anti-Collision Engine with Explicit Seat / Room Unit Allocation
- * 5. 11-Digit Iranian Numeric Phone Filter & Validation
- * 6. SPA Routing & Real Hash URL History (/booking, /cafe, /my-orders, /admin-panel, /financial)
- * 7. 100% Backend SQLite API Integration with Seamless Production Sync
+ * 1. Mathematical High-Precision Jalali Calendar with Accurate Live Date (e.g. ۳۱ مرداد ۱۴۰۵),
+ *    Real Weekday Offset, Past Date Locking, and "📍 امروز" Snap Button.
+ * 2. Zero-Duplicate and Anti-Collision Basket Engine (Prevents duplicate or overlapping time slots).
+ * 3. Profile Management & Edit Modal (Name & 11-digit phone required, email, birth date, bio).
+ * 4. Clickable Brand Identity & Home Navigation (Immediate return to Landing / Booking studio).
+ * 5. SPA URL Hash Navigation (#/booking, #/cafe, #/my-orders, #/admin-panel, #/financial).
+ * 6. Capacity & Unit Allocator (Explicit seat and room numbers in receipt).
  */
 
 // Space Visual Imagery
@@ -92,9 +92,9 @@ const DEFAULT_CATERING = [
 ];
 
 const STATIC_STAFF_ACCOUNTS = [
-  { username: 'admin', password: 'admin123', name: 'مهندس نیامنش', role: 'SUPER_ADMIN', title: 'مدیریت کل' },
-  { username: 'cowork_op', password: 'cowork123', name: 'علی کاظمی', role: 'COWORKING_OPERATOR', title: 'اپراتور فضای اشتراکی' },
-  { username: 'cafe_op', password: 'cafe123', name: 'سارا تهرانی', role: 'CAFE_OPERATOR', title: 'اپراتور سالن و کافه' }
+  { username: 'admin', password: 'admin123', name: 'مهندس نیامنش', role: 'SUPER_ADMIN', title: 'مدیریت کل', phone: '09121111111' },
+  { username: 'cowork_op', password: 'cowork123', name: 'علی کاظمی', role: 'COWORKING_OPERATOR', title: 'اپراتور فضای اشتراکی', phone: '09122222222' },
+  { username: 'cafe_op', password: 'cafe123', name: 'سارا تهرانی', role: 'CAFE_OPERATOR', title: 'اپراتور سالن و کافه', phone: '09123333333' }
 ];
 
 const JALALI_MONTH_NAMES = [
@@ -102,7 +102,9 @@ const JALALI_MONTH_NAMES = [
   'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
 ];
 
-// SPA Route to Tab Mapping
+const JALALI_WEEKDAYS = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'];
+
+// SPA Routes Mapping
 const ROUTE_MAP = {
   '#/booking': 'booking',
   '#/cafe': 'catering',
@@ -118,29 +120,61 @@ const TAB_TO_ROUTE = {
   'analytics': '#/financial'
 };
 
-// Real Live Jalali Calculation
-function getRealCurrentJalali() {
-  const now = new Date();
-  try {
-    const parts = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric'
-    }).formatToParts(now);
-    
-    let jy = 1404, jm = 12, jd = 3;
-    parts.forEach(p => {
-      if (p.type === 'year') jy = parseInt(p.value.replace(/[^0-9]/g, '') || '1404', 10);
-      if (p.type === 'month') jm = parseInt(p.value.replace(/[^0-9]/g, '') || '12', 10);
-      if (p.type === 'day') jd = parseInt(p.value.replace(/[^0-9]/g, '') || '3', 10);
-    });
-    return { jy, jm, jd };
-  } catch (e) {
-    return { jy: 1404, jm: 12, jd: 3 };
+// Precise Gregorian <-> Jalali Conversion Algorithm
+function gregorianToJalali(gy, gm, gd) {
+  const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+  let gy2 = (gm > 2) ? (gy + 1) : gy;
+  let days = 355666 + (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) + gd + g_d_m[gm - 1];
+  let jy = -1595 + (33 * Math.floor(days / 12053));
+  days %= 12053;
+  jy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    jy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
   }
+  let jm, jd;
+  if (days < 186) {
+    jm = 1 + Math.floor(days / 31);
+    jd = 1 + (days % 31);
+  } else {
+    jm = 7 + Math.floor((days - 186) / 30);
+    jd = 1 + ((days - 186) % 30);
+  }
+  return { jy, jm, jd };
 }
 
-const realToday = getRealCurrentJalali();
+function jalaliToGregorian(jy, jm, jd) {
+  let gy = jy <= 979 ? 621 : 1600;
+  jy -= jy <= 979 ? 0 : 979;
+  let days = (365 * jy) + (Math.floor(jy / 33) * 8) + Math.floor(((jy % 33) + 3) / 4) + 78 + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+  gy += 400 * Math.floor(days / 146097);
+  days %= 146097;
+  if (days > 36524) {
+    gy += 100 * Math.floor(--days / 36524);
+    days %= 36524;
+    if (days >= 365) days++;
+  }
+  gy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    gy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
+  }
+  const sal_a = [0, 31, ((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  let gm = 0;
+  while (gm < 13 && days >= sal_a[gm]) {
+    days -= sal_a[gm];
+    gm++;
+  }
+  return new Date(gy, gm - 1, days + 1);
+}
+
+// Compute Real Current Date
+const clientNow = new Date();
+const realToday = gregorianToJalali(clientNow.getFullYear(), clientNow.getMonth() + 1, clientNow.getDate());
+const todayGregorianDate = jalaliToGregorian(realToday.jy, realToday.jm, realToday.jd);
+const todayWeekdayName = JALALI_WEEKDAYS[(todayGregorianDate.getDay() + 1) % 7];
 
 // Application State
 const state = {
@@ -155,14 +189,14 @@ const state = {
   rateViewMode: 'HOURLY',
   deskCount: 1,
 
-  // Calendar State (Starts on Real Today)
+  // Calendar State (Starts on Real Today: ۳۱ مرداد ۱۴۰۵)
   currentJalaliYear: realToday.jy,
   currentJalaliMonth: realToday.jm,
   selectedJalaliDay: realToday.jd,
   selectedCalendarDate: `${realToday.jy}-${String(realToday.jm).padStart(2,'0')}-${String(realToday.jd).padStart(2,'0')}`,
-  selectedCalendarLabel: `${realToday.jd} ${JALALI_MONTH_NAMES[realToday.jm - 1]} ${realToday.jy}`,
+  selectedCalendarLabel: `${todayWeekdayName} ${realToday.jd} ${JALALI_MONTH_NAMES[realToday.jm - 1]} ${realToday.jy}`,
 
-  // Clean empty default basket (User MUST pick their own slots!)
+  // Clean empty default basket
   hourlySlots: [],
   dailyMode: 'RANGE',
   dailyRangeDays: 1,
@@ -173,7 +207,7 @@ const state = {
   appliedPromo: null
 };
 
-// Persian Digits Helper
+// Persian Digits Formatter
 function toPersianDigits(n) {
   if (n === null || n === undefined) return '';
   const map = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -207,7 +241,7 @@ function showToast(message, type = 'success') {
   }, 3500);
 }
 
-// Stored Persistent Data
+// Persistent Storage Helpers
 function getStoredReservations() {
   try {
     const raw = localStorage.getItem('techon_production_reservations');
@@ -232,17 +266,20 @@ function getRegisteredUsers() {
 
 function saveRegisteredUser(user) {
   const list = getRegisteredUsers();
-  list.push(user);
+  const existingIdx = list.findIndex(u => u.phone === user.phone);
+  if (existingIdx >= 0) {
+    list[existingIdx] = user;
+  } else {
+    list.push(user);
+  }
   localStorage.setItem('techon_registered_users', JSON.stringify(list));
 }
 
-// Conflict Detection & Unit Allocation Engine
+// Conflict Detection & Seat Unit Allocation
 function checkConflictAndAllocateUnit(spaceKey, dateStr, bookingType, hourlySlots, dailyDates, deskCount) {
   const existingList = getStoredReservations();
   const space = DEFAULT_SPACES.find(s => s.key === spaceKey);
-  const totalUnits = space ? space.totalUnits : 1;
 
-  // Filter existing active reservations for this space on matching dates
   const overlapping = existingList.filter(r => {
     if (r.spaceKey !== spaceKey || r.status === 'لغو شده') return false;
     return r.date === dateStr;
@@ -250,7 +287,6 @@ function checkConflictAndAllocateUnit(spaceKey, dateStr, bookingType, hourlySlot
 
   if (spaceKey === 'MEETING_ROOM' || spaceKey === 'CONFERENCE_HALL') {
     if (overlapping.length > 0) {
-      const existing = overlapping[0];
       throw new Error(`⚠️ ${space.name} در تاریخ (${dateStr}) قبلاً رزرو شده است. لطفاً تاریخ یا ساعت دیگری انتخاب فرمایید.`);
     }
     return spaceKey === 'MEETING_ROOM' ? 'اتاق ویدیوکنفرانس اصلی (ظرفیت ۱۲ نفر)' : 'سالن همایش و رویداد اصلی (ظرفیت ۷۰ نفر)';
@@ -258,7 +294,7 @@ function checkConflictAndAllocateUnit(spaceKey, dateStr, bookingType, hourlySlot
 
   if (spaceKey === 'PRIVATE_OFFICE') {
     if (overlapping.length >= 4) {
-      throw new Error(`⚠️ تمام ۴ اتاق کار اختصاصی در تاریخ (${dateStr}) تکمیل ظرفیت است. لطفاً تاریخ دیگری انتخاب فرمایید.`);
+      throw new Error(`⚠️ تمام ۴ اتاق کار اختصاصی در تاریخ (${dateStr}) تکمیل ظرفیت است.`);
     }
     const assignedOfficeNum = overlapping.length + 1;
     return `اتاق کار اختصاصی شماره ${toPersianDigits(assignedOfficeNum)} (از ۴ اتاق)`;
@@ -285,7 +321,7 @@ function checkConflictAndAllocateUnit(spaceKey, dateStr, bookingType, hourlySlot
   return 'واحد عمومی';
 }
 
-// REST API Request Wrapper with Fallback
+// REST API Request Wrapper
 async function apiRequest(endpoint, method = 'GET', body = null) {
   const headers = { 'Content-Type': 'application/json' };
   if (state.currentUser) {
@@ -397,12 +433,14 @@ function fallbackApi(endpoint, method, body) {
   return null;
 }
 
-// Initialize Application
+// App Initialization
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   restoreAuthSession();
   setupSPARouter();
+  setupHomeReturnLinks();
   setupAuthModal();
+  setupProfileEditModal();
   setupServiceFlow();
   setupRateToggle();
   renderSpacesCatalog();
@@ -444,7 +482,7 @@ function updateThemeIcon(iconEl, theme) {
   }
 }
 
-// 2. SPA Routing & Real Hash Navigation
+// 2. SPA Hash Navigation & Home Return
 function setupSPARouter() {
   window.addEventListener('hashchange', handleRoute);
   
@@ -463,6 +501,20 @@ function setupSPARouter() {
   });
 
   handleRoute();
+}
+
+function setupHomeReturnLinks() {
+  const brandLogo = document.getElementById('header-brand-logo');
+  brandLogo?.addEventListener('click', () => {
+    navigateToTab('booking');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  const mobHome = document.getElementById('m-tab-booking');
+  mobHome?.addEventListener('click', () => {
+    navigateToTab('booking');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 }
 
 function navigateToTab(tabId) {
@@ -495,7 +547,7 @@ function handleRoute() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// 3. User & Staff Authentication (Login / Register / OTP)
+// 3. User Authentication (Login, Register, OTP)
 let otpCountdownTimer = null;
 let lastOtpRequestTime = 0;
 
@@ -556,7 +608,6 @@ function setupAuthModal() {
     if (e.target === modal) modal.classList.add('hidden');
   });
 
-  // Login Submit
   formLogin?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const uInput = document.getElementById('login-username')?.value?.trim();
@@ -583,7 +634,6 @@ function setupAuthModal() {
     }
   });
 
-  // Register Submit
   formReg?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('reg-name')?.value?.trim();
@@ -616,7 +666,6 @@ function setupAuthModal() {
     }
   });
 
-  // OTP Send & Rate Limiting
   const btnSendOtp = document.getElementById('btn-send-otp');
   btnSendOtp?.addEventListener('click', () => {
     const phone = document.getElementById('otp-phone')?.value?.trim();
@@ -659,8 +708,7 @@ function setupAuthModal() {
     showToast(`📩 کد تایید برای شماره ${phone} ارسال گردید (کد تستی: ۱۲۳۴)`);
   });
 
-  // OTP Verify Submit
-  formOtp?.addEventListener('submit', (e) => {
+  document.getElementById('form-user-otp')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const code = document.getElementById('otp-code')?.value?.trim();
     const phone = document.getElementById('otp-phone')?.value?.trim();
@@ -684,7 +732,8 @@ function setupAuthModal() {
     }
   });
 
-  btnLogout?.addEventListener('click', () => {
+  btnLogout?.addEventListener('click', (e) => {
+    e.stopPropagation();
     state.currentUser = null;
     localStorage.removeItem('techon_auth_user');
     updateAuthUI();
@@ -699,6 +748,78 @@ window.quickFillLogin = function(u, p) {
   if (uEl) uEl.value = u;
   if (pEl) pEl.value = p;
 };
+
+// 4. Profile Management & Edit Modal
+function setupProfileEditModal() {
+  const profileWidget = document.getElementById('user-profile-widget');
+  const modal = document.getElementById('profile-modal');
+  const btnClose = document.getElementById('btn-close-profile-modal');
+  const btnCancel = document.getElementById('btn-cancel-profile-edit');
+  const form = document.getElementById('form-edit-profile');
+
+  function openProfileModal() {
+    if (!state.currentUser) return;
+    document.getElementById('edit-name').value = state.currentUser.name || '';
+    document.getElementById('edit-phone').value = state.currentUser.phone || '';
+    document.getElementById('edit-email').value = state.currentUser.email || '';
+    document.getElementById('edit-birthdate').value = state.currentUser.birthDate || '';
+    document.getElementById('edit-bio').value = state.currentUser.bio || state.currentUser.title || '';
+    document.getElementById('profile-edit-msg').style.display = 'none';
+    modal?.classList.remove('hidden');
+  }
+
+  profileWidget?.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-logout')) return;
+    openProfileModal();
+  });
+
+  btnClose?.addEventListener('click', () => modal?.classList.add('hidden'));
+  btnCancel?.addEventListener('click', () => modal?.classList.add('hidden'));
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.add('hidden');
+  });
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('edit-name')?.value?.trim();
+    const phone = document.getElementById('edit-phone')?.value?.trim();
+    const email = document.getElementById('edit-email')?.value?.trim();
+    const birthDate = document.getElementById('edit-birthdate')?.value?.trim();
+    const bio = document.getElementById('edit-bio')?.value?.trim();
+    const errEl = document.getElementById('profile-edit-msg');
+
+    if (!name) {
+      if (errEl) {
+        errEl.innerText = 'نام و نام خانوادگی الزامی است.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+
+    if (!/^09[0-9]{9}$/.test(phone)) {
+      if (errEl) {
+        errEl.innerText = 'شماره همراه باید ۱۱ رقمی با فرمت 09121111111 باشد.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+
+    state.currentUser = {
+      ...state.currentUser,
+      name,
+      phone,
+      email: email || '-',
+      birthDate: birthDate || '',
+      bio: bio || state.currentUser.title
+    };
+
+    localStorage.setItem('techon_auth_user', JSON.stringify(state.currentUser));
+    saveRegisteredUser(state.currentUser);
+    updateAuthUI();
+    modal?.classList.add('hidden');
+    showToast('✅ مشخصات کاربری با موفقیت ویرایش و ذخیره شد.');
+  });
+}
 
 function updateAuthUI() {
   const loginBtn = document.getElementById('btn-open-login-modal');
@@ -716,7 +837,7 @@ function updateAuthUI() {
     loginBtn?.classList.add('hidden');
     profileWidget?.classList.remove('hidden');
     if (nameEl) nameEl.innerText = u.name;
-    if (roleEl) roleEl.innerText = u.title || (isStaff ? 'پرسنل' : 'کاربر');
+    if (roleEl) roleEl.innerText = u.title || (isStaff ? 'پرسنل' : 'کاربر گرامی');
     if (isStaff && banner && contextText) {
       banner.classList.remove('hidden');
       contextText.innerText = `در حال مدیریت پلتفرم با دسترسی ${u.title} (${u.name})`;
@@ -735,7 +856,7 @@ function updateAuthUI() {
   document.getElementById('m-tab-analytics')?.classList.toggle('hidden', !isSuperAdmin);
 }
 
-// 4. Service Flow Toggle
+// 5. Service Flow Toggle
 function setupServiceFlow() {
   const btnCowork = document.getElementById('btn-flow-cowork');
   const btnHall = document.getElementById('btn-flow-hall');
@@ -765,7 +886,7 @@ function setupServiceFlow() {
   });
 }
 
-// 5. Space Showcase & Rate Toggle
+// 6. Space Showcase Grid
 function renderSpacesCatalog() {
   const container = document.getElementById('spaces-cards-grid');
   if (!container) return;
@@ -863,7 +984,7 @@ function setupRateToggle() {
   });
 }
 
-// 6. Real Live Jalali Calendar with Past-Date Lock & "Today" Snap
+// 7. Dynamic Live Jalali Calendar (Real Current Date & Accurate Weekday Offset)
 function setupLiveJalaliCalendar() {
   renderJalaliCalendar();
 
@@ -890,7 +1011,7 @@ function setupLiveJalaliCalendar() {
     state.currentJalaliMonth = realToday.jm;
     state.selectedJalaliDay = realToday.jd;
     state.selectedCalendarDate = `${realToday.jy}-${String(realToday.jm).padStart(2,'0')}-${String(realToday.jd).padStart(2,'0')}`;
-    state.selectedCalendarLabel = `${realToday.jd} ${JALALI_MONTH_NAMES[realToday.jm - 1]} ${realToday.jy}`;
+    state.selectedCalendarLabel = `${todayWeekdayName} ${realToday.jd} ${JALALI_MONTH_NAMES[realToday.jm - 1]} ${realToday.jy}`;
 
     const labelEl = document.getElementById('selected-jalali-date-text');
     if (labelEl) labelEl.innerText = state.selectedCalendarLabel;
@@ -919,7 +1040,8 @@ function renderJalaliCalendar() {
   }
 
   const daysCount = getDaysInJalaliMonth(state.currentJalaliYear, state.currentJalaliMonth);
-  const offset = ((state.currentJalaliYear * 12 + state.currentJalaliMonth) * 3) % 7;
+  const firstDayGregorian = jalaliToGregorian(state.currentJalaliYear, state.currentJalaliMonth, 1);
+  const offset = (firstDayGregorian.getDay() + 1) % 7; // Saturday is 0
 
   let daysHtml = '';
   for (let i = 0; i < offset; i++) {
@@ -953,7 +1075,9 @@ function renderJalaliCalendar() {
     cell.addEventListener('click', () => {
       const dayNum = Number(cell.dataset.day);
       const formattedDate = cell.dataset.date;
-      const dateLabel = `${toPersianDigits(dayNum)} ${JALALI_MONTH_NAMES[state.currentJalaliMonth - 1]} ${toPersianDigits(state.currentJalaliYear)}`;
+      const gDate = jalaliToGregorian(state.currentJalaliYear, state.currentJalaliMonth, dayNum);
+      const weekdayName = JALALI_WEEKDAYS[(gDate.getDay() + 1) % 7];
+      const dateLabel = `${weekdayName} ${toPersianDigits(dayNum)} ${JALALI_MONTH_NAMES[state.currentJalaliMonth - 1]} ${toPersianDigits(state.currentJalaliYear)}`;
 
       state.selectedJalaliDay = dayNum;
       state.selectedCalendarDate = formattedDate;
@@ -980,7 +1104,7 @@ function renderJalaliCalendar() {
   });
 }
 
-// 7. Scheduling Engine
+// 8. Scheduling Engine & Duplicate/Overlap Prevention
 function setupSchedulingEngine() {
   const btnHourly = document.getElementById('btn-mode-hourly');
   const btnDaily = document.getElementById('btn-mode-daily');
@@ -1053,6 +1177,7 @@ function setupSchedulingEngine() {
     });
   });
 
+  // Strict Anti-Duplicate & Anti-Overlap in Basket
   document.getElementById('btn-add-time-slot')?.addEventListener('click', () => {
     const sVal = startSelect?.value || '13:00';
     const eVal = endSelect?.value || '18:00';
@@ -1062,6 +1187,29 @@ function setupSchedulingEngine() {
 
     if (sH >= eH) {
       showToast('ساعت پایان باید بعد از ساعت شروع باشد.', 'error');
+      return;
+    }
+
+    const startMin = sH * 60;
+    const endMin = eH * 60;
+
+    // 1. Check exact duplicate
+    const duplicate = state.hourlySlots.find(s => s.date === state.selectedCalendarDate && s.startTime === sVal && s.endTime === eVal);
+    if (duplicate) {
+      showToast(`⚠️ این بازه زمانی (${toPersianDigits(sVal)} تا ${toPersianDigits(eVal)}) قبلاً به سبد اضافه شده است.`, 'error');
+      return;
+    }
+
+    // 2. Check overlap on same date
+    const overlap = state.hourlySlots.find(s => {
+      if (s.date !== state.selectedCalendarDate) return false;
+      const existStartMin = parseInt(s.startTime.split(':')[0], 10) * 60;
+      const existEndMin = parseInt(s.endTime.split(':')[0], 10) * 60;
+      return (startMin < existEndMin && endMin > existStartMin);
+    });
+
+    if (overlap) {
+      showToast(`⚠️ این بازه با بازه انتخابی قبلی (${toPersianDigits(overlap.startTime)} تا ${toPersianDigits(overlap.endTime)}) تداخل زمانی دارد.`, 'error');
       return;
     }
 
@@ -1168,7 +1316,7 @@ window.removeCustomDate = function(dateStr) {
   updatePriceBreakdown();
 };
 
-// 8. Catering & Addons Engine
+// 9. Catering & Addons Engine
 function setupCateringEngine() {
   const header = document.getElementById('catering-toggle-header');
   const body = document.getElementById('catering-booking-body');
@@ -1258,7 +1406,7 @@ window.addCateringFromCatalog = function(itemId) {
   showToast('آیتم به سفارش جاری اضافه شد.');
 };
 
-// 9. Real-Time Price Calculation
+// 10. Real-Time Price Calculation
 function updatePriceBreakdown() {
   const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
   const units = state.selectedSpaceKey === 'SHARED_DESK' ? state.deskCount : 1;
@@ -1272,7 +1420,6 @@ function updatePriceBreakdown() {
       ? `${toPersianDigits(totalHours)} ساعت (${toPersianDigits(state.hourlySlots.length)} بازه)`
       : `(هیچ بازه‌ای انتخاب نشده)`;
   } else {
-    // DAILY
     if (state.dailyMode === 'RANGE') {
       duration = state.dailyRangeDays || 1;
       scheduleSummaryText = `${toPersianDigits(duration)} روز پیوسته`;
@@ -1349,7 +1496,7 @@ function updatePriceBreakdown() {
   }
 }
 
-// 10. Promo Code Engine
+// 11. Promo Code Engine
 function setupPromoEngine() {
   const btnApply = document.getElementById('btn-apply-promo');
   const input = document.getElementById('promo-input');
@@ -1387,9 +1534,9 @@ function setupPromoEngine() {
   });
 }
 
-// 11. 11-Digit Iranian Numeric Phone Filter
+// 12. Phone Filter & Submission
 function setupPhoneInputFilter() {
-  const phoneInputs = ['cust-phone', 'reg-phone', 'otp-phone'];
+  const phoneInputs = ['cust-phone', 'reg-phone', 'otp-phone', 'edit-phone'];
   phoneInputs.forEach(id => {
     const input = document.getElementById(id);
     input?.addEventListener('input', (e) => {
@@ -1398,7 +1545,6 @@ function setupPhoneInputFilter() {
   });
 }
 
-// 12. Booking Submission & Form Reset
 function resetBookingForm() {
   const custName = document.getElementById('cust-name');
   const custPhone = document.getElementById('cust-phone');
@@ -1424,7 +1570,6 @@ function resetBookingForm() {
   const deskDisp = document.getElementById('desk-count-display');
   if (deskDisp) deskDisp.innerText = '۱';
 
-  // Empty cart after booking
   state.hourlySlots = [];
   state.customDailyDates = [];
 
