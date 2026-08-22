@@ -1,12 +1,8 @@
 /**
  * TechOn Platform - Production Client Application
- * Features:
- * 1. Strict Authentication & Role-Based Access Control (Admin/Operator Login)
- * 2. Real REST API Integration (POST /api/reservations, GET /api/spaces, etc.) with Simulated Payment Bypass
- * 3. Space Visual Cards & Real-Time Availability
- * 4. Persian Jalali Calendar & Separated Hourly / Daily Booking Engines
- * 5. Interactive Multi-Slot Cart & Instant Glassmorphism Invoice
- * 6. Responsive Desktop & Mobile Adaptive Views
+ * Version: 4.2.0
+ * Architecture: Clean Vanilla JS with Dynamic Persian Jalali Calendar,
+ * B2B Mobile-First Cards, Strict Authentication & Zero UI Clutter.
  */
 
 // Space Visual Imagery
@@ -96,26 +92,61 @@ const STATIC_STAFF_ACCOUNTS = [
   { username: 'cafe_op', password: 'cafe123', name: 'سارا تهرانی', role: 'CAFE_OPERATOR', title: 'اپراتور سالن و کافه' }
 ];
 
+const JALALI_MONTH_NAMES = [
+  'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+  'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+];
+
+// Dynamic Current Jalali Detection
+function getRealCurrentJalali() {
+  const now = new Date();
+  try {
+    const parts = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    }).formatToParts(now);
+    
+    let jy = 1404, jm = 12, jd = 3;
+    parts.forEach(p => {
+      if (p.type === 'year') jy = parseInt(p.value.replace(/[^0-9]/g, '') || '1404', 10);
+      if (p.type === 'month') jm = parseInt(p.value.replace(/[^0-9]/g, '') || '12', 10);
+      if (p.type === 'day') jd = parseInt(p.value.replace(/[^0-9]/g, '') || '3', 10);
+    });
+    return { jy, jm, jd };
+  } catch (e) {
+    return { jy: 1404, jm: 12, jd: 3 };
+  }
+}
+
+const currentInitJalali = getRealCurrentJalali();
+
 // Application State
 const state = {
   theme: 'dark',
-  currentUser: null, // null = Anonymous visitor / customer
+  currentUser: null,
   spaces: DEFAULT_SPACES,
   cateringMenu: DEFAULT_CATERING,
   selectedCategoryFilter: 'ALL',
-  selectedFlow: 'COWORKING', // 'COWORKING' or 'HALL'
+  selectedFlow: 'COWORKING',
   selectedSpaceKey: 'SHARED_DESK',
-  bookingType: 'HOURLY', // 'HOURLY' or 'DAILY'
+  bookingType: 'HOURLY',
   rateViewMode: 'HOURLY',
   deskCount: 1,
-  selectedCalendarDate: '1405-05-28',
-  selectedCalendarLabel: 'سه‌شنبه ۲۸ مرداد ۱۴۰۵',
-  hourlySlots: [], // Array of { id, date, dateLabel, startTime, endTime, hours }
-  dailyMode: 'RANGE', // 'RANGE' or 'CUSTOM'
-  dailyStartDate: new Date().toISOString().slice(0, 10),
-  dailyEndDate: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+
+  // Live Jalali Calendar State
+  currentJalaliYear: currentInitJalali.jy,
+  currentJalaliMonth: currentInitJalali.jm,
+  selectedJalaliDay: currentInitJalali.jd,
+  selectedCalendarDate: `${currentInitJalali.jy}-${String(currentInitJalali.jm).padStart(2,'0')}-${String(currentInitJalali.jd).padStart(2,'0')}`,
+  selectedCalendarLabel: `${currentInitJalali.jd} ${JALALI_MONTH_NAMES[currentInitJalali.jm - 1]} ${currentInitJalali.jy}`,
+
+  hourlySlots: [],
+  dailyMode: 'RANGE',
+  dailyRangeDays: 1,
   customDailyDates: [],
-  cateringOrders: {}, // itemId -> count
+
+  cateringOrders: {},
   cateringAddonOpen: false,
   appliedPromo: null
 };
@@ -133,18 +164,43 @@ function formatCurrency(amount) {
   return Number(amount).toLocaleString('fa-IR') + ' تومان';
 }
 
-// Toast Notifier
+// Global Singleton Toast Notifier
+let activeToastTimeout = null;
 function showToast(message, type = 'success') {
   const container = document.getElementById('toast-container');
   if (!container) return;
+  
+  container.innerHTML = ''; // Singleton: Clear previous toasts to prevent stacking
+  if (activeToastTimeout) clearTimeout(activeToastTimeout);
+
   const toast = document.createElement('div');
   toast.className = `toast-item toast-${type}`;
-  toast.innerText = message;
+  toast.innerHTML = `<span>${message}</span>`;
   container.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
+
+  activeToastTimeout = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
+    setTimeout(() => toast.remove(), 250);
+  }, 3500);
 }
 
-// REST API Request Wrapper
+// Local Storage Persistent Helpers
+function getStoredReservations() {
+  try {
+    const raw = localStorage.getItem('techon_production_reservations');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [];
+}
+
+function saveStoredReservations(list) {
+  try {
+    localStorage.setItem('techon_production_reservations', JSON.stringify(list));
+  } catch (e) {}
+}
+
+// REST API Request Wrapper with Fallback
 async function apiRequest(endpoint, method = 'GET', body = null) {
   const headers = { 'Content-Type': 'application/json' };
   if (state.currentUser) {
@@ -165,22 +221,7 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
     // Network / static host fallback
   }
 
-  // Standalone persistent fallback
   return fallbackApi(endpoint, method, body);
-}
-
-function getStoredReservations() {
-  try {
-    const raw = localStorage.getItem('techon_production_reservations');
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
-  return [];
-}
-
-function saveStoredReservations(list) {
-  try {
-    localStorage.setItem('techon_production_reservations', JSON.stringify(list));
-  } catch (e) {}
 }
 
 function fallbackApi(endpoint, method, body) {
@@ -199,6 +240,15 @@ function fallbackApi(endpoint, method, body) {
     const resId = `RES-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
     const invId = `INV-${Date.now().toString().slice(-6)}`;
     
+    let scheduleDesc = '';
+    if (body.bookingType === 'HOURLY') {
+      const hours = (body.hourlySlots || []).reduce((sum, s) => sum + s.hours, 0) || body.duration || 1;
+      scheduleDesc = `${toPersianDigits(hours)} ساعت (${state.selectedCalendarLabel})`;
+    } else {
+      const days = body.dailyRangeDays || (body.dailyDates || []).length || body.duration || 1;
+      scheduleDesc = `${toPersianDigits(days)} روز (${state.selectedCalendarLabel})`;
+    }
+
     const newRes = {
       id: resId,
       invoiceNumber: invId,
@@ -208,7 +258,7 @@ function fallbackApi(endpoint, method, body) {
       customerPhone: body.customerPhone,
       customerEmail: body.customerEmail || '-',
       duration: body.duration,
-      scheduleDescription: body.scheduleDescription || `${toPersianDigits(body.duration)} ساعت/روز`,
+      scheduleDescription: scheduleDesc,
       totalPrice: body.totalPrice || '۰ تومان',
       status: body.spaceKey === 'CONFERENCE_HALL' ? 'در انتظار بررسی' : 'تأیید شده',
       paymentStatus: 'PAID (درگاه آزمایشی / پرداخت شده)',
@@ -239,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupServiceFlow();
   setupRateToggle();
   renderSpacesCatalog();
-  setupJalaliCalendar();
+  setupLiveJalaliCalendar();
   setupSchedulingEngine();
   setupCateringEngine();
   setupPromoEngine();
@@ -374,7 +424,6 @@ function updateAuthUI() {
     banner?.classList.add('hidden');
   }
 
-  // Toggle Admin & Analytics tabs based on actual authentication
   document.getElementById('d-tab-admin')?.classList.toggle('hidden', !isStaff);
   document.getElementById('m-tab-admin')?.classList.toggle('hidden', !isStaff);
   document.getElementById('d-tab-analytics')?.classList.toggle('hidden', !isSuperAdmin);
@@ -419,7 +468,7 @@ function switchTab(tabId) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// 4. Service Flow Toggle (Coworking vs Hall)
+// 4. Service Flow Toggle
 function setupServiceFlow() {
   const btnCowork = document.getElementById('btn-flow-cowork');
   const btnHall = document.getElementById('btn-flow-hall');
@@ -548,30 +597,65 @@ function setupRateToggle() {
   });
 }
 
-// 6. Jalali Calendar Integration
-function setupJalaliCalendar() {
+// 6. Dynamic Live Jalali Calendar Integration
+function setupLiveJalaliCalendar() {
+  renderJalaliCalendar();
+
+  document.getElementById('btn-cal-prev')?.addEventListener('click', () => {
+    state.currentJalaliMonth--;
+    if (state.currentJalaliMonth < 1) {
+      state.currentJalaliMonth = 12;
+      state.currentJalaliYear--;
+    }
+    renderJalaliCalendar();
+  });
+
+  document.getElementById('btn-cal-next')?.addEventListener('click', () => {
+    state.currentJalaliMonth++;
+    if (state.currentJalaliMonth > 12) {
+      state.currentJalaliMonth = 1;
+      state.currentJalaliYear++;
+    }
+    renderJalaliCalendar();
+  });
+}
+
+function getDaysInJalaliMonth(year, month) {
+  if (month <= 6) return 31;
+  if (month <= 11) return 30;
+  // Esfand leap check approx
+  return 29;
+}
+
+function renderJalaliCalendar() {
   const matrix = document.getElementById('cal-days-matrix');
+  const titleEl = document.getElementById('cal-month-title');
   if (!matrix) return;
 
-  const daysInMonth = 31;
-  const startDayOffset = 3; // Saturday alignment offset
+  if (titleEl) {
+    titleEl.innerText = `${JALALI_MONTH_NAMES[state.currentJalaliMonth - 1]} ${toPersianDigits(state.currentJalaliYear)}`;
+  }
+
+  const daysCount = getDaysInJalaliMonth(state.currentJalaliYear, state.currentJalaliMonth);
+  // Shift calculation for standard month alignment
+  const offset = ((state.currentJalaliYear * 12 + state.currentJalaliMonth) * 3) % 7;
 
   let daysHtml = '';
-  for (let i = 0; i < startDayOffset; i++) {
+  for (let i = 0; i < offset; i++) {
     daysHtml += `<div class="cal-day-cell disabled-cell"></div>`;
   }
 
-  const currentDayNum = 28;
+  for (let d = 1; d <= daysCount; d++) {
+    const formattedDate = `${state.currentJalaliYear}-${String(state.currentJalaliMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isActiveSingle = (state.selectedCalendarDate === formattedDate);
+    const isMultiSelected = state.customDailyDates.includes(formattedDate);
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const isToday = d === currentDayNum;
-    const isPast = d < currentDayNum - 3;
     const classes = ['cal-day-cell'];
-    if (isPast) classes.push('past-cell');
-    if (isToday) classes.push('active-day-cell');
+    if (isActiveSingle) classes.push('active-day-cell');
+    if (isMultiSelected && state.dailyMode === 'CUSTOM') classes.push('multi-selected-cell');
 
     daysHtml += `
-      <div class="${classes.join(' ')}" data-day="${d}">
+      <div class="${classes.join(' ')}" data-day="${d}" data-date="${formattedDate}">
         <span class="day-num">${toPersianDigits(d)}</span>
       </div>
     `;
@@ -579,28 +663,40 @@ function setupJalaliCalendar() {
 
   matrix.innerHTML = daysHtml;
 
-  matrix.querySelectorAll('.cal-day-cell:not(.disabled-cell):not(.past-cell)').forEach(cell => {
+  matrix.querySelectorAll('.cal-day-cell:not(.disabled-cell)').forEach(cell => {
     cell.addEventListener('click', () => {
-      matrix.querySelectorAll('.cal-day-cell').forEach(c => c.classList.remove('active-day-cell'));
-      cell.classList.add('active-day-cell');
-
       const dayNum = Number(cell.dataset.day);
-      const formattedDateStr = `1405-05-${dayNum < 10 ? '0' + dayNum : dayNum}`;
-      state.selectedCalendarDate = formattedDateStr;
-      state.selectedCalendarLabel = `${toPersianDigits(dayNum)} مرداد ۱۴۰۵`;
+      const formattedDate = cell.dataset.date;
+      const dateLabel = `${toPersianDigits(dayNum)} ${JALALI_MONTH_NAMES[state.currentJalaliMonth - 1]} ${toPersianDigits(state.currentJalaliYear)}`;
 
+      state.selectedJalaliDay = dayNum;
+      state.selectedCalendarDate = formattedDate;
+      state.selectedCalendarLabel = dateLabel;
+
+      if (state.bookingType === 'DAILY' && state.dailyMode === 'CUSTOM') {
+        // Toggle custom day
+        if (state.customDailyDates.includes(formattedDate)) {
+          state.customDailyDates = state.customDailyDates.filter(d => d !== formattedDate);
+        } else {
+          state.customDailyDates.push(formattedDate);
+        }
+        renderCustomDailyChips();
+      }
+
+      // Update callouts
       const labelEl = document.getElementById('selected-jalali-date-text');
-      if (labelEl) labelEl.innerText = state.selectedCalendarLabel;
+      if (labelEl) labelEl.innerText = dateLabel;
+      const rangeStartText = document.getElementById('daily-range-start-text');
+      if (rangeStartText) rangeStartText.innerText = dateLabel;
 
-      const customInput = document.getElementById('custom-single-date');
-      if (customInput) customInput.value = formattedDateStr;
-
-      showToast(`تاریخ فعال در تقویم: ${state.selectedCalendarLabel}`);
+      renderJalaliCalendar();
+      updatePriceBreakdown();
+      showToast(`📅 تاریخ انتخابی: ${dateLabel}`);
     });
   });
 }
 
-// 7. Smart Multi-Slot & Daily Scheduling Engine
+// 7. Scheduling Engine (Separated Hourly & Jalali Daily)
 function setupSchedulingEngine() {
   const btnHourly = document.getElementById('btn-mode-hourly');
   const btnDaily = document.getElementById('btn-mode-daily');
@@ -619,6 +715,7 @@ function setupSchedulingEngine() {
     hourlySection?.classList.remove('hidden');
     dailySection?.classList.add('hidden');
     renderSpacesCatalog();
+    renderJalaliCalendar();
     updatePriceBreakdown();
   });
 
@@ -632,10 +729,11 @@ function setupSchedulingEngine() {
     dailySection?.classList.remove('hidden');
     hourlySection?.classList.add('hidden');
     renderSpacesCatalog();
+    renderJalaliCalendar();
     updatePriceBreakdown();
   });
 
-  // Populate Hour Dropdowns (08:00 to 23:00)
+  // Hour Selectors Setup
   const startSelect = document.getElementById('time-start-select');
   const endSelect = document.getElementById('time-end-select');
 
@@ -652,7 +750,7 @@ function setupSchedulingEngine() {
   }
 
   // Time Chips Logic
-  const timeChips = document.querySelectorAll('.time-chip');
+  const timeChips = document.querySelectorAll('#time-chips-container .time-chip');
   const customBox = document.getElementById('custom-time-selectors');
 
   timeChips.forEach(chip => {
@@ -703,35 +801,30 @@ function setupSchedulingEngine() {
     showToast(`بازه زمانی (${toPersianDigits(hours)} ساعت) به سبد رزرو اضافه شد.`);
   });
 
-  // Daily Radios & Pickers
+  // Daily Radios
   document.querySelectorAll('input[name="daily-submode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
       state.dailyMode = e.target.value;
       document.getElementById('daily-range-box')?.classList.toggle('hidden', state.dailyMode !== 'RANGE');
       document.getElementById('daily-custom-box')?.classList.toggle('hidden', state.dailyMode !== 'CUSTOM');
+      renderJalaliCalendar();
       updatePriceBreakdown();
     });
   });
 
-  // Daily Range inputs
-  const startD = document.getElementById('daily-start-date');
-  const endD = document.getElementById('daily-end-date');
-  if (startD && endD) {
-    startD.value = state.dailyStartDate;
-    endD.value = state.dailyEndDate;
-    startD.addEventListener('change', (e) => { state.dailyStartDate = e.target.value; updatePriceBreakdown(); });
-    endD.addEventListener('change', (e) => { state.dailyEndDate = e.target.value; updatePriceBreakdown(); });
-  }
-
-  // Custom Day Add
-  document.getElementById('btn-add-custom-date')?.addEventListener('click', () => {
-    const dVal = document.getElementById('custom-single-date')?.value || state.selectedCalendarDate;
-    if (!state.customDailyDates.includes(dVal)) {
-      state.customDailyDates.push(dVal);
-      renderCustomDailyChips();
+  // Daily Range Presets (1, 2, 3, 7, 30 days)
+  document.querySelectorAll('#daily-range-presets .time-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#daily-range-presets .time-chip').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.dailyRangeDays = parseInt(btn.dataset.days, 10) || 1;
+      
+      const countEl = document.getElementById('daily-range-days-count');
+      if (countEl) countEl.innerText = `${toPersianDigits(state.dailyRangeDays)} روز کامل`;
+      
       updatePriceBreakdown();
-      showToast('تاریخ به روزهای انتخابی اضافه شد.');
-    }
+      showToast(`مدت رزرو روزانه: ${toPersianDigits(state.dailyRangeDays)} روز`);
+    });
   });
 
   // Initial default demo slot
@@ -785,7 +878,7 @@ function renderCustomDailyChips() {
   if (!container) return;
 
   if (state.customDailyDates.length === 0) {
-    container.innerHTML = `<span class="empty-slot-msg">هنوز روزی اضافه نشده است.</span>`;
+    container.innerHTML = `<span class="empty-slot-msg" style="color:var(--text-dim); font-size:12px;">هنوز تاریخی انتخاب نشده است.</span>`;
     if (badge) badge.innerText = `۰ روز`;
     return;
   }
@@ -803,6 +896,7 @@ function renderCustomDailyChips() {
 window.removeCustomDate = function(dateStr) {
   state.customDailyDates = state.customDailyDates.filter(d => d !== dateStr);
   renderCustomDailyChips();
+  renderJalaliCalendar();
   updatePriceBreakdown();
 };
 
@@ -823,7 +917,6 @@ function setupCateringEngine() {
   renderCateringBookingSelector();
   renderCateringCatalogGrid();
 
-  // Catering Category Filter Pills
   document.querySelectorAll('#catering-filter-tabs .filter-pill-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#catering-filter-tabs .filter-pill-btn').forEach(b => b.classList.remove('active'));
@@ -913,18 +1006,8 @@ function updatePriceBreakdown() {
   } else {
     // DAILY
     if (state.dailyMode === 'RANGE') {
-      const s = state.dailyStartDate ? new Date(state.dailyStartDate) : null;
-      const e = state.dailyEndDate ? new Date(state.dailyEndDate) : null;
-      if (s && e && !isNaN(s) && !isNaN(e)) {
-        const diff = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
-        duration = Math.max(1, diff);
-        scheduleSummaryText = `${toPersianDigits(duration)} روز پیوسته`;
-      } else {
-        duration = 1;
-        scheduleSummaryText = `۱ روز`;
-      }
-      const rangeDaysEl = document.getElementById('daily-range-days-count');
-      if (rangeDaysEl) rangeDaysEl.innerText = `${toPersianDigits(duration)} روز`;
+      duration = state.dailyRangeDays || 1;
+      scheduleSummaryText = `${toPersianDigits(duration)} روز پیوسته`;
     } else {
       duration = Math.max(1, state.customDailyDates.length);
       scheduleSummaryText = `${toPersianDigits(duration)} روز انتخابی`;
@@ -1024,7 +1107,7 @@ function setupPromoEngine() {
         feedback.innerText = `کد تخفیف ${code} اعمال شد (${promos[code].value}٪ تخفیف)`;
         feedback.style.color = 'var(--success)';
       }
-      showToast(`کد تخفیف ${code} با موفقیت اعمال شد.`);
+      showToast(`🎉 کد تخفیف ${code} با موفقیت اعمال شد.`);
     } else {
       state.appliedPromo = null;
       if (feedback) {
@@ -1037,7 +1120,48 @@ function setupPromoEngine() {
   });
 }
 
-// 11. Booking Submission (Real REST API Integration with Simulated Payment Gateway Bypass)
+// 11. Booking Submission & Form Reset
+function resetBookingForm() {
+  const custName = document.getElementById('cust-name');
+  const custPhone = document.getElementById('cust-phone');
+  const custEmail = document.getElementById('cust-email');
+  const topicEl = document.getElementById('event-topic');
+  const recEl = document.getElementById('equip-recording');
+  const sndEl = document.getElementById('equip-sound');
+  const promoIn = document.getElementById('promo-input');
+  const promoFb = document.getElementById('promo-feedback');
+
+  if (custName) custName.value = '';
+  if (custPhone) custPhone.value = '';
+  if (custEmail) custEmail.value = '';
+  if (topicEl) topicEl.value = '';
+  if (recEl) recEl.checked = false;
+  if (sndEl) sndEl.checked = false;
+  if (promoIn) promoIn.value = '';
+  if (promoFb) promoFb.innerText = '';
+
+  state.cateringOrders = {};
+  state.appliedPromo = null;
+  state.deskCount = 1;
+  const deskDisp = document.getElementById('desk-count-display');
+  if (deskDisp) deskDisp.innerText = '۱';
+
+  state.hourlySlots = [
+    {
+      id: `slot-${Date.now()}`,
+      date: state.selectedCalendarDate,
+      dateLabel: state.selectedCalendarLabel,
+      startTime: '13:00',
+      endTime: '18:00',
+      hours: 5
+    }
+  ];
+
+  renderSelectedSlots();
+  renderCateringBookingSelector();
+  updatePriceBreakdown();
+}
+
 function setupSubmitBooking() {
   const btnSubmit = document.getElementById('btn-submit-booking');
   btnSubmit?.addEventListener('click', async () => {
@@ -1051,7 +1175,6 @@ function setupSubmitBooking() {
       return;
     }
 
-    const space = state.spaces.find(s => s.key === state.selectedSpaceKey);
     const units = state.selectedSpaceKey === 'SHARED_DESK' ? state.deskCount : 1;
     const totalStr = document.getElementById('summary-final-total')?.innerText || '۰ تومان';
 
@@ -1060,7 +1183,7 @@ function setupSubmitBooking() {
       const totalHours = state.hourlySlots.reduce((sum, s) => sum + s.hours, 0);
       duration = totalHours > 0 ? totalHours : 1;
     } else {
-      duration = state.dailyMode === 'RANGE' ? Math.max(1, state.customDailyDates.length || 1) : Math.max(1, state.customDailyDates.length);
+      duration = state.dailyMode === 'RANGE' ? state.dailyRangeDays : Math.max(1, state.customDailyDates.length);
     }
 
     const payload = {
@@ -1080,6 +1203,7 @@ function setupSubmitBooking() {
       cateringOrders: Object.entries(state.cateringOrders).map(([id, qty]) => ({ itemId: id, quantity: qty })),
       promoCode: state.appliedPromo?.code || null,
       hourlySlots: state.hourlySlots,
+      dailyRangeDays: state.dailyRangeDays,
       dailyDates: state.customDailyDates,
       totalPrice: totalStr
     };
@@ -1092,8 +1216,13 @@ function setupSubmitBooking() {
       const resData = result?.reservation || result;
 
       showInvoiceModal(resData);
-      showToast('سفارش شما با موفقیت در دیتابیس ثبت و فاکتور صادر شد!');
+      showToast('✨ رزرو شما با موفقیت تأیید شد | رسید رسمی صادر گردید');
+      
+      resetBookingForm();
       renderMyReservations();
+      if (state.currentUser && ['SUPER_ADMIN', 'COWORKING_OPERATOR', 'CAFE_OPERATOR'].includes(state.currentUser.role)) {
+        renderAdminPanel();
+      }
     } catch (err) {
       showToast(err.message || 'خطا در ثبت رزرو. لطفاً مجدداً تلاش فرمایید.', 'error');
     } finally {
@@ -1120,7 +1249,7 @@ function showInvoiceModal(res) {
     <div style="background:var(--input-bg); padding:18px; border-radius:var(--radius-sm); margin-bottom:16px; border:1px solid var(--card-border);">
       <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
         <span style="color:var(--text-muted);">شماره فاکتور:</span>
-        <strong style="color:var(--primary);">${res.invoiceNumber || res.id}</strong>
+        <strong style="color:var(--primary); font-family:monospace; direction:ltr;">${res.invoiceNumber || res.id}</strong>
       </div>
       <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
         <span style="color:var(--text-muted);">فضای رزروشده:</span>
@@ -1144,30 +1273,59 @@ function showInvoiceModal(res) {
   modal.classList.remove('hidden');
 }
 
-// 12. My Reservations Tab
+// 12. My Reservations Tab (Desktop Table + Mobile Cards)
 async function renderMyReservations() {
   const tbody = document.getElementById('my-reservations-tbody');
-  if (!tbody) return;
+  const cardsContainer = document.getElementById('my-reservations-mobile-cards');
+  if (!tbody && !cardsContainer) return;
 
   const phone = document.getElementById('cust-phone')?.value?.trim() || '';
   const list = await apiRequest(`/api/my-reservations?phone=${phone}`);
   const reservations = Array.isArray(list) ? list : getStoredReservations();
 
   if (reservations.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">هنوز رزروی ثبت نکرده‌اید.</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">هنوز رزروی ثبت نکرده‌اید.</td></tr>`;
+    if (cardsContainer) cardsContainer.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;">هنوز رزروی ثبت نکرده‌اید.</div>`;
     return;
   }
 
-  tbody.innerHTML = reservations.map(r => `
-    <tr>
-      <td><code>${r.id}</code></td>
-      <td><strong>${r.spaceName}</strong></td>
-      <td>${r.date || r.scheduleDescription || '-'}</td>
-      <td style="color:var(--accent); font-weight:700;">${r.totalPrice || formatCurrency(r.pricing?.finalTotal)}</td>
-      <td><span class="badge-availability">${r.status || 'تأیید شده'}</span></td>
-      <td><button type="button" class="btn-card-select" onclick="viewReceipt('${r.id}')">مشاهده رسید</button></td>
-    </tr>
-  `).join('');
+  // Desktop Table Rows
+  if (tbody) {
+    tbody.innerHTML = reservations.map(r => `
+      <tr>
+        <td><code>${r.id}</code></td>
+        <td><strong>${r.spaceName}</strong></td>
+        <td>${r.date || r.scheduleDescription || '-'}</td>
+        <td style="color:var(--accent); font-weight:700;">${r.totalPrice || formatCurrency(r.pricing?.finalTotal)}</td>
+        <td><span class="badge-availability">${r.status || 'تأیید شده'}</span></td>
+        <td><button type="button" class="btn-card-select" onclick="viewReceipt('${r.id}')">مشاهده رسید</button></td>
+      </tr>
+    `).join('');
+  }
+
+  // Mobile Cards
+  if (cardsContainer) {
+    cardsContainer.innerHTML = reservations.map(r => `
+      <div class="mobile-reservation-card">
+        <div class="mob-card-header">
+          <code>${r.id}</code>
+          <span class="badge-availability">${r.status || 'تأیید شده'}</span>
+        </div>
+        <h4 class="mob-card-title">${r.spaceName}</h4>
+        <div class="mob-card-row">
+          <span class="mob-card-label">زمان‌بندی:</span>
+          <span class="mob-card-val">${r.date || r.scheduleDescription || '-'}</span>
+        </div>
+        <div class="mob-card-row">
+          <span class="mob-card-label">مبلغ پرداختی:</span>
+          <span class="mob-card-price">${r.totalPrice || formatCurrency(r.pricing?.finalTotal)}</span>
+        </div>
+        <div class="mob-card-actions">
+          <button type="button" class="btn-card-select" style="width:100%;" onclick="viewReceipt('${r.id}')">📄 مشاهده فاکتور رسمی</button>
+        </div>
+      </div>
+    `).join('');
+  }
 }
 
 window.viewReceipt = function(id) {
@@ -1179,34 +1337,78 @@ window.viewReceipt = function(id) {
 // 13. Admin CMS & Operator Tools (Protected)
 async function renderAdminPanel() {
   const tbody = document.getElementById('reservations-tbody');
-  if (!tbody) return;
+  const cardsContainer = document.getElementById('admin-reservations-mobile-cards');
+  if (!tbody && !cardsContainer) return;
 
   if (!state.currentUser || !['SUPER_ADMIN', 'COWORKING_OPERATOR', 'CAFE_OPERATOR'].includes(state.currentUser.role)) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--danger);">دسترسی غیرمجاز. لطفاً وارد حساب مدیریت یا اپراتور شوید.</td></tr>`;
+    const errorHtml = `<div style="text-align:center; padding:30px; color:var(--danger); font-weight:700;">دسترسی غیرمجاز. لطفاً وارد حساب مدیریت یا اپراتور شوید.</div>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--danger);">دسترسی غیرمجاز. لطفاً وارد حساب مدیریت یا اپراتور شوید.</td></tr>`;
+    if (cardsContainer) cardsContainer.innerHTML = errorHtml;
     return;
   }
 
   const list = await apiRequest('/api/admin/reservations');
   const reservations = Array.isArray(list) ? list : getStoredReservations();
 
-  tbody.innerHTML = reservations.map(r => `
-    <tr>
-      <td><code>${r.id}</code></td>
-      <td>${r.spaceName}</td>
-      <td>${r.customerName || r.customer?.name}</td>
-      <td>${r.date || r.scheduleDescription || '-'}</td>
-      <td style="color:var(--accent); font-weight:700;">${r.totalPrice || formatCurrency(r.pricing?.finalTotal)}</td>
-      <td><span class="badge-availability">${r.status || 'تأیید شده'}</span></td>
-      <td>
-        <button type="button" class="btn-step" onclick="deleteReservation('${r.id}')" title="حذف">🗑️</button>
-      </td>
-    </tr>
-  `).join('');
+  if (reservations.length === 0) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">هیچ سفارشی در دیتابیس ثبت نشده است.</td></tr>`;
+    if (cardsContainer) cardsContainer.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;">هیچ سفارشی در دیتابیس ثبت نشده است.</div>`;
+    return;
+  }
 
-  document.getElementById('btn-refresh-reservations')?.addEventListener('click', () => {
-    renderAdminPanel();
-    showToast('فهرست رزروها به‌روزرسانی شد.');
-  });
+  // Desktop Table Rows
+  if (tbody) {
+    tbody.innerHTML = reservations.map(r => `
+      <tr>
+        <td><code>${r.id}</code></td>
+        <td><strong>${r.spaceName}</strong></td>
+        <td>${r.customerName || r.customer?.name}</td>
+        <td>${r.date || r.scheduleDescription || '-'}</td>
+        <td style="color:var(--accent); font-weight:700;">${r.totalPrice || formatCurrency(r.pricing?.finalTotal)}</td>
+        <td><span class="badge-availability">${r.status || 'تأیید شده'}</span></td>
+        <td>
+          <button type="button" class="btn-step" onclick="deleteReservation('${r.id}')" title="حذف">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Mobile Cards
+  if (cardsContainer) {
+    cardsContainer.innerHTML = reservations.map(r => `
+      <div class="mobile-reservation-card">
+        <div class="mob-card-header">
+          <code>${r.id}</code>
+          <span class="badge-availability">${r.status || 'تأیید شده'}</span>
+        </div>
+        <h4 class="mob-card-title">${r.spaceName}</h4>
+        <div class="mob-card-row">
+          <span class="mob-card-label">متقاضی:</span>
+          <span class="mob-card-val">${r.customerName || r.customer?.name} (${toPersianDigits(r.customerPhone || r.customer?.phone || '')})</span>
+        </div>
+        <div class="mob-card-row">
+          <span class="mob-card-label">زمان‌بندی:</span>
+          <span class="mob-card-val">${r.date || r.scheduleDescription || '-'}</span>
+        </div>
+        <div class="mob-card-row">
+          <span class="mob-card-label">مبلغ کل:</span>
+          <span class="mob-card-price">${r.totalPrice || formatCurrency(r.pricing?.finalTotal)}</span>
+        </div>
+        <div class="mob-card-actions">
+          <button type="button" class="btn-card-select" style="flex:1;" onclick="viewReceipt('${r.id}')">مشاهده فاکتور</button>
+          <button type="button" class="btn-step" onclick="deleteReservation('${r.id}')" title="حذف">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  const refreshBtn = document.getElementById('btn-refresh-reservations');
+  if (refreshBtn) {
+    refreshBtn.onclick = () => {
+      renderAdminPanel();
+      showToast('🔄 اطلاعات پنل مدیریت به‌روزرسانی شد.');
+    };
+  }
 }
 
 window.deleteReservation = function(id) {
@@ -1214,7 +1416,8 @@ window.deleteReservation = function(id) {
   list = list.filter(r => r.id !== id);
   saveStoredReservations(list);
   renderAdminPanel();
-  showToast('رزرو حذف شد.');
+  renderMyReservations();
+  showToast('رزرو با موفقیت حذف شد.');
 };
 
 // 14. Financial & Analytics Dashboard (SuperAdmin Only)
