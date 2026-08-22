@@ -159,11 +159,11 @@
               <div class="scheduling-mode-tabs">
                 <button type="button" class="mode-tab-btn active" id="btn-mode-hourly" data-mode="HOURLY">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                  <span>رزرو ساعتی (تک یا چند بازه زمانی)</span>
+                  <span>رزرو ساعتی (چند ساعت در روز)</span>
                 </button>
                 <button type="button" class="mode-tab-btn" id="btn-mode-daily" data-mode="DAILY">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  <span>رزرو روزانه (پیوسته / پراکنده)</span>
+                  <span>رزرو روزانه و تمام‌وقت (۱ یا چند روز کامل)</span>
                 </button>
               </div>
 
@@ -198,11 +198,10 @@
                   </div>
                   
                   <div class="time-chips-row" id="time-chips-container">
-                    <button type="button" class="time-chip" data-start="09:00" data-end="13:00">🌅 صبح (۹ تا ۱۳)</button>
-                    <button type="button" class="time-chip selected" data-start="13:00" data-end="18:00">☀️ عصر (۱۳ تا ۱۸)</button>
-                    <button type="button" class="time-chip" data-start="18:00" data-end="21:00">🌙 شب (۱۸ تا ۲۱)</button>
-                    <button type="button" class="time-chip" data-start="09:00" data-end="21:00">⚡ تمام‌وقت (۹ تا ۲۱)</button>
-                    <button type="button" class="time-chip" data-start="custom" id="btn-custom-time">⚙️ ساعت سفارشی</button>
+                    <button type="button" class="time-chip" data-start="09:00" data-end="13:00">🌅 نوبت صبح (۹ تا ۱۳)</button>
+                    <button type="button" class="time-chip selected" data-start="13:00" data-end="18:00">☀️ نوبت عصر (۱۳ تا ۱۸)</button>
+                    <button type="button" class="time-chip" data-start="18:00" data-end="21:00">🌙 نوبت شب (۱۸ تا ۲۱)</button>
+                    <button type="button" class="time-chip" data-start="custom" id="btn-custom-time">⚙️ ساعت دلخواه</button>
                   </div>
 
                   <!-- Custom Hour Selectors -->
